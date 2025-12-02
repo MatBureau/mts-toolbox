@@ -10,6 +10,7 @@ import { env } from '@/lib/env'
 import Script from 'next/script'
 
 const inter = Inter({ subsets: ['latin'] })
+const GA_ID = "G-GEBQLBSF17";
 
 export const metadata: Metadata = {
   title: 'MTS-Toolbox — Collection d\'outils en ligne gratuits',
@@ -42,6 +43,21 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr" suppressHydrationWarning>
+            <head>
+        {/* Script de Google tag (gtag.js) */}
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="ga-script" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){window.dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GA_ID}');
+          `}
+        </Script>
+      </head>
       <body className={inter.className}>
         {env.GA_MEASUREMENT_ID && <GoogleAnalytics gaId={env.GA_MEASUREMENT_ID} />}
         {env.ADSENSE_CLIENT_ID && (
