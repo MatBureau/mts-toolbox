@@ -1,0 +1,56 @@
+# MTS-Toolbox
+
+> Collection d'outils en ligne gratuits pour le texte, le développement, les images et les calculs.
+
+## Catégories
+
+### Texte
+Outils de manipulation et analyse de texte
+
+### Développement
+Outils pour développeurs web
+
+### Images
+Outils de traitement d'images
+
+### Calcul & Conversion
+Calculateurs et convertisseurs
+
+### Générateurs
+Générateurs de code et contenu
+
+### Utilitaires
+Outils pratiques du quotidien
+
+## Outils disponibles
+
+### Texte
+- [Compteur de mots](/texte/compteur-mots): Comptez les mots, caractères, phrases et paragraphes
+- [Convertisseur majuscules/minuscules](/texte/convertisseur-casse): Convertissez votre texte en majuscules, minuscules, ou titre
+- [Générateur Lorem Ipsum](/texte/lorem-ipsum): Générez du texte Lorem Ipsum pour vos maquettes
+- [Suppression des accents](/texte/suppression-accents): Supprimez les accents et caractères spéciaux
+- [Inverseur de texte](/texte/inverseur-texte): Inversez l'ordre des caractères
+- [Encodeur/Décodeur URL](/texte/encodeur-url): Encodez ou décodez des URLs
+- [Encodeur/Décodeur Base64](/texte/encodeur-base64): Encodez ou décodez du texte en Base64
+- [Générateur de slugs URL](/texte/generateur-slug): Générez des slugs SEO-friendly
+- [Extracteur d'emails](/texte/extracteur-emails): Extrayez toutes les adresses email d'un texte
+- [Comparateur de texte](/texte/comparateur-texte): Comparez deux textes et visualisez les différences
+
+### Développement
+- [Formateur JSON](/developpement/formateur-json): Formatez et embellissez votre code JSON
+- [Formateur SQL](/developpement/formateur-sql): Formatez vos requêtes SQL
+- [Formateur HTML/CSS](/developpement/formateur-html-css): Formatez votre code HTML et CSS
+- [Minificateur](/developpement/minificateur): Minifiez votre code JS/CSS/HTML
+- [Testeur de Regex](/developpement/testeur-regex): Testez et déboguez vos expressions régulières
+- [Générateur de mots de passe](/developpement/generateur-password): Générez des mots de passe sécurisés
+- [Générateur d'UUID](/developpement/generateur-uuid): Générez des UUID v4 uniques
+- [Convertisseur JSON ↔ CSV](/developpement/convertisseur-json-csv): Convertissez vos données entre JSON et CSV
+- [Validateur JSON](/developpement/validateur-json): Validez la syntaxe de votre JSON
+- [Décodeur JWT](/developpement/decodeur-jwt): Décodez et lisez le contenu de vos tokens JWT
+
+## Contact
+- Site: https://mts-toolbox.com
+- Email: contact@mts-toolbox.com
+
+## Utilisation
+Tous les outils sont gratuits et fonctionnent directement dans votre navigateur. Aucune inscription requise. Toutes les données sont traitées localement sur votre appareil pour garantir votre confidentialité.

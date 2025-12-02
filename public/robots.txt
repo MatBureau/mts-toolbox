@@ -1,0 +1,6 @@
+# robots.txt for MTS-Toolbox
+User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: https://mts-toolbox.com/sitemap.xml

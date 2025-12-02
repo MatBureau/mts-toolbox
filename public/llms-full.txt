@@ -1,0 +1,163 @@
+# MTS-Toolbox - Documentation complète
+
+> MTS-Toolbox est une collection de 50+ outils en ligne gratuits pour le texte, le développement, les images et les calculs. Tous les outils fonctionnent entièrement côté client dans le navigateur, garantissant la confidentialité et la sécurité de vos données.
+
+## Philosophie
+
+MTS-Toolbox a été créé avec les principes suivants :
+- **Gratuit** : Tous les outils sont 100% gratuits sans limitation
+- **Privé** : Traitement local des données, rien n'est envoyé au serveur
+- **Simple** : Interface intuitive sans inscription requise
+- **Rapide** : Chargement instantané et résultats immédiats
+- **Accessible** : Compatible avec tous les navigateurs modernes
+
+## Catégories détaillées
+
+### 1. Texte
+Outils de manipulation, analyse et transformation de texte.
+
+**Compteur de mots** (/texte/compteur-mots)
+- Compte les mots, caractères (avec et sans espaces), phrases, paragraphes et lignes
+- Utile pour : rédaction, SEO, respect de limites de caractères
+- Cas d'usage : articles de blog, tweets, descriptions de produits
+
+**Convertisseur de casse** (/texte/convertisseur-casse)
+- Convertit en MAJUSCULES, minuscules, Titre, Phrase
+- Utile pour : normalisation de texte, formatage
+- Cas d'usage : titres d'articles, noms propres, uniformisation
+
+**Générateur Lorem Ipsum** (/texte/lorem-ipsum)
+- Génère du faux texte en mots, phrases ou paragraphes
+- Utile pour : maquettes, prototypes, tests de design
+- Cas d'usage : wireframes, templates, démonstrations
+
+**Suppression des accents** (/texte/suppression-accents)
+- Supprime les accents et diacritiques (é → e, à → a)
+- Utile pour : URLs, slugs, compatibilité ASCII
+- Cas d'usage : noms de fichiers, identifiants, recherche
+
+**Inverseur de texte** (/texte/inverseur-texte)
+- Inverse les caractères ou les mots
+- Utile pour : jeux de mots, cryptage simple, tests
+- Cas d'usage : énigmes, vérification de palindromes
+
+**Encodeur/Décodeur URL** (/texte/encodeur-url)
+- Encode/décode les caractères spéciaux pour URLs (espace → %20)
+- Utile pour : URLs, paramètres GET, API calls
+- Cas d'usage : construction d'URLs, debugging de requêtes
+
+**Encodeur/Décodeur Base64** (/texte/encodeur-base64)
+- Encode/décode du texte en Base64
+- Utile pour : transmission de données, embedding, API
+- Cas d'usage : data URIs, authentification basique, stockage
+
+**Générateur de slugs** (/texte/generateur-slug)
+- Crée des slugs SEO-friendly (Mon Article → mon-article)
+- Utile pour : URLs, permaliens, identifiants
+- Cas d'usage : blogs, CMS, routing
+
+**Extracteur d'emails** (/texte/extracteur-emails)
+- Extrait toutes les adresses email d'un texte
+- Utile pour : collecte de contacts, nettoyage de données
+- Cas d'usage : listes de diffusion, scraping, analyse
+
+**Comparateur de texte** (/texte/comparateur-texte)
+- Compare deux textes ligne par ligne et affiche les différences
+- Utile pour : versionning, relecture, débogage
+- Cas d'usage : revue de code, comparaison de documents
+
+### 2. Développement
+Outils pour développeurs web et programmeurs.
+
+**Formateur JSON** (/developpement/formateur-json)
+- Formate (beautify) ou minifie du JSON
+- Valide la syntaxe JSON
+- Utile pour : debugging, lisibilité, API
+- Cas d'usage : réponses d'API, fichiers de config, logs
+
+**Formateur SQL** (/developpement/formateur-sql)
+- Formate les requêtes SQL pour une meilleure lisibilité
+- Sépare les clauses (SELECT, FROM, WHERE...)
+- Utile pour : optimisation, documentation, apprentissage
+- Cas d'usage : requêtes complexes, migration de BDD
+
+**Formateur HTML/CSS** (/developpement/formateur-html-css)
+- Formate le code HTML et CSS avec indentation
+- Utile pour : lisibilité, maintenance, standards
+- Cas d'usage : templates, emails HTML, debugging
+
+**Minificateur** (/developpement/minificateur)
+- Minifie JS, CSS et HTML en supprimant espaces et commentaires
+- Réduit la taille des fichiers
+- Utile pour : performance, bande passante, production
+- Cas d'usage : déploiement, CDN, optimisation
+
+**Testeur de Regex** (/developpement/testeur-regex)
+- Teste des expressions régulières en temps réel
+- Affiche toutes les correspondances trouvées
+- Utile pour : validation, extraction, recherche
+- Cas d'usage : formulaires, parsing, filtrage
+
+**Générateur de mots de passe** (/developpement/generateur-password)
+- Génère des mots de passe aléatoires sécurisés
+- Options : longueur, majuscules, minuscules, chiffres, symboles
+- Utile pour : sécurité, comptes, API keys
+- Cas d'usage : création de comptes, renouvellement
+
+**Générateur d'UUID** (/developpement/generateur-uuid)
+- Génère des identifiants uniques UUID v4
+- Utile pour : bases de données, APIs, identifiants
+- Cas d'usage : clés primaires, sessions, tracking
+
+**Convertisseur JSON ↔ CSV** (/developpement/convertisseur-json-csv)
+- Convertit entre formats JSON et CSV
+- Préserve la structure des données
+- Utile pour : export, import, transformation
+- Cas d'usage : Excel, bases de données, APIs
+
+**Validateur JSON** (/developpement/validateur-json)
+- Vérifie la validité syntaxique du JSON
+- Affiche les erreurs précises
+- Utile pour : debugging, validation, tests
+- Cas d'usage : fichiers de config, réponses API
+
+**Décodeur JWT** (/developpement/decodeur-jwt)
+- Décode les tokens JWT et affiche header et payload
+- Ne vérifie PAS la signature (lecture seule)
+- Utile pour : debugging, inspection, apprentissage
+- Cas d'usage : authentification, APIs, tokens
+
+## Sécurité et confidentialité
+
+**Traitement local uniquement**
+Tous les outils de MTS-Toolbox fonctionnent exclusivement dans votre navigateur. Aucune donnée n'est envoyée à nos serveurs. Vos textes, mots de passe générés, fichiers et toutes autres informations restent sur votre appareil.
+
+**Pas de tracking**
+Nous ne collectons pas de données personnelles. Aucun cookie de tracking n'est utilisé.
+
+**Open source friendly**
+Le code est structuré de manière claire et peut être audité.
+
+## Support technique
+
+- **Email** : contact@mts-toolbox.com
+- **Site** : https://mts-toolbox.com
+- **Bugs** : Signalez les problèmes via le formulaire de contact
+
+## Compatibilité
+
+- Navigateurs : Chrome, Firefox, Safari, Edge (versions récentes)
+- Appareils : Desktop, tablette, mobile
+- Pas de plugin requis
+- JavaScript doit être activé
+
+## Performance
+
+- Chargement instantané grâce au SSG (Static Site Generation)
+- Aucun appel serveur pendant l'utilisation
+- Mode sombre/clair automatique selon préférences système
+- Design responsive et accessible
+
+## Licence
+
+Tous les outils sont fournis gratuitement sans garantie. Usage libre pour usage personnel et commercial.
