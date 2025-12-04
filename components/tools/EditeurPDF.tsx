@@ -73,10 +73,11 @@ export default function EditeurPDF() {
       canvas.height = viewport.height
 
       if (context) {
-        await page.render({
+        const renderContext = {
           canvasContext: context,
           viewport: viewport,
-        }).promise
+        } as any
+        await page.render(renderContext).promise
       }
     } catch (error) {
       console.error('Erreur lors du chargement:', error)
@@ -259,7 +260,7 @@ export default function EditeurPDF() {
       })
 
       const pdfBytes = await pdfDoc.save()
-      const blob = new Blob([pdfBytes], { type: 'application/pdf' })
+      const blob = new Blob([new Uint8Array(pdfBytes)], { type: 'application/pdf' })
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
@@ -304,42 +305,42 @@ export default function EditeurPDF() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
                 <Button
-                  variant={tool === 'select' ? 'default' : 'outline'}
+                  variant={tool === 'select' ? undefined : 'outline'}
                   onClick={() => setTool('select')}
                   className="text-sm"
                 >
                   👆 Sélection
                 </Button>
                 <Button
-                  variant={tool === 'text' ? 'default' : 'outline'}
+                  variant={tool === 'text' ? undefined : 'outline'}
                   onClick={() => setTool('text')}
                   className="text-sm"
                 >
                   📝 Texte
                 </Button>
                 <Button
-                  variant={tool === 'draw' ? 'default' : 'outline'}
+                  variant={tool === 'draw' ? undefined : 'outline'}
                   onClick={() => setTool('draw')}
                   className="text-sm"
                 >
                   ✏️ Dessin
                 </Button>
                 <Button
-                  variant={tool === 'rectangle' ? 'default' : 'outline'}
+                  variant={tool === 'rectangle' ? undefined : 'outline'}
                   onClick={() => setTool('rectangle')}
                   className="text-sm"
                 >
                   ◻️ Rectangle
                 </Button>
                 <Button
-                  variant={tool === 'circle' ? 'default' : 'outline'}
+                  variant={tool === 'circle' ? undefined : 'outline'}
                   onClick={() => setTool('circle')}
                   className="text-sm"
                 >
                   ⭕ Cercle
                 </Button>
                 <Button
-                  variant={tool === 'arrow' ? 'default' : 'outline'}
+                  variant={tool === 'arrow' ? undefined : 'outline'}
                   onClick={() => setTool('arrow')}
                   className="text-sm"
                 >

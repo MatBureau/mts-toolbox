@@ -50,7 +50,7 @@ export default function PDFVersImages() {
           await page.render({
             canvasContext: context,
             viewport: viewport,
-          }).promise
+          } as any).promise
 
           canvas.toBlob((blob) => {
             if (blob) {
