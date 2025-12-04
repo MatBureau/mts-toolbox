@@ -10,7 +10,7 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
 
 const Card = forwardRef<HTMLDivElement, CardProps>(
   ({ className = '', hover = false, href, children, ...props }, ref) => {
-    const baseStyles = 'bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700'
+    const baseStyles = 'bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 h-full flex flex-col'
     const hoverStyles = hover ? 'transition-all duration-200 hover:shadow-lg hover:scale-[1.02]' : ''
 
     const content = (
@@ -25,7 +25,7 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
 
     if (href) {
       return (
-        <Link href={href} className="block">
+        <Link href={href} className="block h-full">
           {content}
         </Link>
       )
