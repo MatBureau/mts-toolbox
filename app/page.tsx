@@ -29,6 +29,10 @@ export default function HomePage() {
         <div className="space-y-12">
           {categories.map((category) => {
             const tools = getToolsByCategory(category.slug)
+
+            // Ne pas afficher les catégories sans outils
+            if (tools.length === 0) return null
+
             return (
               <section key={category.id}>
                 <div className="flex items-center justify-between mb-6">
@@ -43,16 +47,18 @@ export default function HomePage() {
                       </p>
                     </div>
                   </div>
-                  <Link
-                    href={`/${category.slug}`}
-                    className="text-primary-600 hover:text-primary-700 font-medium text-sm"
-                  >
-                    Voir tout →
-                  </Link>
+                  {tools.length > 9 && (
+                    <Link
+                      href={`/${category.slug}`}
+                      className="text-primary-600 hover:text-primary-700 font-medium text-sm whitespace-nowrap"
+                    >
+                      Voir tout ({tools.length}) →
+                    </Link>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {tools.slice(0, 6).map((tool) => (
+                  {tools.slice(0, 9).map((tool) => (
                     <Card key={tool.id} href={`/${tool.category}/${tool.slug}`} hover>
                       <CardHeader>
                         <div className="flex items-start justify-between">
