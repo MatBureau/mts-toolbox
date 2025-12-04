@@ -31,20 +31,40 @@ const toolComponents: Record<string, any> = {
   'convertisseur-json-csv': dynamic(() => import('@/components/tools/ConvertisseurJSONCSV')),
   'validateur-json': dynamic(() => import('@/components/tools/ValidateurJSON')),
   'decodeur-jwt': dynamic(() => import('@/components/tools/DecodeurJWT')),
+  // Images
+  'convertisseur-images': dynamic(() => import('@/components/tools/ConvertisseurImages')),
+  'compresseur-images': dynamic(() => import('@/components/tools/CompresseurImages')),
+  'redimensionneur-images': dynamic(() => import('@/components/tools/RedimensionneurImages')),
+  'generateur-favicon': dynamic(() => import('@/components/tools/GenerateurFavicon')),
+  'extracteur-palette': dynamic(() => import('@/components/tools/ExtracteurPalette')),
+  'convertisseur-image-base64': dynamic(() => import('@/components/tools/ConvertisseurImageBase64')),
+  'generateur-placeholder': dynamic(() => import('@/components/tools/GenerateurPlaceholder')),
   // Calcul & Conversion
   'calculateur-pourcentage': dynamic(() => import('@/components/tools/CalculateurPourcentage')),
   'convertisseur-unites': dynamic(() => import('@/components/tools/ConvertisseurUnites')),
+  'convertisseur-tailles': dynamic(() => import('@/components/tools/ConvertisseurTailles')),
   'calculateur-tva': dynamic(() => import('@/components/tools/CalculateurTVA')),
+  'calculateur-salaire': dynamic(() => import('@/components/tools/CalculateurSalaire')),
+  'convertisseur-devises': dynamic(() => import('@/components/tools/ConvertisseurDevises')),
   'calculateur-age': dynamic(() => import('@/components/tools/CalculateurAge')),
   'calculateur-dates': dynamic(() => import('@/components/tools/CalculateurDates')),
+  'convertisseur-fuseaux': dynamic(() => import('@/components/tools/ConvertisseurFuseaux')),
+  'calculateur-pret': dynamic(() => import('@/components/tools/CalculateurPret')),
   // Générateurs
   'generateur-qrcode': dynamic(() => import('@/components/tools/GenerateurQRCode')),
+  'generateur-codebarre': dynamic(() => import('@/components/tools/GenerateurCodeBarre')),
+  'generateur-mentions-legales': dynamic(() => import('@/components/tools/GenerateurMentionsLegales')),
+  'generateur-politique-confidentialite': dynamic(() => import('@/components/tools/GenerateurPolitiqueConfidentialite')),
+  'generateur-palette-couleurs': dynamic(() => import('@/components/tools/GenerateurPaletteCouleurs')),
   'generateur-gradient': dynamic(() => import('@/components/tools/GenerateurGradient')),
   'generateur-box-shadow': dynamic(() => import('@/components/tools/GenerateurBoxShadow')),
-  'generateur-palette-couleurs': dynamic(() => import('@/components/tools/GenerateurPaletteCouleurs')),
+  'generateur-noms': dynamic(() => import('@/components/tools/GenerateurNoms')),
   // Utilitaires
   'minuteur': dynamic(() => import('@/components/tools/Minuteur')),
+  'horloge-mondiale': dynamic(() => import('@/components/tools/HorlogeMondiale')),
   'detecteur-ip': dynamic(() => import('@/components/tools/DetecteurIP')),
+  'test-frappe': dynamic(() => import('@/components/tools/TestFrappe')),
+  'compteur-rebours': dynamic(() => import('@/components/tools/CompteurRebours')),
 }
 
 interface ToolPageProps {
