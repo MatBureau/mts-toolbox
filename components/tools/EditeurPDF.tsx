@@ -18,6 +18,7 @@ interface Annotation {
   fontSize?: number
   color?: string
   points?: { x: number; y: number }[]
+  pageNumber: number
 }
 
 export default function EditeurPDF() {
@@ -175,8 +176,9 @@ export default function EditeurPDF() {
       const ctx = canvas.getContext('2d')
       if (!ctx) return
 
-      // Dessiner toutes les annotations par-dessus
-      annotations.forEach((ann) => drawSingleAnnotation(ctx, ann))
+      // Dessiner uniquement les annotations de la page actuelle
+      const currentPageAnnotations = annotations.filter(ann => ann.pageNumber === currentPage)
+      currentPageAnnotations.forEach((ann) => drawSingleAnnotation(ctx, ann))
 
       // Sauvegarder à nouveau après avoir dessiné les annotations (pour clearAnnotations)
       if (annotations.length > 0) {
@@ -205,6 +207,7 @@ export default function EditeurPDF() {
         text: textInput,
         fontSize,
         color,
+        pageNumber: currentPage,
       }
       setAnnotations([...annotations, newAnnotation])
       setTextInput('')
@@ -233,6 +236,7 @@ export default function EditeurPDF() {
         y,
         color,
         points: [{ x, y }],
+        pageNumber: currentPage,
       }
       setAnnotations([...annotations, newAnnotation])
     } else {
@@ -244,6 +248,7 @@ export default function EditeurPDF() {
         width: 0,
         height: 0,
         color,
+        pageNumber: currentPage,
       }
       setAnnotations([...annotations, newAnnotation])
     }
@@ -288,8 +293,9 @@ export default function EditeurPDF() {
       // Restaurer l'image du PDF depuis le cache
       ctx.putImageData(pdfImageDataRef.current, 0, 0)
 
-      // Dessiner toutes les annotations par-dessus
-      annotations.forEach((ann) => drawSingleAnnotation(ctx, ann))
+      // Dessiner uniquement les annotations de la page actuelle
+      const currentPageAnnotations = annotations.filter(ann => ann.pageNumber === currentPage)
+      currentPageAnnotations.forEach((ann) => drawSingleAnnotation(ctx, ann))
     })
   }
 
@@ -372,7 +378,8 @@ export default function EditeurPDF() {
   }
 
   const clearAnnotations = () => {
-    setAnnotations([])
+    // Supprimer uniquement les annotations de la page actuelle
+    setAnnotations(annotations.filter(ann => ann.pageNumber !== currentPage))
   }
 
   return (
