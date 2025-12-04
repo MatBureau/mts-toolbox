@@ -331,35 +331,58 @@ export default function EditeurPDF() {
   }
 
   const savePDF = async () => {
-    if (!file || !canvasRef.current) return
+    if (!file || !pdfDocRef.current) return
     setSaving(true)
 
     try {
       const { PDFDocument } = await import('pdf-lib')
 
-      // Convertir le canvas (avec annotations) en image PNG
-      const canvasDataUrl = canvasRef.current.toDataURL('image/png')
-      const imageBytes = await fetch(canvasDataUrl).then(res => res.arrayBuffer())
-
       // Charger le PDF original
       const arrayBuffer = await file.arrayBuffer()
       const pdfDoc = await PDFDocument.load(arrayBuffer)
 
-      // Embed l'image du canvas
-      const pngImage = await pdfDoc.embedPng(imageBytes)
+      // Trouver toutes les pages qui ont des annotations
+      const annotatedPages = new Set(annotations.map(ann => ann.pageNumber))
 
-      // Obtenir la page actuelle
-      const page = pdfDoc.getPages()[currentPage - 1]
-      const { width, height } = page.getSize()
+      // Pour chaque page avec annotations
+      for (const pageNum of annotatedPages) {
+        // Créer un canvas temporaire pour cette page
+        const tempCanvas = document.createElement('canvas')
+        const tempCtx = tempCanvas.getContext('2d')
+        if (!tempCtx) continue
 
-      // Dessiner l'image du canvas par-dessus la page existante
-      // L'image doit être inversée verticalement (flipVertical)
-      page.drawImage(pngImage, {
-        x: 0,
-        y: 0,
-        width: width,
-        height: height,
-      })
+        // Rendre la page PDF
+        const page = await pdfDocRef.current.getPage(pageNum)
+        const viewport = page.getViewport({ scale: 1.5 })
+        tempCanvas.width = viewport.width
+        tempCanvas.height = viewport.height
+
+        const renderContext = {
+          canvasContext: tempCtx,
+          viewport: viewport,
+        } as any
+        await page.render(renderContext).promise
+
+        // Dessiner les annotations de cette page
+        const pageAnnotations = annotations.filter(ann => ann.pageNumber === pageNum)
+        pageAnnotations.forEach(ann => drawSingleAnnotation(tempCtx, ann))
+
+        // Convertir en image PNG
+        const canvasDataUrl = tempCanvas.toDataURL('image/png')
+        const imageBytes = await fetch(canvasDataUrl).then(res => res.arrayBuffer())
+        const pngImage = await pdfDoc.embedPng(imageBytes)
+
+        // Obtenir la page du PDF et dessiner l'image par-dessus
+        const pdfPage = pdfDoc.getPages()[pageNum - 1]
+        const { width, height } = pdfPage.getSize()
+
+        pdfPage.drawImage(pngImage, {
+          x: 0,
+          y: 0,
+          width: width,
+          height: height,
+        })
+      }
 
       const pdfBytes = await pdfDoc.save()
       const blob = new Blob([new Uint8Array(pdfBytes)], { type: 'application/pdf' })
