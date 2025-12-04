@@ -39,6 +39,7 @@ export default function EditeurPDF() {
   const pdfDocRef = useRef<any>(null)
   const pdfjsLib = useRef<any>(null)
   const rafIdRef = useRef<number | null>(null)
+  const pdfImageDataRef = useRef<ImageData | null>(null)
 
   useEffect(() => {
     // Charger pdfjs-dist uniquement côté client
@@ -103,6 +104,9 @@ export default function EditeurPDF() {
           viewport: viewport,
         } as any
         await page.render(renderContext).promise
+
+        // Sauvegarder l'image du PDF pour utilisation ultérieure
+        pdfImageDataRef.current = context.getImageData(0, 0, canvas.width, canvas.height)
       }
     } catch (error) {
       console.error('Erreur lors du rendu:', error)
@@ -161,7 +165,7 @@ export default function EditeurPDF() {
   const redrawCanvas = async () => {
     if (!canvasRef.current || !pdfDocRef.current) return
 
-    // Render la page PDF
+    // Render la page PDF et sauvegarder l'image
     await renderPage()
 
     // Attendre un peu que le PDF soit rendu
@@ -173,6 +177,12 @@ export default function EditeurPDF() {
 
       // Dessiner toutes les annotations par-dessus
       annotations.forEach((ann) => drawSingleAnnotation(ctx, ann))
+
+      // Sauvegarder à nouveau après avoir dessiné les annotations (pour clearAnnotations)
+      if (annotations.length > 0) {
+        const imageWithAnnotations = ctx.getImageData(0, 0, canvas.width, canvas.height)
+        // On garde pdfImageDataRef comme le PDF seul, pas avec annotations
+      }
     }, 50)
   }
 
@@ -273,12 +283,13 @@ export default function EditeurPDF() {
 
     rafIdRef.current = requestAnimationFrame(() => {
       const ctx = canvas.getContext('2d')
-      if (!ctx) return
+      if (!ctx || !pdfImageDataRef.current) return
 
-      // Redessiner tout de manière optimisée
-      renderPage().then(() => {
-        annotations.forEach((ann) => drawSingleAnnotation(ctx, ann))
-      })
+      // Restaurer l'image du PDF depuis le cache
+      ctx.putImageData(pdfImageDataRef.current, 0, 0)
+
+      // Dessiner toutes les annotations par-dessus
+      annotations.forEach((ann) => drawSingleAnnotation(ctx, ann))
     })
   }
 
