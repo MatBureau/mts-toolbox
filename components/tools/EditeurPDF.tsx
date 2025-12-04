@@ -10,7 +10,7 @@ import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 
 // Configure le worker PDF.js
 if (typeof window !== 'undefined') {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`
+  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`
 }
 
 type Tool = 'select' | 'text' | 'draw' | 'rectangle' | 'circle' | 'arrow'
@@ -37,6 +37,8 @@ export default function EditeurPDF() {
   const [selectedAnnotation, setSelectedAnnotation] = useState<string | null>(null)
   const [isDrawing, setIsDrawing] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string>('')
 
   const [textInput, setTextInput] = useState<string>('')
   const [fontSize, setFontSize] = useState<number>(16)
@@ -57,6 +59,9 @@ export default function EditeurPDF() {
 
   const loadPDF = async () => {
     if (!file || !canvasRef.current) return
+
+    setLoading(true)
+    setError('')
 
     try {
       const arrayBuffer = await file.arrayBuffer()
@@ -79,8 +84,12 @@ export default function EditeurPDF() {
         } as any
         await page.render(renderContext).promise
       }
+      setLoading(false)
     } catch (error) {
       console.error('Erreur lors du chargement:', error)
+      setError('Erreur lors du chargement du PDF. Veuillez réessayer.')
+      setLoading(false)
+      alert('Erreur lors du chargement du PDF. Veuillez vérifier que le fichier est valide.')
     }
   }
 
@@ -293,6 +302,16 @@ export default function EditeurPDF() {
             onChange={(e) => setFile(e.target.files?.[0] || null)}
             className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
           />
+          {loading && (
+            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+              Chargement du PDF en cours...
+            </p>
+          )}
+          {error && (
+            <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+              {error}
+            </p>
+          )}
         </CardContent>
       </Card>
 
