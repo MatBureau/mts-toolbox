@@ -38,6 +38,7 @@ export default function EditeurPDF() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const pdfDocRef = useRef<any>(null)
   const pdfjsLib = useRef<any>(null)
+  const rafIdRef = useRef<number | null>(null)
 
   useEffect(() => {
     // Charger pdfjs-dist uniquement côté client
@@ -250,33 +251,6 @@ export default function EditeurPDF() {
     const x = (e.clientX - rect.left) * scaleX
     const y = (e.clientY - rect.top) * scaleY
 
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
-    // Redessiner le PDF et toutes les annotations existantes
-    renderPage().then(() => {
-      annotations.slice(0, -1).forEach((ann) => drawSingleAnnotation(ctx, ann))
-
-      // Dessiner l'annotation en cours
-      const lastAnnotation = annotations[annotations.length - 1]
-      if (lastAnnotation) {
-        if (tool === 'draw' && lastAnnotation.points) {
-          const updatedAnn = {
-            ...lastAnnotation,
-            points: [...lastAnnotation.points, { x, y }]
-          }
-          drawSingleAnnotation(ctx, updatedAnn)
-        } else {
-          const updatedAnn = {
-            ...lastAnnotation,
-            width: x - lastAnnotation.x,
-            height: y - lastAnnotation.y
-          }
-          drawSingleAnnotation(ctx, updatedAnn)
-        }
-      }
-    })
-
     // Mettre à jour le state
     setAnnotations((prev) => {
       const updated = [...prev]
@@ -291,10 +265,31 @@ export default function EditeurPDF() {
 
       return updated
     })
+
+    // Throttle le redraw avec requestAnimationFrame
+    if (rafIdRef.current) {
+      cancelAnimationFrame(rafIdRef.current)
+    }
+
+    rafIdRef.current = requestAnimationFrame(() => {
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return
+
+      // Redessiner tout de manière optimisée
+      renderPage().then(() => {
+        annotations.forEach((ann) => drawSingleAnnotation(ctx, ann))
+      })
+    })
   }
 
   const handleCanvasMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!isDrawing) return
+
+    // Annuler tout requestAnimationFrame en cours
+    if (rafIdRef.current) {
+      cancelAnimationFrame(rafIdRef.current)
+      rafIdRef.current = null
+    }
 
     // Finaliser l'annotation pour les formes (pas draw)
     if (tool !== 'draw' && canvasRef.current) {
