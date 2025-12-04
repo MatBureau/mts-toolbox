@@ -39,6 +39,14 @@ const toolComponents: Record<string, any> = {
   'extracteur-palette': dynamic(() => import('@/components/tools/ExtracteurPalette')),
   'convertisseur-image-base64': dynamic(() => import('@/components/tools/ConvertisseurImageBase64')),
   'generateur-placeholder': dynamic(() => import('@/components/tools/GenerateurPlaceholder')),
+  // PDF
+  'editeur-pdf': dynamic(() => import('@/components/tools/EditeurPDF')),
+  'fusionner-pdf': dynamic(() => import('@/components/tools/FusionnerPDF')),
+  'decouper-pdf': dynamic(() => import('@/components/tools/DecouperPDF')),
+  'compresser-pdf': dynamic(() => import('@/components/tools/CompresserPDF')),
+  'rotation-pdf': dynamic(() => import('@/components/tools/RotationPDF')),
+  'images-vers-pdf': dynamic(() => import('@/components/tools/ImagesVersPDF')),
+  'pdf-vers-images': dynamic(() => import('@/components/tools/PDFVersImages')),
   // Calcul & Conversion
   'calculateur-pourcentage': dynamic(() => import('@/components/tools/CalculateurPourcentage')),
   'convertisseur-unites': dynamic(() => import('@/components/tools/ConvertisseurUnites')),
