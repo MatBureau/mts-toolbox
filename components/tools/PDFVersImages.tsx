@@ -1,15 +1,9 @@
 'use client'
 
-import { useState } from 'react'
-import * as pdfjsLib from 'pdfjs-dist'
+import { useState, useEffect, useRef } from 'react'
 import Button from '@/components/ui/Button'
 import Select from '@/components/ui/Select'
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
-
-// Configure le worker PDF.js avec une version stable
-if (typeof window !== 'undefined') {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@4.0.269/build/pdf.worker.min.mjs'
-}
 
 export default function PDFVersImages() {
   const [file, setFile] = useState<File | null>(null)
@@ -17,25 +11,36 @@ export default function PDFVersImages() {
   const [format, setFormat] = useState<string>('png')
   const [converting, setConverting] = useState(false)
   const [progress, setProgress] = useState<number>(0)
+  const pdfjsLib = useRef<any>(null)
+
+  useEffect(() => {
+    // Charger pdfjs-dist uniquement côté client
+    if (typeof window !== 'undefined' && !pdfjsLib.current) {
+      import('pdfjs-dist').then((module) => {
+        pdfjsLib.current = module
+        module.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@4.0.269/build/pdf.worker.min.mjs'
+      })
+    }
+  }, [])
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
-    if (selectedFile) {
+    if (selectedFile && pdfjsLib.current) {
       setFile(selectedFile)
       const arrayBuffer = await selectedFile.arrayBuffer()
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
+      const pdf = await pdfjsLib.current.getDocument({ data: arrayBuffer }).promise
       setTotalPages(pdf.numPages)
     }
   }
 
   const convertToImages = async () => {
-    if (!file) return
+    if (!file || !pdfjsLib.current) return
     setConverting(true)
     setProgress(0)
 
     try {
       const arrayBuffer = await file.arrayBuffer()
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
+      const pdf = await pdfjsLib.current.getDocument({ data: arrayBuffer }).promise
 
       for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
         const page = await pdf.getPage(pageNum)
