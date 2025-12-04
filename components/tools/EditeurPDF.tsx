@@ -49,27 +49,48 @@ export default function EditeurPDF() {
 
   useEffect(() => {
     if (file) {
-      loadPDF()
+      initializePDF()
     }
-  }, [file, currentPage])
+  }, [file])
 
   useEffect(() => {
-    drawAnnotations()
-  }, [annotations, currentPage])
+    if (pdfDocRef.current && totalPages > 0) {
+      renderPage()
+    }
+  }, [currentPage, totalPages])
 
-  const loadPDF = async () => {
-    if (!file || !canvasRef.current) return
+  useEffect(() => {
+    if (pdfDocRef.current && totalPages > 0) {
+      drawAnnotations()
+    }
+  }, [annotations])
+
+  const initializePDF = async () => {
+    if (!file) return
 
     setLoading(true)
     setError('')
+    setTotalPages(0)
 
     try {
       const arrayBuffer = await file.arrayBuffer()
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
       pdfDocRef.current = pdf
       setTotalPages(pdf.numPages)
+      setLoading(false)
+    } catch (error) {
+      console.error('Erreur lors du chargement:', error)
+      setError('Erreur lors du chargement du PDF. Veuillez réessayer.')
+      setLoading(false)
+      alert('Erreur lors du chargement du PDF. Veuillez vérifier que le fichier est valide.')
+    }
+  }
 
-      const page = await pdf.getPage(currentPage)
+  const renderPage = async () => {
+    if (!pdfDocRef.current || !canvasRef.current) return
+
+    try {
+      const page = await pdfDocRef.current.getPage(currentPage)
       const viewport = page.getViewport({ scale: 1.5 })
       const canvas = canvasRef.current
       const context = canvas.getContext('2d')
@@ -84,18 +105,15 @@ export default function EditeurPDF() {
         } as any
         await page.render(renderContext).promise
       }
-      setLoading(false)
     } catch (error) {
-      console.error('Erreur lors du chargement:', error)
-      setError('Erreur lors du chargement du PDF. Veuillez réessayer.')
-      setLoading(false)
-      alert('Erreur lors du chargement du PDF. Veuillez vérifier que le fichier est valide.')
+      console.error('Erreur lors du rendu:', error)
     }
   }
 
-  const drawAnnotations = () => {
+  const drawAnnotations = async () => {
     if (!canvasRef.current) return
-    loadPDF()
+
+    await renderPage()
 
     setTimeout(() => {
       const canvas = canvasRef.current
