@@ -5,7 +5,6 @@ import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
 import * as pdfjsLib from 'pdfjs-dist'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
-import Select from '@/components/ui/Select'
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 
 // Configure le worker PDF.js avec une version stable
