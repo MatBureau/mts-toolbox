@@ -177,9 +177,13 @@ export default function EditeurPDF() {
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!canvasRef.current) return
-    const rect = canvasRef.current.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
+    const canvas = canvasRef.current
+    const rect = canvas.getBoundingClientRect()
+
+    const scaleX = canvas.width / rect.width
+    const scaleY = canvas.height / rect.height
+    const x = (e.clientX - rect.left) * scaleX
+    const y = (e.clientY - rect.top) * scaleY
 
     if (tool === 'text' && textInput) {
       const newAnnotation: Annotation = {
@@ -200,9 +204,13 @@ export default function EditeurPDF() {
     if (!canvasRef.current) return
     if (tool === 'select' || tool === 'text') return
 
-    const rect = canvasRef.current.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
+    const canvas = canvasRef.current
+    const rect = canvas.getBoundingClientRect()
+
+    const scaleX = canvas.width / rect.width
+    const scaleY = canvas.height / rect.height
+    const x = (e.clientX - rect.left) * scaleX
+    const y = (e.clientY - rect.top) * scaleY
 
     setIsDrawing(true)
 
@@ -233,10 +241,43 @@ export default function EditeurPDF() {
   const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!isDrawing || !canvasRef.current) return
 
-    const rect = canvasRef.current.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
+    const canvas = canvasRef.current
+    const rect = canvas.getBoundingClientRect()
 
+    // Calculer les coordonnées correctes en tenant compte du ratio canvas/affichage
+    const scaleX = canvas.width / rect.width
+    const scaleY = canvas.height / rect.height
+    const x = (e.clientX - rect.left) * scaleX
+    const y = (e.clientY - rect.top) * scaleY
+
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    // Redessiner le PDF et toutes les annotations existantes
+    renderPage().then(() => {
+      annotations.slice(0, -1).forEach((ann) => drawSingleAnnotation(ctx, ann))
+
+      // Dessiner l'annotation en cours
+      const lastAnnotation = annotations[annotations.length - 1]
+      if (lastAnnotation) {
+        if (tool === 'draw' && lastAnnotation.points) {
+          const updatedAnn = {
+            ...lastAnnotation,
+            points: [...lastAnnotation.points, { x, y }]
+          }
+          drawSingleAnnotation(ctx, updatedAnn)
+        } else {
+          const updatedAnn = {
+            ...lastAnnotation,
+            width: x - lastAnnotation.x,
+            height: y - lastAnnotation.y
+          }
+          drawSingleAnnotation(ctx, updatedAnn)
+        }
+      }
+    })
+
+    // Mettre à jour le state
     setAnnotations((prev) => {
       const updated = [...prev]
       const lastAnnotation = updated[updated.length - 1]
@@ -257,9 +298,13 @@ export default function EditeurPDF() {
 
     // Finaliser l'annotation pour les formes (pas draw)
     if (tool !== 'draw' && canvasRef.current) {
-      const rect = canvasRef.current.getBoundingClientRect()
-      const x = e.clientX - rect.left
-      const y = e.clientY - rect.top
+      const canvas = canvasRef.current
+      const rect = canvas.getBoundingClientRect()
+
+      const scaleX = canvas.width / rect.width
+      const scaleY = canvas.height / rect.height
+      const x = (e.clientX - rect.left) * scaleX
+      const y = (e.clientY - rect.top) * scaleY
 
       setAnnotations((prev) => {
         const updated = [...prev]
