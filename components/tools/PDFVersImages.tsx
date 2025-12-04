@@ -6,9 +6,9 @@ import Button from '@/components/ui/Button'
 import Select from '@/components/ui/Select'
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 
-// Configure le worker PDF.js
+// Configure le worker PDF.js avec une version stable
 if (typeof window !== 'undefined') {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@4.0.269/build/pdf.worker.min.mjs'
 }
 
 export default function PDFVersImages() {
