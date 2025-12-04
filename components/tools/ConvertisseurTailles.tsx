@@ -52,7 +52,7 @@ export default function ConvertisseurTailles() {
       if (system !== inputSystem) {
         result.push({
           system: system.toUpperCase(),
-          size: sizes[index],
+          size: (sizes as string[])[index],
         })
       }
     }

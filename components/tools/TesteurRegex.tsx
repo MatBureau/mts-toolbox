@@ -11,21 +11,17 @@ export default function TesteurRegex() {
   const [matches, setMatches] = useState<string[]>([])
   const [error, setError] = useState('')
 
-  const testRegex = () => {
-    try {
-      const regex = new RegExp(pattern, flags)
-      const found = testText.match(regex)
-      setMatches(found || [])
-      setError('')
-    } catch (err) {
-      setError((err as Error).message)
-      setMatches([])
-    }
-  }
-
   useEffect(() => {
     if (pattern && testText) {
-      testRegex()
+      try {
+        const regex = new RegExp(pattern, flags)
+        const found = testText.match(regex)
+        setMatches(found || [])
+        setError('')
+      } catch (err) {
+        setError((err as Error).message)
+        setMatches([])
+      }
     }
   }, [pattern, flags, testText])
 
