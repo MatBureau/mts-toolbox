@@ -51,18 +51,21 @@ export default function EditeurPDF() {
     if (file) {
       initializePDF()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [file])
 
   useEffect(() => {
     if (pdfDocRef.current && totalPages > 0) {
       renderPage()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, totalPages])
 
   useEffect(() => {
-    if (pdfDocRef.current && totalPages > 0) {
+    if (pdfDocRef.current && totalPages > 0 && canvasRef.current && annotations.length > 0) {
       drawAnnotations()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [annotations])
 
   const initializePDF = async () => {
