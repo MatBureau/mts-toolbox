@@ -18,6 +18,10 @@ export const metadata: Metadata = {
   keywords: ['outils en ligne', 'gratuit', 'convertisseur', 'calculateur', 'générateur', 'texte', 'développement'],
   authors: [{ name: 'MTS-Toolbox' }],
   manifest: '/manifest.json',
+  icons: {
+    icon: '/logo.png',
+    apple: '/logo.png',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -28,11 +32,13 @@ export const metadata: Metadata = {
     description: 'Découvrez 50+ outils en ligne gratuits pour le texte, le développement, les images, les calculs et plus encore.',
     type: 'website',
     locale: 'fr_FR',
+    images: ['/logo.png'],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'MTS-Toolbox — Collection d\'outils en ligne gratuits',
     description: 'Découvrez 50+ outils en ligne gratuits pour le texte, le développement, les images, les calculs et plus encore.',
+    images: ['/logo.png'],
   },
 }
 
