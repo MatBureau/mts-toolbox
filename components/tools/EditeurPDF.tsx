@@ -57,11 +57,11 @@ export default function EditeurPDF() {
   }, [file])
 
   useEffect(() => {
-    if (pdfDocRef.current && totalPages > 0 && canvasRef.current) {
+    if (pdfDocRef.current && totalPages > 0 && canvasRef.current && !isDrawing) {
       redrawCanvas()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [annotations, currentPage, totalPages])
+  }, [annotations, currentPage, totalPages, isDrawing])
 
   const initializePDF = async () => {
     if (!file || !pdfjsLib.current) return
@@ -108,6 +108,55 @@ export default function EditeurPDF() {
     }
   }
 
+  const drawSingleAnnotation = (ctx: CanvasRenderingContext2D, ann: Annotation) => {
+    if (ann.type === 'text' && ann.text) {
+      ctx.font = `${ann.fontSize || 16}px Arial`
+      ctx.fillStyle = ann.color || '#000000'
+      ctx.fillText(ann.text, ann.x, ann.y)
+    } else {
+      ctx.strokeStyle = ann.color || '#FF0000'
+      ctx.lineWidth = 2
+
+      if (ann.type === 'rectangle' && ann.width && ann.height) {
+        ctx.strokeRect(ann.x, ann.y, ann.width, ann.height)
+      } else if (ann.type === 'circle' && ann.width) {
+        ctx.beginPath()
+        ctx.arc(ann.x, ann.y, ann.width / 2, 0, Math.PI * 2)
+        ctx.stroke()
+      } else if (ann.type === 'draw' && ann.points && ann.points.length > 1) {
+        ctx.beginPath()
+        ctx.moveTo(ann.points[0].x, ann.points[0].y)
+        ann.points.forEach((point) => ctx.lineTo(point.x, point.y))
+        ctx.stroke()
+      } else if (ann.type === 'arrow' && ann.width && ann.height) {
+        const fromX = ann.x
+        const fromY = ann.y
+        const toX = ann.x + ann.width
+        const toY = ann.y + ann.height
+
+        ctx.beginPath()
+        ctx.moveTo(fromX, fromY)
+        ctx.lineTo(toX, toY)
+        ctx.stroke()
+
+        const angle = Math.atan2(toY - fromY, toX - fromX)
+        const arrowLength = 15
+        ctx.beginPath()
+        ctx.moveTo(toX, toY)
+        ctx.lineTo(
+          toX - arrowLength * Math.cos(angle - Math.PI / 6),
+          toY - arrowLength * Math.sin(angle - Math.PI / 6)
+        )
+        ctx.moveTo(toX, toY)
+        ctx.lineTo(
+          toX - arrowLength * Math.cos(angle + Math.PI / 6),
+          toY - arrowLength * Math.sin(angle + Math.PI / 6)
+        )
+        ctx.stroke()
+      }
+    }
+  }
+
   const redrawCanvas = async () => {
     if (!canvasRef.current || !pdfDocRef.current) return
 
@@ -122,54 +171,7 @@ export default function EditeurPDF() {
       if (!ctx) return
 
       // Dessiner toutes les annotations par-dessus
-      annotations.forEach((ann) => {
-        if (ann.type === 'text' && ann.text) {
-          ctx.font = `${ann.fontSize || 16}px Arial`
-          ctx.fillStyle = ann.color || '#000000'
-          ctx.fillText(ann.text, ann.x, ann.y)
-        } else {
-          ctx.strokeStyle = ann.color || '#FF0000'
-          ctx.lineWidth = 2
-
-          if (ann.type === 'rectangle' && ann.width && ann.height) {
-            ctx.strokeRect(ann.x, ann.y, ann.width, ann.height)
-          } else if (ann.type === 'circle' && ann.width) {
-            ctx.beginPath()
-            ctx.arc(ann.x, ann.y, ann.width / 2, 0, Math.PI * 2)
-            ctx.stroke()
-          } else if (ann.type === 'draw' && ann.points && ann.points.length > 1) {
-            ctx.beginPath()
-            ctx.moveTo(ann.points[0].x, ann.points[0].y)
-            ann.points.forEach((point) => ctx.lineTo(point.x, point.y))
-            ctx.stroke()
-          } else if (ann.type === 'arrow' && ann.width && ann.height) {
-            const fromX = ann.x
-            const fromY = ann.y
-            const toX = ann.x + ann.width
-            const toY = ann.y + ann.height
-
-            ctx.beginPath()
-            ctx.moveTo(fromX, fromY)
-            ctx.lineTo(toX, toY)
-            ctx.stroke()
-
-            const angle = Math.atan2(toY - fromY, toX - fromX)
-            const arrowLength = 15
-            ctx.beginPath()
-            ctx.moveTo(toX, toY)
-            ctx.lineTo(
-              toX - arrowLength * Math.cos(angle - Math.PI / 6),
-              toY - arrowLength * Math.sin(angle - Math.PI / 6)
-            )
-            ctx.moveTo(toX, toY)
-            ctx.lineTo(
-              toX - arrowLength * Math.cos(angle + Math.PI / 6),
-              toY - arrowLength * Math.sin(angle + Math.PI / 6)
-            )
-            ctx.stroke()
-          }
-        }
-      })
+      annotations.forEach((ann) => drawSingleAnnotation(ctx, ann))
     }, 50)
   }
 
@@ -250,7 +252,24 @@ export default function EditeurPDF() {
     })
   }
 
-  const handleCanvasMouseUp = () => {
+  const handleCanvasMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isDrawing) return
+
+    // Finaliser l'annotation pour les formes (pas draw)
+    if (tool !== 'draw' && canvasRef.current) {
+      const rect = canvasRef.current.getBoundingClientRect()
+      const x = e.clientX - rect.left
+      const y = e.clientY - rect.top
+
+      setAnnotations((prev) => {
+        const updated = [...prev]
+        const lastAnnotation = updated[updated.length - 1]
+        lastAnnotation.width = x - lastAnnotation.x
+        lastAnnotation.height = y - lastAnnotation.y
+        return updated
+      })
+    }
+
     setIsDrawing(false)
   }
 
@@ -268,32 +287,24 @@ export default function EditeurPDF() {
       // Charger le PDF original
       const arrayBuffer = await file.arrayBuffer()
       const pdfDoc = await PDFDocument.load(arrayBuffer)
-      const pages = pdfDoc.getPages()
-      const page = pages[currentPage - 1]
 
-      // Embed l'image du canvas dans le PDF
+      // Embed l'image du canvas
       const pngImage = await pdfDoc.embedPng(imageBytes)
+
+      // Obtenir la page actuelle
+      const page = pdfDoc.getPages()[currentPage - 1]
       const { width, height } = page.getSize()
 
-      // Créer une nouvelle page avec l'image du canvas
-      const newPdfDoc = await PDFDocument.create()
-
-      // Copier toutes les pages du PDF original
-      const copiedPages = await newPdfDoc.copyPages(pdfDoc, pdfDoc.getPageIndices())
-      copiedPages.forEach((copiedPage, index) => {
-        if (index === currentPage - 1) {
-          // Pour la page annotée, dessiner l'image du canvas par-dessus
-          copiedPage.drawImage(pngImage, {
-            x: 0,
-            y: 0,
-            width: width,
-            height: height,
-          })
-        }
-        newPdfDoc.addPage(copiedPage)
+      // Dessiner l'image du canvas par-dessus la page existante
+      // L'image doit être inversée verticalement (flipVertical)
+      page.drawImage(pngImage, {
+        x: 0,
+        y: 0,
+        width: width,
+        height: height,
       })
 
-      const pdfBytes = await newPdfDoc.save()
+      const pdfBytes = await pdfDoc.save()
       const blob = new Blob([new Uint8Array(pdfBytes)], { type: 'application/pdf' })
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
