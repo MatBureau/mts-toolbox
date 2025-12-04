@@ -57,18 +57,11 @@ export default function EditeurPDF() {
   }, [file])
 
   useEffect(() => {
-    if (pdfDocRef.current && totalPages > 0) {
-      renderPage()
+    if (pdfDocRef.current && totalPages > 0 && canvasRef.current) {
+      redrawCanvas()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, totalPages])
-
-  useEffect(() => {
-    if (pdfDocRef.current && totalPages > 0 && canvasRef.current && annotations.length > 0) {
-      drawAnnotations()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [annotations])
+  }, [annotations, currentPage, totalPages])
 
   const initializePDF = async () => {
     if (!file || !pdfjsLib.current) return
@@ -115,20 +108,26 @@ export default function EditeurPDF() {
     }
   }
 
-  const drawAnnotations = async () => {
-    if (!canvasRef.current) return
+  const redrawCanvas = async () => {
+    if (!canvasRef.current || !pdfDocRef.current) return
 
+    // Render la page PDF
     await renderPage()
 
+    // Attendre un peu que le PDF soit rendu
     setTimeout(() => {
       const canvas = canvasRef.current
       if (!canvas) return
       const ctx = canvas.getContext('2d')
       if (!ctx) return
 
-      annotations
-        .filter((ann) => ann.type !== 'text')
-        .forEach((ann) => {
+      // Dessiner toutes les annotations par-dessus
+      annotations.forEach((ann) => {
+        if (ann.type === 'text' && ann.text) {
+          ctx.font = `${ann.fontSize || 16}px Arial`
+          ctx.fillStyle = ann.color || '#000000'
+          ctx.fillText(ann.text, ann.x, ann.y)
+        } else {
           ctx.strokeStyle = ann.color || '#FF0000'
           ctx.lineWidth = 2
 
@@ -169,18 +168,9 @@ export default function EditeurPDF() {
             )
             ctx.stroke()
           }
-        })
-
-      annotations
-        .filter((ann) => ann.type === 'text')
-        .forEach((ann) => {
-          if (ann.text) {
-            ctx.font = `${ann.fontSize || 16}px Arial`
-            ctx.fillStyle = ann.color || '#000000'
-            ctx.fillText(ann.text, ann.x, ann.y)
-          }
-        })
-    }, 100)
+        }
+      })
+    }, 50)
   }
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -265,34 +255,45 @@ export default function EditeurPDF() {
   }
 
   const savePDF = async () => {
-    if (!file) return
+    if (!file || !canvasRef.current) return
     setSaving(true)
 
     try {
-      const { PDFDocument, rgb, StandardFonts } = await import('pdf-lib')
+      const { PDFDocument } = await import('pdf-lib')
+
+      // Convertir le canvas (avec annotations) en image PNG
+      const canvasDataUrl = canvasRef.current.toDataURL('image/png')
+      const imageBytes = await fetch(canvasDataUrl).then(res => res.arrayBuffer())
+
+      // Charger le PDF original
       const arrayBuffer = await file.arrayBuffer()
       const pdfDoc = await PDFDocument.load(arrayBuffer)
       const pages = pdfDoc.getPages()
       const page = pages[currentPage - 1]
-      const { height: pageHeight } = page.getSize()
 
-      const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica)
+      // Embed l'image du canvas dans le PDF
+      const pngImage = await pdfDoc.embedPng(imageBytes)
+      const { width, height } = page.getSize()
 
-      annotations.forEach((ann) => {
-        const yPos = pageHeight - ann.y
+      // Créer une nouvelle page avec l'image du canvas
+      const newPdfDoc = await PDFDocument.create()
 
-        if (ann.type === 'text' && ann.text) {
-          page.drawText(ann.text, {
-            x: ann.x,
-            y: yPos,
-            size: ann.fontSize || 16,
-            font: helveticaFont,
-            color: rgb(0, 0, 0),
+      // Copier toutes les pages du PDF original
+      const copiedPages = await newPdfDoc.copyPages(pdfDoc, pdfDoc.getPageIndices())
+      copiedPages.forEach((copiedPage, index) => {
+        if (index === currentPage - 1) {
+          // Pour la page annotée, dessiner l'image du canvas par-dessus
+          copiedPage.drawImage(pngImage, {
+            x: 0,
+            y: 0,
+            width: width,
+            height: height,
           })
         }
+        newPdfDoc.addPage(copiedPage)
       })
 
-      const pdfBytes = await pdfDoc.save()
+      const pdfBytes = await newPdfDoc.save()
       const blob = new Blob([new Uint8Array(pdfBytes)], { type: 'application/pdf' })
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
@@ -310,7 +311,6 @@ export default function EditeurPDF() {
 
   const clearAnnotations = () => {
     setAnnotations([])
-    drawAnnotations()
   }
 
   return (
