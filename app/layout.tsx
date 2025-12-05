@@ -35,13 +35,11 @@ export const metadata: Metadata = {
     locale: 'fr_FR',
     url: 'https://mts-toolbox.com',
     siteName: 'MTS-Toolbox',
-    images: ['/logo.png'],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'MTS-Toolbox — Collection d\'outils en ligne gratuits',
     description: 'Découvrez 50+ outils en ligne gratuits pour le texte, le développement, les images, les calculs et plus encore.',
-    images: ['/logo.png'],
   },
   alternates: {
     canonical: 'https://mts-toolbox.com',
