@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { incrementToolView } from '@/lib/stats'
 
-export const runtime = 'nodejs'
-
 export async function POST(request: NextRequest) {
   try {
     const { toolSlug } = await request.json()
@@ -14,7 +12,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    incrementToolView(toolSlug)
+    await incrementToolView(toolSlug)
 
     return NextResponse.json({ success: true })
   } catch (error) {

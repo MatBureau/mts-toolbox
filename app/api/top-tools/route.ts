@@ -2,11 +2,10 @@ import { NextResponse } from 'next/server'
 import { getTopTools } from '@/lib/stats'
 
 export const dynamic = 'force-dynamic'
-export const runtime = 'nodejs'
 
 export async function GET() {
   try {
-    const topTools = getTopTools(10)
+    const topTools = await getTopTools(10)
 
     return NextResponse.json({ topTools: topTools || [] })
   } catch (error) {

@@ -1,7 +1,4 @@
-import fs from 'fs'
-import path from 'path'
-
-const STATS_FILE = path.join(process.cwd(), 'data', 'tool-stats.json')
+import { kv } from '@vercel/kv'
 
 interface ToolStats {
   [toolSlug: string]: {
@@ -10,68 +7,60 @@ interface ToolStats {
   }
 }
 
-// Assure que le dossier data existe
-function ensureDataDir() {
-  const dataDir = path.join(process.cwd(), 'data')
-  if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true })
-  }
-}
+const STATS_KEY = 'tool-stats'
 
-// Lit les statistiques
-export function getStats(): ToolStats {
+// Lit les statistiques depuis Vercel KV
+export async function getStats(): Promise<ToolStats> {
   try {
-    ensureDataDir()
-
-    if (!fs.existsSync(STATS_FILE)) {
-      return {}
-    }
-
-    const data = fs.readFileSync(STATS_FILE, 'utf-8')
-    if (!data || data.trim() === '') {
-      return {}
-    }
-
-    return JSON.parse(data)
+    const stats = await kv.get<ToolStats>(STATS_KEY)
+    return stats || {}
   } catch (error) {
-    console.error('Error reading stats:', error)
+    console.error('Error reading stats from KV:', error)
     return {}
   }
 }
 
-// Sauvegarde les statistiques
-export function saveStats(stats: ToolStats) {
+// Sauvegarde les statistiques dans Vercel KV
+export async function saveStats(stats: ToolStats): Promise<void> {
   try {
-    ensureDataDir()
-    fs.writeFileSync(STATS_FILE, JSON.stringify(stats, null, 2), 'utf-8')
+    await kv.set(STATS_KEY, stats)
   } catch (error) {
-    console.error('Error saving stats:', error)
+    console.error('Error saving stats to KV:', error)
   }
 }
 
 // Incrémente les vues d'un outil
-export function incrementToolView(toolSlug: string) {
-  const stats = getStats()
+export async function incrementToolView(toolSlug: string): Promise<void> {
+  try {
+    const stats = await getStats()
 
-  if (!stats[toolSlug]) {
-    stats[toolSlug] = {
-      views: 0,
-      lastViewed: new Date().toISOString()
+    if (!stats[toolSlug]) {
+      stats[toolSlug] = {
+        views: 0,
+        lastViewed: new Date().toISOString()
+      }
     }
+
+    stats[toolSlug].views += 1
+    stats[toolSlug].lastViewed = new Date().toISOString()
+
+    await saveStats(stats)
+  } catch (error) {
+    console.error('Error incrementing tool view:', error)
   }
-
-  stats[toolSlug].views += 1
-  stats[toolSlug].lastViewed = new Date().toISOString()
-
-  saveStats(stats)
 }
 
 // Récupère les N outils les plus vus
-export function getTopTools(limit: number = 10): Array<{ slug: string; views: number }> {
-  const stats = getStats()
+export async function getTopTools(limit: number = 10): Promise<Array<{ slug: string; views: number }>> {
+  try {
+    const stats = await getStats()
 
-  return Object.entries(stats)
-    .map(([slug, data]) => ({ slug, views: data.views }))
-    .sort((a, b) => b.views - a.views)
-    .slice(0, limit)
+    return Object.entries(stats)
+      .map(([slug, data]) => ({ slug, views: data.views }))
+      .sort((a, b) => b.views - a.views)
+      .slice(0, limit)
+  } catch (error) {
+    console.error('Error getting top tools:', error)
+    return []
+  }
 }
