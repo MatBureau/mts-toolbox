@@ -11,14 +11,19 @@ export default function GenerateurGradient() {
   const [direction, setDirection] = useState('to right')
   const [type, setType] = useState('linear')
 
-  const generateCSS = () => {
+  const generateGradient = () => {
     if (type === 'linear') {
-      return `background: linear-gradient(${direction}, ${color1}, ${color2});`
+      return `linear-gradient(${direction}, ${color1}, ${color2})`
     } else {
-      return `background: radial-gradient(circle, ${color1}, ${color2});`
+      return `radial-gradient(circle, ${color1}, ${color2})`
     }
   }
 
+  const generateCSS = () => {
+    return `background: ${generateGradient()};`
+  }
+
+  const gradient = generateGradient()
   const css = generateCSS()
 
   return (
@@ -90,8 +95,8 @@ export default function GenerateurGradient() {
       </div>
 
       <div
-        className="h-48 rounded-lg"
-        style={{ background: css.replace('background: ', '') }}
+        className="h-48 rounded-lg border border-gray-200 dark:border-gray-700"
+        style={{ background: gradient }}
       />
 
       <div>
