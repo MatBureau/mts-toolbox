@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { incrementToolView } from '@/lib/stats'
 
+export const runtime = 'nodejs'
+
 export async function POST(request: NextRequest) {
   try {
     const { toolSlug } = await request.json()
@@ -17,9 +19,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error tracking view:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    // Ne pas échouer silencieusement
+    return NextResponse.json({ success: false, error: 'Failed to track view' })
   }
 }

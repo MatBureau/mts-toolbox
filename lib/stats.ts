@@ -20,14 +20,18 @@ function ensureDataDir() {
 
 // Lit les statistiques
 export function getStats(): ToolStats {
-  ensureDataDir()
-
-  if (!fs.existsSync(STATS_FILE)) {
-    return {}
-  }
-
   try {
+    ensureDataDir()
+
+    if (!fs.existsSync(STATS_FILE)) {
+      return {}
+    }
+
     const data = fs.readFileSync(STATS_FILE, 'utf-8')
+    if (!data || data.trim() === '') {
+      return {}
+    }
+
     return JSON.parse(data)
   } catch (error) {
     console.error('Error reading stats:', error)
@@ -37,10 +41,9 @@ export function getStats(): ToolStats {
 
 // Sauvegarde les statistiques
 export function saveStats(stats: ToolStats) {
-  ensureDataDir()
-
   try {
-    fs.writeFileSync(STATS_FILE, JSON.stringify(stats, null, 2))
+    ensureDataDir()
+    fs.writeFileSync(STATS_FILE, JSON.stringify(stats, null, 2), 'utf-8')
   } catch (error) {
     console.error('Error saving stats:', error)
   }

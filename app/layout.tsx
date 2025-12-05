@@ -88,7 +88,7 @@ export default function RootLayout({
             async
             src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${env.ADSENSE_CLIENT_ID}`}
             crossOrigin="anonymous"
-            strategy="afterInteractive"
+            strategy="lazyOnload"
           />
         )}
         <ThemeProvider>
