@@ -10,7 +10,7 @@ export default function Minuteur() {
   const [seconds, setSeconds] = useState('0')
   const [timeLeft, setTimeLeft] = useState(0)
   const [isRunning, setIsRunning] = useState(false)
-  const [stopwatchTime, setStopwatchTime] = useState(0)
+  const [stopwatchTime, setStopwatchTime] = useState(0) // En millisecondes
   const intervalRef = useRef<NodeJS.Timeout>()
 
   useEffect(() => {
@@ -27,9 +27,10 @@ export default function Minuteur() {
           })
         }, 1000)
       } else {
+        // Chronomètre avec millisecondes - mise à jour toutes les 10ms
         intervalRef.current = setInterval(() => {
-          setStopwatchTime((prev) => prev + 1)
-        }, 1000)
+          setStopwatchTime((prev) => prev + 10)
+        }, 10)
       }
     } else {
       if (intervalRef.current) {
@@ -45,9 +46,33 @@ export default function Minuteur() {
   }, [isRunning, mode])
 
   const playSound = () => {
-    // Son de notification (optionnel)
-    if (typeof Audio !== 'undefined') {
-      const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZUQ8PC5Xc8MR0JAHB2P...') // Placeholder
+    // Génère un son d'alarme avec Web Audio API
+    if (typeof window !== 'undefined' && 'AudioContext' in window) {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+
+      // Fonction pour jouer un bip
+      const playBeep = (frequency: number, duration: number, startTime: number) => {
+        const oscillator = audioContext.createOscillator()
+        const gainNode = audioContext.createGain()
+
+        oscillator.connect(gainNode)
+        gainNode.connect(audioContext.destination)
+
+        oscillator.frequency.value = frequency
+        oscillator.type = 'sine'
+
+        gainNode.gain.setValueAtTime(0.3, startTime)
+        gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration)
+
+        oscillator.start(startTime)
+        oscillator.stop(startTime + duration)
+      }
+
+      // Alarme : 3 bips successifs
+      const now = audioContext.currentTime
+      playBeep(800, 0.15, now)
+      playBeep(800, 0.15, now + 0.2)
+      playBeep(800, 0.4, now + 0.4)
     }
   }
 
@@ -85,7 +110,17 @@ export default function Minuteur() {
       .padStart(2, '0')}`
   }
 
-  const displayTime = mode === 'timer' ? formatTime(timeLeft) : formatTime(stopwatchTime)
+  const formatTimeWithMs = (totalMs: number) => {
+    const hrs = Math.floor(totalMs / 3600000)
+    const mins = Math.floor((totalMs % 3600000) / 60000)
+    const secs = Math.floor((totalMs % 60000) / 1000)
+    const ms = Math.floor((totalMs % 1000) / 10)
+    return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs
+      .toString()
+      .padStart(2, '0')}.${ms.toString().padStart(2, '0')}`
+  }
+
+  const displayTime = mode === 'timer' ? formatTime(timeLeft) : formatTimeWithMs(stopwatchTime)
 
   return (
     <div className="space-y-6">

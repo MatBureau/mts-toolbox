@@ -1,9 +1,13 @@
-import Link from 'next/link'
+'use client'
+
+import { useState, useMemo } from 'react'
 import Card, { CardHeader, CardTitle, CardDescription } from '@/components/ui/Card'
-import { categories, getToolsByCategory } from '@/lib/tools-config'
+import { categories, getToolsByCategory, tools } from '@/lib/tools-config'
 import JsonLd from '@/components/seo/JsonLd'
 
 export default function HomePage() {
+  const [searchQuery, setSearchQuery] = useState('')
+
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
@@ -12,53 +16,108 @@ export default function HomePage() {
     url: 'https://mts-toolbox.com',
   }
 
+  // Filtrer les outils selon la recherche
+  const filteredCategories = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return categories.map(cat => ({
+        ...cat,
+        tools: getToolsByCategory(cat.slug)
+      }))
+    }
+
+    const query = searchQuery.toLowerCase()
+    return categories.map(cat => {
+      const categoryTools = getToolsByCategory(cat.slug).filter(tool =>
+        tool.name.toLowerCase().includes(query) ||
+        tool.description.toLowerCase().includes(query) ||
+        tool.keywords.some(keyword => keyword.toLowerCase().includes(query))
+      )
+      return {
+        ...cat,
+        tools: categoryTools
+      }
+    }).filter(cat => cat.tools.length > 0)
+  }, [searchQuery])
+
+  const totalTools = tools.length
+  const displayedTools = filteredCategories.reduce((sum, cat) => sum + cat.tools.length, 0)
+
   return (
     <>
       <JsonLd data={structuredData} />
 
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-12">
+        <div className="text-center mb-8">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-gray-100 mb-4">
             MTS-Toolbox
           </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-400">
-            50+ outils en ligne gratuits pour tous vos besoins
+          <p className="text-xl text-gray-600 dark:text-gray-400 mb-6">
+            {totalTools}+ outils en ligne gratuits pour tous vos besoins
           </p>
+
+          {/* Barre de recherche */}
+          <div className="max-w-2xl mx-auto">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Rechercher un outil... (ex: PDF, JSON, image)"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full px-6 py-4 text-lg border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                >
+                  ✕
+                </button>
+              )}
+              <div className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                🔍
+              </div>
+            </div>
+            {searchQuery && (
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                {displayedTools} outil{displayedTools > 1 ? 's' : ''} trouvé{displayedTools > 1 ? 's' : ''}
+              </p>
+            )}
+          </div>
         </div>
 
-        <div className="space-y-12">
-          {categories.map((category) => {
-            const tools = getToolsByCategory(category.slug)
-
-            // Ne pas afficher les catégories sans outils
-            if (tools.length === 0) return null
-
-            return (
+        {filteredCategories.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-xl text-gray-600 dark:text-gray-400">
+              Aucun outil trouvé pour "{searchQuery}"
+            </p>
+            <button
+              onClick={() => setSearchQuery('')}
+              className="mt-4 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+            >
+              Réinitialiser la recherche
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-12">
+            {filteredCategories.map((category) => (
               <section key={category.id}>
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center space-x-3">
-                    <span className="text-3xl">{category.icon}</span>
-                    <div>
-                      <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                        {category.name}
-                      </h2>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {category.description}
-                      </p>
-                    </div>
+                <div className="flex items-center space-x-3 mb-6">
+                  <span className="text-3xl">{category.icon}</span>
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                      {category.name}
+                      <span className="text-lg font-normal text-gray-500 dark:text-gray-400 ml-2">
+                        ({category.tools.length})
+                      </span>
+                    </h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {category.description}
+                    </p>
                   </div>
-                  {tools.length > 9 && (
-                    <Link
-                      href={`/${category.slug}`}
-                      className="text-primary-600 hover:text-primary-700 font-medium text-sm whitespace-nowrap"
-                    >
-                      Voir tout ({tools.length}) →
-                    </Link>
-                  )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {tools.slice(0, 9).map((tool) => (
+                  {category.tools.map((tool) => (
                     <Card key={tool.id} href={`/${tool.category}/${tool.slug}`} hover>
                       <CardHeader>
                         <div className="flex items-start justify-between">
@@ -71,9 +130,9 @@ export default function HomePage() {
                   ))}
                 </div>
               </section>
-            )
-          })}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </>
   )
