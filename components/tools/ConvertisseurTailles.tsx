@@ -15,20 +15,24 @@ type SizeConversions = {
 
 export default function ConvertisseurTailles() {
   const [category, setCategory] = useState<string>('women-clothes')
-  const [inputSystem, setInputSystem] = useState<string>('eu')
+  const [inputSystem, setInputSystem] = useState<string>('fr')
   const [inputSize, setInputSize] = useState<string>('')
   const [results, setResults] = useState<{ system: string; size: string }[]>([])
 
   const sizeConversions = useMemo<SizeConversions>(() => ({
     'women-clothes': {
-      eu: ['32', '34', '36', '38', '40', '42', '44', '46', '48'],
-      us: ['0', '2', '4', '6', '8', '10', '12', '14', '16'],
-      uk: ['4', '6', '8', '10', '12', '14', '16', '18', '20'],
+      fr: ['34', '36', '38', '40', '42', '44', '46', '48', '50', '52', '54'],
+      eu: ['32', '34', '36', '38', '40', '42', '44', '46', '48', '50', '52'],
+      int: ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', '4XL', '5XL', '6XL', '7XL'],
+      uk: ['6', '8', '10', '12', '14', '16', '18', '20', '22', '24', '26'],
+      de: ['36', '38', '40', '42', '44', '46', '48', '50', '52', '54', '56'],
     },
     'men-clothes': {
-      eu: ['44', '46', '48', '50', '52', '54', '56', '58', '60'],
-      us: ['34', '36', '38', '40', '42', '44', '46', '48', '50'],
-      uk: ['34', '36', '38', '40', '42', '44', '46', '48', '50'],
+      fr: ['36', '38', '40', '42', '44', '46', '48', '50', '52', '54', '56'],
+      eu: ['42', '44', '46', '48', '50', '52', '54', '56', '58', '60', '62'],
+      int: ['S', 'S', 'M', 'M', 'L', 'L', 'XL', 'XL', 'XXL', 'XXL', 'XXXL'],
+      uk: ['30', '32', '34', '36', '38', '40', '42', '44', '46', '48', '50'],
+      de: ['42', '44', '46', '48', '50', '52', '54', '56', '58', '60', '62'],
     },
     'shoes-women': {
       eu: ['35', '36', '37', '38', '39', '40', '41', '42', '43'],
@@ -42,6 +46,35 @@ export default function ConvertisseurTailles() {
     },
   }), [])
 
+  const getSystemOptions = () => {
+    if (category === 'shoes-women' || category === 'shoes-men') {
+      return [
+        { value: 'eu', label: 'EU (Europe)' },
+        { value: 'us', label: 'US (États-Unis)' },
+        { value: 'uk', label: 'UK (Royaume-Uni)' },
+      ]
+    }
+    return [
+      { value: 'fr', label: 'FR (France)' },
+      { value: 'eu', label: 'EU (Europe)' },
+      { value: 'int', label: 'INT (International)' },
+      { value: 'uk', label: 'UK (Royaume-Uni)' },
+      { value: 'de', label: 'DE (Allemagne)' },
+    ]
+  }
+
+  const getSystemLabel = (system: string) => {
+    const labels: { [key: string]: string } = {
+      fr: 'FR',
+      eu: 'EU',
+      int: 'INT',
+      us: 'US',
+      uk: 'UK',
+      de: 'DE',
+    }
+    return labels[system] || system.toUpperCase()
+  }
+
   useEffect(() => {
     if (!inputSize) {
       setResults([])
@@ -54,8 +87,8 @@ export default function ConvertisseurTailles() {
       return
     }
 
-    const index = conversions[inputSystem].indexOf(inputSize)
-    if (index === -1) {
+    const index = conversions[inputSystem]?.indexOf(inputSize)
+    if (index === -1 || index === undefined) {
       setResults([])
       return
     }
@@ -64,7 +97,7 @@ export default function ConvertisseurTailles() {
     for (const [system, sizes] of Object.entries(conversions)) {
       if (system !== inputSystem) {
         result.push({
-          system: system.toUpperCase(),
+          system: getSystemLabel(system),
           size: (sizes as string[])[index],
         })
       }
@@ -84,6 +117,13 @@ export default function ConvertisseurTailles() {
             value={category}
             onChange={(e) => {
               setCategory(e.target.value)
+              // Reset to appropriate default system based on category
+              const newCategory = e.target.value
+              if (newCategory === 'shoes-women' || newCategory === 'shoes-men') {
+                setInputSystem('eu')
+              } else {
+                setInputSystem('fr')
+              }
               setInputSize('')
               setResults([])
             }}
@@ -110,11 +150,7 @@ export default function ConvertisseurTailles() {
               setInputSize('')
               setResults([])
             }}
-            options={[
-              { value: 'eu', label: 'EU (Europe)' },
-              { value: 'us', label: 'US (États-Unis)' },
-              { value: 'uk', label: 'UK (Royaume-Uni)' },
-            ]}
+            options={getSystemOptions()}
           />
 
           <Select
