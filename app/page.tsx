@@ -58,16 +58,33 @@ export default function HomePage() {
   const totalTools = tools.length
   const displayedTools = filteredCategories.reduce((sum, cat) => sum + cat.tools.length, 0)
 
+  // Outils populaires par défaut (fallback si pas de stats)
+  const defaultPopularTools = [
+    'compteur-mots', 'formateur-json', 'convertisseur-images',
+    'editeur-pdf', 'generateur-qrcode', 'encodeur-base64',
+    'compresseur-images', 'generateur-password', 'calculateur-pourcentage',
+    'fusionner-pdf', 'redimensionneur-images', 'convertisseur-devises'
+  ]
+
   // Convertir les slugs des top tools en objets Tool complets
   const topToolsData = useMemo(() => {
-    return topTools
-      .map(({ slug, views }) => {
-        const tool = tools.find(t => t.slug === slug)
-        return tool ? { ...tool, views } : null
-      })
+    // Si on a des stats, on les utilise
+    if (topTools.length > 0) {
+      return topTools
+        .map(({ slug, views }) => {
+          const tool = tools.find(t => t.slug === slug)
+          return tool ? { ...tool, views } : null
+        })
+        .filter(Boolean)
+        .slice(0, 12)
+    }
+
+    // Sinon, on affiche les outils populaires par défaut
+    return defaultPopularTools
+      .map(slug => tools.find(t => t.slug === slug))
       .filter(Boolean)
-      .slice(0, 12)
-  }, [topTools])
+      .map(tool => ({ ...tool, views: 0 }))
+  }, [topTools, defaultPopularTools])
 
   return (
     <>
@@ -150,37 +167,37 @@ export default function HomePage() {
                   <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                     Chargement des statistiques...
                   </div>
-                ) : topToolsData.length === 0 ? (
-                  <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-8 text-center">
-                    <p className="text-gray-700 dark:text-gray-300 mb-2">
-                      📊 Les statistiques d'utilisation sont en cours de collecte
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Cette section affichera bientôt les 12 outils les plus consultés par nos utilisateurs
-                    </p>
-                  </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {topToolsData.map((tool: any, index) => (
-                      <Card key={tool.id} href={`/${tool.category}/${tool.slug}`} hover>
-                        <CardHeader>
-                          <div className="flex items-start justify-between">
-                            <span className="text-2xl">{tool.icon}</span>
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs font-semibold bg-orange-100 dark:bg-orange-900 text-orange-600 dark:text-orange-300 px-2 py-1 rounded">
-                                #{index + 1}
-                              </span>
-                              <span className="text-xs text-gray-500 dark:text-gray-400">
-                                {tool.views} vues
-                              </span>
+                  <>
+                    {topTools.length === 0 && (
+                      <div className="mb-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                        📊 Sélection d'outils populaires (les statistiques sont en cours de collecte)
+                      </div>
+                    )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {topToolsData.map((tool: any, index) => (
+                        <Card key={tool.id} href={`/${tool.category}/${tool.slug}`} hover>
+                          <CardHeader>
+                            <div className="flex items-start justify-between">
+                              <span className="text-2xl">{tool.icon}</span>
+                              {tool.views > 0 && (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs font-semibold bg-orange-100 dark:bg-orange-900 text-orange-600 dark:text-orange-300 px-2 py-1 rounded">
+                                    #{index + 1}
+                                  </span>
+                                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                                    {tool.views} vues
+                                  </span>
+                                </div>
+                              )}
                             </div>
-                          </div>
-                          <CardTitle>{tool.name}</CardTitle>
-                          <CardDescription>{tool.description}</CardDescription>
-                        </CardHeader>
-                      </Card>
-                    ))}
-                  </div>
+                            <CardTitle>{tool.name}</CardTitle>
+                            <CardDescription>{tool.description}</CardDescription>
+                          </CardHeader>
+                        </Card>
+                      ))}
+                    </div>
+                  </>
                 )}
               </section>
             )}
