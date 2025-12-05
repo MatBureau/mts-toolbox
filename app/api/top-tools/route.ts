@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {
-    const topTools = await getTopTools(10)
+    const topTools = await getTopTools(12)
 
     return NextResponse.json({ topTools: topTools || [] })
   } catch (error) {

@@ -66,7 +66,7 @@ export default function HomePage() {
         return tool ? { ...tool, views } : null
       })
       .filter(Boolean)
-      .slice(0, 10)
+      .slice(0, 12)
   }, [topTools])
 
   return (
@@ -137,7 +137,7 @@ export default function HomePage() {
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                       Les plus utilisés
                       <span className="text-lg font-normal text-gray-500 dark:text-gray-400 ml-2">
-                        (Top 10)
+                        (Top 12)
                       </span>
                     </h2>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -156,7 +156,7 @@ export default function HomePage() {
                       📊 Les statistiques d'utilisation sont en cours de collecte
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Cette section affichera bientôt les 10 outils les plus consultés par nos utilisateurs
+                      Cette section affichera bientôt les 12 outils les plus consultés par nos utilisateurs
                     </p>
                   </div>
                 ) : (
