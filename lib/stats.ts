@@ -1,4 +1,4 @@
-import { kv } from '@vercel/kv'
+import { getRedisClient } from './redis'
 
 interface ToolStats {
   [toolSlug: string]: {
@@ -9,23 +9,30 @@ interface ToolStats {
 
 const STATS_KEY = 'tool-stats'
 
-// Lit les statistiques depuis Vercel KV
+// Lit les statistiques depuis Redis
 export async function getStats(): Promise<ToolStats> {
   try {
-    const stats = await kv.get<ToolStats>(STATS_KEY)
-    return stats || {}
+    const redis = await getRedisClient()
+    const data = await redis.get(STATS_KEY)
+
+    if (!data) {
+      return {}
+    }
+
+    return JSON.parse(data) as ToolStats
   } catch (error) {
-    console.error('Error reading stats from KV:', error)
+    console.error('Error reading stats from Redis:', error)
     return {}
   }
 }
 
-// Sauvegarde les statistiques dans Vercel KV
+// Sauvegarde les statistiques dans Redis
 export async function saveStats(stats: ToolStats): Promise<void> {
   try {
-    await kv.set(STATS_KEY, stats)
+    const redis = await getRedisClient()
+    await redis.set(STATS_KEY, JSON.stringify(stats))
   } catch (error) {
-    console.error('Error saving stats to KV:', error)
+    console.error('Error saving stats to Redis:', error)
   }
 }
 
