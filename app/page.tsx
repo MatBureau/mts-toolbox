@@ -1,12 +1,28 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Card, { CardHeader, CardTitle, CardDescription } from '@/components/ui/Card'
 import { categories, getToolsByCategory, tools } from '@/lib/tools-config'
 import JsonLd from '@/components/seo/JsonLd'
 
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('')
+  const [topTools, setTopTools] = useState<Array<{ slug: string; views: number }>>([])
+  const [loadingTop, setLoadingTop] = useState(true)
+
+  // Récupérer les outils les plus vus
+  useEffect(() => {
+    fetch('/api/top-tools')
+      .then(res => res.json())
+      .then(data => {
+        setTopTools(data.topTools || [])
+        setLoadingTop(false)
+      })
+      .catch(err => {
+        console.error('Failed to fetch top tools:', err)
+        setLoadingTop(false)
+      })
+  }, [])
 
   const structuredData = {
     '@context': 'https://schema.org',
@@ -42,6 +58,17 @@ export default function HomePage() {
   const totalTools = tools.length
   const displayedTools = filteredCategories.reduce((sum, cat) => sum + cat.tools.length, 0)
 
+  // Convertir les slugs des top tools en objets Tool complets
+  const topToolsData = useMemo(() => {
+    return topTools
+      .map(({ slug, views }) => {
+        const tool = tools.find(t => t.slug === slug)
+        return tool ? { ...tool, views } : null
+      })
+      .filter(Boolean)
+      .slice(0, 10)
+  }, [topTools])
+
   return (
     <>
       <JsonLd data={structuredData} />
@@ -57,23 +84,25 @@ export default function HomePage() {
 
           {/* Barre de recherche */}
           <div className="max-w-2xl mx-auto">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Rechercher un outil... (ex: PDF, JSON, image)"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-6 py-4 text-lg border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                >
-                  ✕
-                </button>
-              )}
-              <div className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+            <div className="flex items-center gap-3">
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  placeholder="Rechercher un outil... (ex: PDF, JSON, image)"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full px-6 py-4 text-lg border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+              <div className="text-3xl">
                 🔍
               </div>
             </div>
@@ -99,6 +128,55 @@ export default function HomePage() {
           </div>
         ) : (
           <div className="space-y-12">
+            {/* Section des outils les plus utilisés */}
+            {!searchQuery && topToolsData.length > 0 && (
+              <section>
+                <div className="flex items-center space-x-3 mb-6">
+                  <span className="text-3xl">🔥</span>
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                      Les plus utilisés
+                      <span className="text-lg font-normal text-gray-500 dark:text-gray-400 ml-2">
+                        (Top 10)
+                      </span>
+                    </h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Les outils préférés de nos utilisateurs
+                    </p>
+                  </div>
+                </div>
+
+                {loadingTop ? (
+                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                    Chargement des statistiques...
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {topToolsData.map((tool: any, index) => (
+                      <Card key={tool.id} href={`/${tool.category}/${tool.slug}`} hover>
+                        <CardHeader>
+                          <div className="flex items-start justify-between">
+                            <span className="text-2xl">{tool.icon}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-semibold bg-orange-100 dark:bg-orange-900 text-orange-600 dark:text-orange-300 px-2 py-1 rounded">
+                                #{index + 1}
+                              </span>
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
+                                {tool.views} vues
+                              </span>
+                            </div>
+                          </div>
+                          <CardTitle>{tool.name}</CardTitle>
+                          <CardDescription>{tool.description}</CardDescription>
+                        </CardHeader>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </section>
+            )}
+
+            {/* Catégories normales */}
             {filteredCategories.map((category) => (
               <section key={category.id}>
                 <div className="flex items-center space-x-3 mb-6">

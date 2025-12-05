@@ -8,6 +8,7 @@ import AdBanner from '@/components/ads/AdBanner'
 import ToolContent from '@/components/seo/ToolContent'
 import FAQ from '@/components/seo/FAQ'
 import RelatedTools from '@/components/seo/RelatedTools'
+import TrackView from '@/components/TrackView'
 
 // Import dynamic tool components
 import dynamic from 'next/dynamic'
@@ -141,6 +142,7 @@ export default function ToolPage({ params }: ToolPageProps) {
 
   return (
     <>
+      <TrackView toolSlug={tool.slug} />
       <JsonLd data={structuredData} />
       <JsonLd data={breadcrumbData} />
       <JsonLd data={organizationData} />
