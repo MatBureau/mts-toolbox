@@ -25,6 +25,9 @@ const toolComponents: Record<string, any> = {
   'generateur-slug': dynamic(() => import('@/components/tools/GenerateurSlug')),
   'extracteur-emails': dynamic(() => import('@/components/tools/ExtracteurEmails')),
   'comparateur-texte': dynamic(() => import('@/components/tools/ComparateurTexte')),
+  'analyseur-densite': dynamic(() => import('@/components/tools/AnalyseurDensite')),
+  'nettoyeur-texte': dynamic(() => import('@/components/tools/NettoyeurTexte')),
+  'convertisseur-texte-html': dynamic(() => import('@/components/tools/ConvertisseurTexteHTML')),
   // Développement
   'formateur-json': dynamic(() => import('@/components/tools/FormateurJSON')),
   'formateur-sql': dynamic(() => import('@/components/tools/FormateurSQL')),
@@ -36,6 +39,9 @@ const toolComponents: Record<string, any> = {
   'convertisseur-json-csv': dynamic(() => import('@/components/tools/ConvertisseurJSONCSV')),
   'validateur-json': dynamic(() => import('@/components/tools/ValidateurJSON')),
   'decodeur-jwt': dynamic(() => import('@/components/tools/DecodeurJWT')),
+  'convertisseur-yaml': dynamic(() => import('@/components/tools/ConvertisseurYAML')),
+  'generateur-hash': dynamic(() => import('@/components/tools/GenerateurHash')),
+  'validateur-json-schema': dynamic(() => import('@/components/tools/ValidateurJSONSchema')),
   // Images
   'convertisseur-images': dynamic(() => import('@/components/tools/ConvertisseurImages')),
   'compresseur-images': dynamic(() => import('@/components/tools/CompresseurImages')),
@@ -44,6 +50,9 @@ const toolComponents: Record<string, any> = {
   'extracteur-palette': dynamic(() => import('@/components/tools/ExtracteurPalette')),
   'convertisseur-image-base64': dynamic(() => import('@/components/tools/ConvertisseurImageBase64')),
   'generateur-placeholder': dynamic(() => import('@/components/tools/GenerateurPlaceholder')),
+  'recadrage-image': dynamic(() => import('@/components/tools/RecadrageImage')),
+  'filigrane-image': dynamic(() => import('@/components/tools/FiligraneImage')),
+  'convertisseur-heic': dynamic(() => import('@/components/tools/ConvertisseurHEIC')),
   // PDF
   'editeur-pdf': dynamic(() => import('@/components/tools/EditeurPDF'), { ssr: false }),
   'fusionner-pdf': dynamic(() => import('@/components/tools/FusionnerPDF'), { ssr: false }),
@@ -63,6 +72,7 @@ const toolComponents: Record<string, any> = {
   'calculateur-dates': dynamic(() => import('@/components/tools/CalculateurDates')),
   'convertisseur-fuseaux': dynamic(() => import('@/components/tools/ConvertisseurFuseaux')),
   'calculateur-pret': dynamic(() => import('@/components/tools/CalculateurPret')),
+  'simulateur-interets': dynamic(() => import('@/components/tools/SimulateurInterets')),
   // Générateurs
   'generateur-qrcode': dynamic(() => import('@/components/tools/GenerateurQRCode')),
   'generateur-codebarre': dynamic(() => import('@/components/tools/GenerateurCodeBarre')),
@@ -78,6 +88,8 @@ const toolComponents: Record<string, any> = {
   'detecteur-ip': dynamic(() => import('@/components/tools/DetecteurIP')),
   'test-frappe': dynamic(() => import('@/components/tools/TestFrappe')),
   'compteur-rebours': dynamic(() => import('@/components/tools/CompteurRebours')),
+  'tirage-au-sort': dynamic(() => import('@/components/tools/TirageAuSort')),
+  'bloc-notes': dynamic(() => import('@/components/tools/BlocNotes')),
   // SEO & Web
   'previsualisation-serp': dynamic(() => import('@/components/tools/PrevisualisationSerp')),
   'generateur-robots': dynamic(() => import('@/components/tools/GenerateurRobots')),

@@ -167,6 +167,33 @@ export const tools: Tool[] = [
     icon: '⚖️',
     keywords: ['diff', 'comparaison', 'différences', 'texte'],
   },
+  {
+    id: 'analyseur-densite',
+    name: 'Analyseur de densité de mots-clés',
+    description: 'Analysez la fréquence et densité des mots-clés dans votre texte',
+    category: 'texte',
+    slug: 'analyseur-densite',
+    icon: '📊',
+    keywords: ['densité', 'mots-clés', 'keywords', 'fréquence', 'seo', 'analyse texte'],
+  },
+  {
+    id: 'nettoyeur-texte',
+    name: 'Nettoyeur de texte avancé',
+    description: 'Nettoyez et formatez votre texte (espaces, accents, caractères spéciaux)',
+    category: 'texte',
+    slug: 'nettoyeur-texte',
+    icon: '🧹',
+    keywords: ['nettoyer', 'texte', 'espaces', 'formatage', 'clean text'],
+  },
+  {
+    id: 'convertisseur-texte-html',
+    name: 'Convertisseur Texte ↔ HTML',
+    description: 'Convertissez du texte en HTML et vice-versa',
+    category: 'texte',
+    slug: 'convertisseur-texte-html',
+    icon: '🔄',
+    keywords: ['html', 'texte', 'conversion', 'entités html', 'encoder', 'decoder'],
+  },
 
   // Catégorie Développement
   {
@@ -259,6 +286,33 @@ export const tools: Tool[] = [
     icon: '🎫',
     keywords: ['jwt', 'token', 'décodage', 'authentication'],
   },
+  {
+    id: 'convertisseur-yaml',
+    name: 'Convertisseur JSON/YAML/TOML',
+    description: 'Convertissez entre JSON, YAML et TOML facilement',
+    category: 'developpement',
+    slug: 'convertisseur-yaml',
+    icon: '🔄',
+    keywords: ['json', 'yaml', 'toml', 'conversion', 'format', 'configuration'],
+  },
+  {
+    id: 'generateur-hash',
+    name: 'Générateur de Hash',
+    description: 'Générez des hash MD5, SHA-256, SHA-512 pour vos données',
+    category: 'developpement',
+    slug: 'generateur-hash',
+    icon: '🔐',
+    keywords: ['hash', 'md5', 'sha256', 'sha512', 'cryptage', 'sécurité'],
+  },
+  {
+    id: 'validateur-json-schema',
+    name: 'Validateur JSON Schema',
+    description: 'Validez vos données JSON contre un schéma JSON Schema',
+    category: 'developpement',
+    slug: 'validateur-json-schema',
+    icon: '✓',
+    keywords: ['json', 'schema', 'validation', 'api', 'structure'],
+  },
 
   // Catégorie Images
   {
@@ -323,6 +377,33 @@ export const tools: Tool[] = [
     slug: 'generateur-placeholder',
     icon: '🖼️',
     keywords: ['placeholder', 'image', 'mockup', 'test'],
+  },
+  {
+    id: 'recadrage-image',
+    name: 'Recadrage d\'image',
+    description: 'Recadrez vos images selon différents ratios (carré, 16:9, 4:3)',
+    category: 'images',
+    slug: 'recadrage-image',
+    icon: '✂️',
+    keywords: ['recadrage', 'crop', 'image', 'ratio', 'dimensions'],
+  },
+  {
+    id: 'filigrane-image',
+    name: 'Ajout de filigrane',
+    description: 'Ajoutez un filigrane texte sur vos images pour les protéger',
+    category: 'images',
+    slug: 'filigrane-image',
+    icon: '©️',
+    keywords: ['filigrane', 'watermark', 'copyright', 'protection', 'image'],
+  },
+  {
+    id: 'convertisseur-heic',
+    name: 'Convertisseur HEIC',
+    description: 'Convertissez les images HEIC (iPhone) en JPG ou PNG',
+    category: 'images',
+    slug: 'convertisseur-heic',
+    icon: '📱',
+    keywords: ['heic', 'iphone', 'jpg', 'png', 'conversion', 'ios'],
   },
 
   // Catégorie PDF
@@ -481,6 +562,15 @@ export const tools: Tool[] = [
     icon: '🏦',
     keywords: ['prêt', 'crédit', 'mensualités', 'emprunt', 'calcul'],
   },
+  {
+    id: 'simulateur-interets',
+    name: 'Simulateur d\'intérêts composés',
+    description: 'Calculez vos gains avec les intérêts composés sur le long terme',
+    category: 'calcul',
+    slug: 'simulateur-interets',
+    icon: '📈',
+    keywords: ['intérêts', 'composés', 'épargne', 'investissement', 'rendement'],
+  },
 
   // Catégorie Générateurs
   {
@@ -601,6 +691,24 @@ export const tools: Tool[] = [
     slug: 'compteur-rebours',
     icon: '⏰',
     keywords: ['compteur', 'rebours', 'countdown', 'timer'],
+  },
+  {
+    id: 'tirage-au-sort',
+    name: 'Tirage au sort',
+    description: 'Tirez au sort un ou plusieurs éléments d\'une liste',
+    category: 'utilitaires',
+    slug: 'tirage-au-sort',
+    icon: '🎲',
+    keywords: ['tirage', 'sort', 'random', 'aléatoire', 'picker', 'loterie'],
+  },
+  {
+    id: 'bloc-notes',
+    name: 'Bloc-notes',
+    description: 'Prenez des notes sauvegardées localement dans votre navigateur',
+    category: 'utilitaires',
+    slug: 'bloc-notes',
+    icon: '📝',
+    keywords: ['notes', 'bloc-notes', 'notepad', 'sauvegarde', 'local'],
   },
 
   // Catégorie SEO & Web
