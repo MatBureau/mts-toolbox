@@ -66,6 +66,13 @@ export const categories: Category[] = [
     description: 'Outils pratiques du quotidien',
     icon: '🔧',
   },
+  {
+    id: 'seo',
+    name: 'SEO & Web',
+    slug: 'seo',
+    description: 'Outils d\'optimisation et analyse SEO',
+    icon: '🔎',
+  },
 ]
 
 export const tools: Tool[] = [
@@ -594,6 +601,53 @@ export const tools: Tool[] = [
     slug: 'compteur-rebours',
     icon: '⏰',
     keywords: ['compteur', 'rebours', 'countdown', 'timer'],
+  },
+
+  // Catégorie SEO & Web
+  {
+    id: 'previsualisation-serp',
+    name: 'Prévisualisation SERP',
+    description: 'Prévisualisez votre résultat Google (desktop et mobile) avec compteur de caractères',
+    category: 'seo',
+    slug: 'previsualisation-serp',
+    icon: '🔍',
+    keywords: ['serp', 'google', 'preview', 'prévisualisation', 'résultat google', 'snippet', 'title', 'meta description', 'seo preview'],
+  },
+  {
+    id: 'generateur-robots',
+    name: 'Générateur robots.txt',
+    description: 'Créez votre fichier robots.txt facilement avec interface visuelle',
+    category: 'seo',
+    slug: 'generateur-robots',
+    icon: '🤖',
+    keywords: ['robots', 'robots.txt', 'seo', 'crawler', 'indexation', 'sitemap', 'génér ateur robots txt'],
+  },
+  {
+    id: 'verificateur-meta',
+    name: 'Vérificateur Title & Meta',
+    description: 'Analysez vos balises title et meta description (longueur, mots-clés, optimisation)',
+    category: 'seo',
+    slug: 'verificateur-meta',
+    icon: '✓',
+    keywords: ['title', 'meta', 'description', 'seo', 'vérification', 'optimisation', 'balises meta', 'title tag'],
+  },
+  {
+    id: 'generateur-sitemap',
+    name: 'Générateur sitemap.xml',
+    description: 'Générez un sitemap.xml à partir d\'une liste d\'URLs',
+    category: 'seo',
+    slug: 'generateur-sitemap',
+    icon: '🗺️',
+    keywords: ['sitemap', 'xml', 'seo', 'urls', 'indexation', 'google', 'générateur sitemap'],
+  },
+  {
+    id: 'analyseur-onpage',
+    name: 'Analyseur On-Page',
+    description: 'Analysez le contenu SEO de votre page (H1, mots-clés, densité, structure)',
+    category: 'seo',
+    slug: 'analyseur-onpage',
+    icon: '📊',
+    keywords: ['seo', 'on-page', 'analyse', 'h1', 'mots-clés', 'densité', 'optimisation seo'],
   },
 ]
 

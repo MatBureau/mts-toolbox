@@ -78,6 +78,12 @@ const toolComponents: Record<string, any> = {
   'detecteur-ip': dynamic(() => import('@/components/tools/DetecteurIP')),
   'test-frappe': dynamic(() => import('@/components/tools/TestFrappe')),
   'compteur-rebours': dynamic(() => import('@/components/tools/CompteurRebours')),
+  // SEO & Web
+  'previsualisation-serp': dynamic(() => import('@/components/tools/PrevisualisationSerp')),
+  'generateur-robots': dynamic(() => import('@/components/tools/GenerateurRobots')),
+  'verificateur-meta': dynamic(() => import('@/components/tools/VerificateurMeta')),
+  'generateur-sitemap': dynamic(() => import('@/components/tools/GenerateurSitemap')),
+  'analyseur-onpage': dynamic(() => import('@/components/tools/AnalyseurOnPage')),
 }
 
 interface ToolPageProps {
