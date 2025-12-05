@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "jsbarcode": "^3.11.6",
+    "jsbarcode": "^3.12.1",
     "next": "^14.2.0",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^4.0.269",

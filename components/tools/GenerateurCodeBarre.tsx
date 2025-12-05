@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import JsBarcode from 'jsbarcode'
 import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import Button from '@/components/ui/Button'
@@ -8,8 +9,9 @@ import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 
 export default function GenerateurCodeBarre() {
   const [text, setText] = useState<string>('1234567890')
-  const [format, setFormat] = useState<string>('code128')
+  const [format, setFormat] = useState<string>('CODE128')
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [error, setError] = useState<string>('')
 
   useEffect(() => {
     generateBarcode()
@@ -19,32 +21,26 @@ export default function GenerateurCodeBarre() {
     const canvas = canvasRef.current
     if (!canvas || !text) return
 
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
-    const width = 300
-    const height = 100
-    canvas.width = width
-    canvas.height = height
-
-    ctx.fillStyle = 'white'
-    ctx.fillRect(0, 0, width, height)
-
-    const barWidth = width / text.length
-    const barHeight = height * 0.7
-
-    ctx.fillStyle = 'black'
-    text.split('').forEach((char, i) => {
-      const code = char.charCodeAt(0)
-      if (code % 2 === 0) {
-        ctx.fillRect(i * barWidth, 10, barWidth * 0.5, barHeight)
+    try {
+      setError('')
+      JsBarcode(canvas, text, {
+        format: format,
+        width: 2,
+        height: 80,
+        displayValue: true,
+        fontSize: 14,
+        margin: 10,
+      })
+    } catch (err) {
+      setError('Code invalide pour ce format')
+      const ctx = canvas.getContext('2d')
+      if (ctx) {
+        canvas.width = 300
+        canvas.height = 100
+        ctx.fillStyle = 'white'
+        ctx.fillRect(0, 0, 300, 100)
       }
-    })
-
-    ctx.fillStyle = 'black'
-    ctx.font = '12px monospace'
-    ctx.textAlign = 'center'
-    ctx.fillText(text, width / 2, height - 10)
+    }
   }
 
   const downloadBarcode = () => {
@@ -82,9 +78,11 @@ export default function GenerateurCodeBarre() {
             value={format}
             onChange={(e) => setFormat(e.target.value)}
             options={[
-              { value: 'code128', label: 'CODE 128' },
-              { value: 'ean13', label: 'EAN-13' },
-              { value: 'code39', label: 'CODE 39' },
+              { value: 'CODE128', label: 'CODE 128' },
+              { value: 'EAN13', label: 'EAN-13' },
+              { value: 'CODE39', label: 'CODE 39' },
+              { value: 'UPC', label: 'UPC' },
+              { value: 'ITF14', label: 'ITF-14' },
             ]}
           />
         </CardContent>
@@ -96,10 +94,15 @@ export default function GenerateurCodeBarre() {
             <CardTitle>Code-barres</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {error && (
+              <div className="p-3 bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-lg text-sm">
+                {error}
+              </div>
+            )}
             <div className="flex justify-center p-4 bg-white rounded-lg">
               <canvas ref={canvasRef} />
             </div>
-            <Button onClick={downloadBarcode} className="w-full">
+            <Button onClick={downloadBarcode} className="w-full" disabled={!!error}>
               Télécharger le code-barres
             </Button>
           </CardContent>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Select from '@/components/ui/Select'
 import Input from '@/components/ui/Input'
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
@@ -11,7 +11,7 @@ export default function ConvertisseurTailles() {
   const [inputSize, setInputSize] = useState<string>('')
   const [results, setResults] = useState<{ system: string; size: string }[]>([])
 
-  const sizeConversions: any = {
+  const sizeConversions = useMemo(() => ({
     'women-clothes': {
       eu: ['32', '34', '36', '38', '40', '42', '44', '46', '48'],
       us: ['0', '2', '4', '6', '8', '10', '12', '14', '16'],
@@ -32,11 +32,16 @@ export default function ConvertisseurTailles() {
       us: ['6', '7', '7.5', '8.5', '9.5', '10', '11', '11.5', '12.5'],
       uk: ['6', '6.5', '7.5', '8', '9', '9.5', '10.5', '11', '12'],
     },
-  }
+  }), [])
 
-  const convertSize = () => {
+  useEffect(() => {
+    if (!inputSize) {
+      setResults([])
+      return
+    }
+
     const conversions = sizeConversions[category]
-    if (!conversions || !inputSize) {
+    if (!conversions) {
       setResults([])
       return
     }
@@ -58,7 +63,7 @@ export default function ConvertisseurTailles() {
     }
 
     setResults(result)
-  }
+  }, [category, inputSystem, inputSize, sizeConversions])
 
   return (
     <div className="space-y-6">
@@ -107,10 +112,7 @@ export default function ConvertisseurTailles() {
           <Select
             label="Taille"
             value={inputSize}
-            onChange={(e) => {
-              setInputSize(e.target.value)
-              setTimeout(convertSize, 0)
-            }}
+            onChange={(e) => setInputSize(e.target.value)}
             options={[
               { value: '', label: 'Sélectionnez une taille' },
               ...sizeConversions[category][inputSystem].map((size: string) => ({
