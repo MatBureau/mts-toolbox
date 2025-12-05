@@ -5,13 +5,21 @@ import Select from '@/components/ui/Select'
 import Input from '@/components/ui/Input'
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 
+type SizeSystem = {
+  [key: string]: string[]
+}
+
+type SizeConversions = {
+  [key: string]: SizeSystem
+}
+
 export default function ConvertisseurTailles() {
   const [category, setCategory] = useState<string>('women-clothes')
   const [inputSystem, setInputSystem] = useState<string>('eu')
   const [inputSize, setInputSize] = useState<string>('')
   const [results, setResults] = useState<{ system: string; size: string }[]>([])
 
-  const sizeConversions = useMemo(() => ({
+  const sizeConversions = useMemo<SizeConversions>(() => ({
     'women-clothes': {
       eu: ['32', '34', '36', '38', '40', '42', '44', '46', '48'],
       us: ['0', '2', '4', '6', '8', '10', '12', '14', '16'],
