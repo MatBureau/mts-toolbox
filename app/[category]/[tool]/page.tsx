@@ -1,9 +1,13 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getToolBySlug, getCategoryBySlug } from '@/lib/tools-config'
-import { generateToolMetadata, generateStructuredData, generateBreadcrumbStructuredData } from '@/lib/seo'
+import { generateToolMetadata, generateStructuredData, generateBreadcrumbStructuredData, generateHowToStructuredData, generateFAQStructuredData, generateOrganizationStructuredData } from '@/lib/seo'
+import { getToolSEOData } from '@/lib/tool-seo-data'
 import JsonLd from '@/components/seo/JsonLd'
 import AdBanner from '@/components/ads/AdBanner'
+import ToolContent from '@/components/seo/ToolContent'
+import FAQ from '@/components/seo/FAQ'
+import RelatedTools from '@/components/seo/RelatedTools'
 
 // Import dynamic tool components
 import dynamic from 'next/dynamic'
@@ -126,6 +130,12 @@ export default function ToolPage({ params }: ToolPageProps) {
     tool.name,
     tool.slug
   )
+  const organizationData = generateOrganizationStructuredData()
+
+  // Get SEO data for HowTo and FAQ
+  const seoData = getToolSEOData(tool.slug)
+  const howToData = seoData ? generateHowToStructuredData(tool, seoData.howToSteps) : null
+  const faqData = seoData ? generateFAQStructuredData(seoData.faqs) : null
 
   const ToolComponent = toolComponents[tool.slug]
 
@@ -133,6 +143,9 @@ export default function ToolPage({ params }: ToolPageProps) {
     <>
       <JsonLd data={structuredData} />
       <JsonLd data={breadcrumbData} />
+      <JsonLd data={organizationData} />
+      {howToData && <JsonLd data={howToData} />}
+      {faqData && <JsonLd data={faqData} />}
 
       <div className="max-w-6xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -152,6 +165,12 @@ export default function ToolPage({ params }: ToolPageProps) {
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-6">
               {ToolComponent ? <ToolComponent /> : <p>Outil en cours de développement...</p>}
             </div>
+
+            <ToolContent tool={tool} />
+
+            <FAQ tool={tool} />
+
+            <RelatedTools currentTool={tool} />
 
             <div className="mt-8 md:hidden flex justify-center">
               <AdBanner id="ad-content" width={336} height={280} />

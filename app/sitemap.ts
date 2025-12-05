@@ -31,13 +31,30 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })
   })
 
-  const additionalPages = ['about', 'contact', 'mentions-legales', 'politique-confidentialite']
+  const additionalPages = ['about', 'contact', 'mentions-legales', 'politique-confidentialite', 'blog']
   additionalPages.forEach((page) => {
     routes.push({
       url: `${baseUrl}/${page}`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.5,
+    })
+  })
+
+  // Add blog posts to sitemap
+  const blogPosts = [
+    'comment-editer-pdf-gratuitement',
+    'optimiser-images-web',
+    'json-guide-debutant',
+    'calculer-pourcentages-facilement'
+  ]
+
+  blogPosts.forEach((slug) => {
+    routes.push({
+      url: `${baseUrl}/blog/${slug}`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
     })
   })
 

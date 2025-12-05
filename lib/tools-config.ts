@@ -77,7 +77,7 @@ export const tools: Tool[] = [
     category: 'texte',
     slug: 'compteur-mots',
     icon: '🔢',
-    keywords: ['compteur', 'mots', 'caractères', 'texte', 'analyse'],
+    keywords: ['compteur', 'mots', 'caractères', 'texte', 'analyse', 'compter les mots en ligne', 'compteur de caractères gratuit', 'outil compteur de mots', 'nombre de mots texte', 'calculer nombre caractères'],
   },
   {
     id: 'convertisseur-casse',
@@ -169,7 +169,7 @@ export const tools: Tool[] = [
     category: 'developpement',
     slug: 'formateur-json',
     icon: '{ }',
-    keywords: ['json', 'format', 'beautify', 'prettier'],
+    keywords: ['json', 'format', 'beautify', 'prettier', 'formatter json en ligne', 'embellir json gratuit', 'valider et formater json', 'json beautifier français', 'indenter json'],
   },
   {
     id: 'formateur-sql',
@@ -261,7 +261,7 @@ export const tools: Tool[] = [
     category: 'images',
     slug: 'convertisseur-images',
     icon: '🖼️',
-    keywords: ['image', 'conversion', 'png', 'jpg', 'webp'],
+    keywords: ['image', 'conversion', 'png', 'jpg', 'webp', 'convertir image en ligne gratuit', 'png vers jpg', 'jpg vers webp', 'convertisseur photo gratuit', 'transformer image'],
   },
   {
     id: 'compresseur-images',
@@ -326,7 +326,7 @@ export const tools: Tool[] = [
     category: 'pdf',
     slug: 'editeur-pdf',
     icon: '✏️',
-    keywords: ['pdf', 'éditeur', 'annotation', 'texte', 'dessin', 'formes'],
+    keywords: ['pdf', 'éditeur', 'annotation', 'texte', 'dessin', 'formes', 'éditer pdf en ligne gratuit', 'annoter pdf gratuit', 'modifier pdf sans télécharger', 'ajouter texte sur pdf', 'dessiner sur pdf'],
   },
   {
     id: 'fusionner-pdf',
@@ -335,7 +335,7 @@ export const tools: Tool[] = [
     category: 'pdf',
     slug: 'fusionner-pdf',
     icon: '🔗',
-    keywords: ['pdf', 'fusion', 'combiner', 'merge'],
+    keywords: ['pdf', 'fusion', 'combiner', 'merge', 'fusionner pdf gratuit en ligne', 'combiner plusieurs pdf', 'joindre fichiers pdf', 'regrouper pdf en un seul', 'assembler pdf'],
   },
   {
     id: 'decouper-pdf',
@@ -391,7 +391,7 @@ export const tools: Tool[] = [
     category: 'calcul',
     slug: 'calculateur-pourcentage',
     icon: '%',
-    keywords: ['pourcentage', 'calcul', 'pourcentage', 'réduction'],
+    keywords: ['pourcentage', 'calcul', 'réduction', 'calculer pourcentage en ligne', 'calculatrice pourcentage gratuit', 'comment calculer un pourcentage', 'calculer remise pourcentage', 'outil calcul pourcentage'],
   },
   {
     id: 'convertisseur-unites',
@@ -483,7 +483,7 @@ export const tools: Tool[] = [
     category: 'generateurs',
     slug: 'generateur-qrcode',
     icon: '📱',
-    keywords: ['qr code', 'qrcode', 'générateur', 'code barre'],
+    keywords: ['qr code', 'qrcode', 'générateur', 'code barre', 'créer qr code gratuit', 'générateur qr code en ligne', 'faire un qr code', 'qr code personnalisé gratuit', 'code qr gratuit'],
   },
   {
     id: 'generateur-codebarre',

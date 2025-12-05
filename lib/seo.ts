@@ -76,3 +76,62 @@ export function generateBreadcrumbStructuredData(
     itemListElement: items,
   }
 }
+
+export function generateHowToStructuredData(
+  tool: Tool,
+  steps: string[],
+  baseUrl: string = 'https://mts-toolbox.com'
+) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    name: `Comment utiliser ${tool.name}`,
+    description: tool.description,
+    step: steps.map((step, index) => ({
+      '@type': 'HowToStep',
+      position: index + 1,
+      name: `Étape ${index + 1}`,
+      text: step,
+    })),
+    totalTime: 'PT5M',
+    tool: {
+      '@type': 'HowToTool',
+      name: tool.name,
+    },
+  }
+}
+
+export function generateFAQStructuredData(
+  faqs: Array<{ question: string; answer: string }>,
+  baseUrl: string = 'https://mts-toolbox.com'
+) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((faq) => ({
+      '@type': 'Question',
+      name: faq.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.answer,
+      },
+    })),
+  }
+}
+
+export function generateOrganizationStructuredData(baseUrl: string = 'https://mts-toolbox.com') {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'MTS-Toolbox',
+    url: baseUrl,
+    logo: `${baseUrl}/logo.png`,
+    description: 'Collection d\'outils en ligne gratuits pour le texte, le développement, les images, les calculs et plus encore',
+    sameAs: [],
+    contactPoint: {
+      '@type': 'ContactPoint',
+      contactType: 'Customer Service',
+      availableLanguage: ['French'],
+    },
+  }
+}

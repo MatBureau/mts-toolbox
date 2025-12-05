@@ -13,6 +13,7 @@ const inter = Inter({ subsets: ['latin'] })
 const GA_ID = "G-GEBQLBSF17";
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://mts-toolbox.com'),
   title: 'MTS-Toolbox — Collection d\'outils en ligne gratuits',
   description: 'Découvrez 50+ outils en ligne gratuits pour le texte, le développement, les images, les calculs et plus encore.',
   keywords: ['outils en ligne', 'gratuit', 'convertisseur', 'calculateur', 'générateur', 'texte', 'développement'],
@@ -32,6 +33,8 @@ export const metadata: Metadata = {
     description: 'Découvrez 50+ outils en ligne gratuits pour le texte, le développement, les images, les calculs et plus encore.',
     type: 'website',
     locale: 'fr_FR',
+    url: 'https://mts-toolbox.com',
+    siteName: 'MTS-Toolbox',
     images: ['/logo.png'],
   },
   twitter: {
@@ -39,6 +42,9 @@ export const metadata: Metadata = {
     title: 'MTS-Toolbox — Collection d\'outils en ligne gratuits',
     description: 'Découvrez 50+ outils en ligne gratuits pour le texte, le développement, les images, les calculs et plus encore.',
     images: ['/logo.png'],
+  },
+  alternates: {
+    canonical: 'https://mts-toolbox.com',
   },
 }
 
@@ -49,7 +55,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr" suppressHydrationWarning>
-            <head>
+      <head>
+        {/* DNS Prefetch and Preconnect for Performance */}
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="https://www.google-analytics.com" />
+        <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://www.google-analytics.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+
         {/* Script de Google tag (gtag.js) */}
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
