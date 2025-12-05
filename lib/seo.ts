@@ -125,7 +125,12 @@ export function generateOrganizationStructuredData(baseUrl: string = 'https://mt
     '@type': 'Organization',
     name: 'MTS-Toolbox',
     url: baseUrl,
-    logo: `${baseUrl}/logo.png`,
+    logo: {
+      '@type': 'ImageObject',
+      url: `${baseUrl}/logo-icon`,
+      width: 512,
+      height: 512,
+    },
     description: 'Collection d\'outils en ligne gratuits pour le texte, le développement, les images, les calculs et plus encore',
     sameAs: [],
     contactPoint: {

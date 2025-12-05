@@ -20,8 +20,12 @@ export const metadata: Metadata = {
   authors: [{ name: 'MTS-Toolbox' }],
   manifest: '/manifest.json',
   icons: {
-    icon: '/logo.png',
-    apple: '/logo.png',
+    icon: [
+      { url: '/icon', type: 'image/png', sizes: '32x32' },
+    ],
+    apple: [
+      { url: '/apple-icon', type: 'image/png', sizes: '180x180' },
+    ],
   },
   appleWebApp: {
     capable: true,
