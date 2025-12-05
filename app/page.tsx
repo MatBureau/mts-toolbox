@@ -129,7 +129,7 @@ export default function HomePage() {
         ) : (
           <div className="space-y-12">
             {/* Section des outils les plus utilisés */}
-            {!searchQuery && topToolsData.length > 0 && (
+            {!searchQuery && (
               <section>
                 <div className="flex items-center space-x-3 mb-6">
                   <span className="text-3xl">🔥</span>
@@ -149,6 +149,15 @@ export default function HomePage() {
                 {loadingTop ? (
                   <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                     Chargement des statistiques...
+                  </div>
+                ) : topToolsData.length === 0 ? (
+                  <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-8 text-center">
+                    <p className="text-gray-700 dark:text-gray-300 mb-2">
+                      📊 Les statistiques d'utilisation sont en cours de collecte
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Cette section affichera bientôt les 10 outils les plus consultés par nos utilisateurs
+                    </p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
