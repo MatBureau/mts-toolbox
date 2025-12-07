@@ -57,11 +57,11 @@ export default function Header() {
           <nav className="hidden md:flex items-center">
             <GooeyNav
               items={navItems}
-              particleCount={12}
-              particleDistances={[70, 8]}
-              particleR={80}
-              animationTime={500}
-              timeVariance={250}
+              particleCount={20}
+              particleDistances={[120, 15]}
+              particleR={150}
+              animationTime={700}
+              timeVariance={350}
               colors={[1, 2, 3, 4, 1, 2, 3, 4]}
               initialActiveIndex={activeIndex}
             />

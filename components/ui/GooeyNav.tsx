@@ -144,6 +144,11 @@ const GooeyNav = ({
     }
   }
 
+  // Update activeIndex when initialActiveIndex prop changes
+  useEffect(() => {
+    setActiveIndex(initialActiveIndex)
+  }, [initialActiveIndex])
+
   useEffect(() => {
     if (!navRef.current || !containerRef.current) return
     const activeLi = navRef.current.querySelectorAll('li')[activeIndex]
