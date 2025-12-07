@@ -9,6 +9,7 @@ import ToolContent from '@/components/seo/ToolContent'
 import FAQ from '@/components/seo/FAQ'
 import RelatedTools from '@/components/seo/RelatedTools'
 import TrackView from '@/components/TrackView'
+import Breadcrumbs from '@/components/ui/Breadcrumbs'
 
 // Import dynamic tool components
 import dynamic from 'next/dynamic'
@@ -168,6 +169,10 @@ export default function ToolPage({ params }: ToolPageProps) {
       {faqData && <JsonLd data={faqData} />}
 
       <div className="max-w-6xl mx-auto">
+        <div className="mb-4">
+          <Breadcrumbs />
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <div className="lg:col-span-3">
             <div className="mb-6">

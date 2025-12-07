@@ -4,6 +4,9 @@ import { useState, useMemo, useEffect } from 'react'
 import Card, { CardHeader, CardTitle, CardDescription } from '@/components/ui/Card'
 import { categories, getToolsByCategory, tools } from '@/lib/tools-config'
 import JsonLd from '@/components/seo/JsonLd'
+import HeroSection from '@/components/HeroSection'
+import { ToolCardSkeleton } from '@/components/ui/Skeleton'
+import FadeIn from '@/components/ui/FadeIn'
 
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -91,44 +94,39 @@ export default function HomePage() {
       <JsonLd data={structuredData} />
 
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-            MTS-Toolbox
-          </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-400 mb-6">
-            {totalTools}+ outils en ligne gratuits pour tous vos besoins
-          </p>
+        {/* Hero Section */}
+        <HeroSection onSearchClick={() => document.getElementById('search-input')?.focus()} />
 
-          {/* Barre de recherche */}
-          <div className="max-w-2xl mx-auto">
-            <div className="flex items-center gap-3">
-              <div className="relative flex-1">
-                <input
-                  type="text"
-                  placeholder="Rechercher un outil... (ex: PDF, JSON, image)"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-6 py-4 text-lg border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-              <div className="text-3xl">
-                🔍
-              </div>
+        {/* Barre de recherche */}
+        <div className="max-w-2xl mx-auto mb-8">
+          <div className="flex items-center gap-3">
+            <div className="relative flex-1">
+              <input
+                id="search-input"
+                type="text"
+                placeholder="Rechercher un outil... (ex: PDF, JSON, image)"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full px-6 py-4 text-lg border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:border-[#2656D9] dark:focus:border-[#6789E4] bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors shadow-lg"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                >
+                  ✕
+                </button>
+              )}
             </div>
-            {searchQuery && (
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                {displayedTools} outil{displayedTools > 1 ? 's' : ''} trouvé{displayedTools > 1 ? 's' : ''}
-              </p>
-            )}
+            <div className="text-3xl">
+              🔍
+            </div>
           </div>
+          {searchQuery && (
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+              {displayedTools} outil{displayedTools > 1 ? 's' : ''} trouvé{displayedTools > 1 ? 's' : ''}
+            </p>
+          )}
         </div>
 
         {filteredCategories.length === 0 ? (
@@ -164,8 +162,10 @@ export default function HomePage() {
                 </div>
 
                 {loadingTop ? (
-                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                    Chargement des statistiques...
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {[...Array(12)].map((_, i) => (
+                      <ToolCardSkeleton key={i} />
+                    ))}
                   </div>
                 ) : (
                   <>
@@ -176,25 +176,27 @@ export default function HomePage() {
                     )}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {topToolsData.map((tool: any, index) => (
-                        <Card key={tool.id} href={`/${tool.category}/${tool.slug}`} hover>
-                          <CardHeader>
-                            <div className="flex items-start justify-between">
-                              <span className="text-2xl">{tool.icon}</span>
-                              {tool.views > 0 && (
-                                <div className="flex items-center gap-2">
-                                  <span className="text-xs font-semibold bg-orange-100 dark:bg-orange-900 text-orange-600 dark:text-orange-300 px-2 py-1 rounded">
-                                    #{index + 1}
-                                  </span>
-                                  <span className="text-xs text-gray-500 dark:text-gray-400">
-                                    {tool.views} vues
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                            <CardTitle>{tool.name}</CardTitle>
-                            <CardDescription>{tool.description}</CardDescription>
-                          </CardHeader>
-                        </Card>
+                        <FadeIn key={tool.id} delay={index * 0.05}>
+                          <Card href={`/${tool.category}/${tool.slug}`} hover>
+                            <CardHeader>
+                              <div className="flex items-start justify-between">
+                                <span className="text-2xl">{tool.icon}</span>
+                                {tool.views > 0 && (
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs font-semibold bg-orange-100 dark:bg-orange-900 text-orange-600 dark:text-orange-300 px-2 py-1 rounded">
+                                      #{index + 1}
+                                    </span>
+                                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                                      {tool.views} vues
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                              <CardTitle>{tool.name}</CardTitle>
+                              <CardDescription>{tool.description}</CardDescription>
+                            </CardHeader>
+                          </Card>
+                        </FadeIn>
                       ))}
                     </div>
                   </>
@@ -221,16 +223,18 @@ export default function HomePage() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {category.tools.map((tool) => (
-                    <Card key={tool.id} href={`/${tool.category}/${tool.slug}`} hover>
-                      <CardHeader>
-                        <div className="flex items-start justify-between">
-                          <span className="text-2xl">{tool.icon}</span>
-                        </div>
-                        <CardTitle>{tool.name}</CardTitle>
-                        <CardDescription>{tool.description}</CardDescription>
-                      </CardHeader>
-                    </Card>
+                  {category.tools.map((tool, index) => (
+                    <FadeIn key={tool.id} delay={index * 0.05}>
+                      <Card href={`/${tool.category}/${tool.slug}`} hover>
+                        <CardHeader>
+                          <div className="flex items-start justify-between">
+                            <span className="text-2xl">{tool.icon}</span>
+                          </div>
+                          <CardTitle>{tool.name}</CardTitle>
+                          <CardDescription>{tool.description}</CardDescription>
+                        </CardHeader>
+                      </Card>
+                    </FadeIn>
                   ))}
                 </div>
               </section>

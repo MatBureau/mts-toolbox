@@ -9,6 +9,9 @@ import GoogleAnalytics from '@/components/GoogleAnalytics'
 import { env } from '@/lib/env'
 import Script from 'next/script'
 import Particles from '@/components/ui/Particles'
+import ToastProvider from '@/components/ui/ToastProvider'
+import BackToTop from '@/components/ui/BackToTop'
+import CommandPalette from '@/components/CommandPalette'
 
 const inter = Inter({ subsets: ['latin'] })
 const GA_ID = "G-GEBQLBSF17";
@@ -93,6 +96,8 @@ export default function RootLayout({
           />
         )}
         <ThemeProvider>
+          <ToastProvider />
+          <CommandPalette />
           {/* Particles background */}
           <div className="fixed inset-0 -z-10 opacity-60 dark:opacity-50">
             <Particles
@@ -123,6 +128,7 @@ export default function RootLayout({
 
             <Footer />
           </div>
+          <BackToTop />
         </ThemeProvider>
       </body>
     </html>
