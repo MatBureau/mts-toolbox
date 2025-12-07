@@ -94,17 +94,18 @@ export default function RootLayout({
         )}
         <ThemeProvider>
           {/* Particles background */}
-          <div className="fixed inset-0 -z-10 opacity-30 dark:opacity-20">
+          <div className="fixed inset-0 -z-10 opacity-60 dark:opacity-50">
             <Particles
-              particleColors={['#3b82f6', '#7df9ff', '#60a5fa']}
-              particleCount={150}
-              particleSpread={12}
-              speed={0.05}
-              particleBaseSize={80}
+              particleColors={['#3b82f6', '#7df9ff', '#60a5fa', '#a78bfa']}
+              particleCount={250}
+              particleSpread={8}
+              speed={0.08}
+              particleBaseSize={120}
               moveParticlesOnHover={true}
-              particleHoverFactor={0.5}
+              particleHoverFactor={0.8}
               alphaParticles={true}
               disableRotation={false}
+              sizeRandomness={2}
               pixelRatio={1.5}
             />
           </div>
