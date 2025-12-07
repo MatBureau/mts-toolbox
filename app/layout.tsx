@@ -96,7 +96,7 @@ export default function RootLayout({
           {/* Particles background */}
           <div className="fixed inset-0 -z-10 opacity-60 dark:opacity-50">
             <Particles
-              particleColors={['#3b82f6', '#7df9ff', '#60a5fa', '#a78bfa']}
+              particleColors={['#0F2257', '#1B3C98', '#2656D9', '#6789E4', '#A8BBF0']}
               particleCount={250}
               particleSpread={8}
               speed={0.08}

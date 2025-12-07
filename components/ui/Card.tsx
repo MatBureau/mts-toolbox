@@ -16,7 +16,7 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
 
     const content = (
       <ElectricBorder
-        color="#7df9ff"
+        color="#2656D9"
         speed={0.8}
         chaos={0.4}
         thickness={1.5}
