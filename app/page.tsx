@@ -176,7 +176,7 @@ export default function HomePage() {
                     )}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {topToolsData.map((tool: any, index) => (
-                        <FadeIn key={tool.id} delay={index * 0.05}>
+                        <FadeIn key={tool.id} delay={index * 0.05} className="h-full">
                           <Card href={`/${tool.category}/${tool.slug}`} hover>
                             <CardHeader>
                               <div className="flex items-start justify-between">
@@ -193,7 +193,7 @@ export default function HomePage() {
                                 )}
                               </div>
                               <CardTitle>{tool.name}</CardTitle>
-                              <CardDescription>{tool.description}</CardDescription>
+                              <CardDescription className="line-clamp-2">{tool.description}</CardDescription>
                             </CardHeader>
                           </Card>
                         </FadeIn>
@@ -224,14 +224,14 @@ export default function HomePage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {category.tools.map((tool, index) => (
-                    <FadeIn key={tool.id} delay={index * 0.05}>
+                    <FadeIn key={tool.id} delay={index * 0.05} className="h-full">
                       <Card href={`/${tool.category}/${tool.slug}`} hover>
                         <CardHeader>
                           <div className="flex items-start justify-between">
                             <span className="text-2xl">{tool.icon}</span>
                           </div>
                           <CardTitle>{tool.name}</CardTitle>
-                          <CardDescription>{tool.description}</CardDescription>
+                          <CardDescription className="line-clamp-2">{tool.description}</CardDescription>
                         </CardHeader>
                       </Card>
                     </FadeIn>
