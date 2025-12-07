@@ -5,16 +5,13 @@ import Image from 'next/image'
 import { useTheme } from './ThemeProvider'
 import { categories } from '@/lib/tools-config'
 import MobileMenu from './MobileMenu'
-import GooeyNav from './ui/GooeyNav'
 import { usePathname } from 'next/navigation'
-import { useEffect, useState } from 'react'
 
 export default function Header() {
   const { theme, toggleTheme } = useTheme()
   const pathname = usePathname()
-  const [activeIndex, setActiveIndex] = useState(0)
 
-  // Navigation items for GooeyNav
+  // Navigation items
   const navItems = [
     { label: 'Accueil', href: '/' },
     { label: 'Catégories', href: '/categories' },
@@ -25,19 +22,12 @@ export default function Header() {
     { label: 'À propos', href: '/about' }
   ]
 
-  // Update active index based on pathname
-  useEffect(() => {
-    const index = navItems.findIndex(item => {
-      if (item.href === '/') {
-        return pathname === '/'
-      }
-      return pathname.startsWith(item.href)
-    })
-    if (index !== -1) {
-      setActiveIndex(index)
+  const isActive = (href: string) => {
+    if (href === '/') {
+      return pathname === '/'
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname])
+    return pathname.startsWith(href)
+  }
 
   return (
     <header className="sticky top-0 z-50 border-b border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm">
@@ -54,17 +44,25 @@ export default function Header() {
             <span className="text-xl font-bold text-gray-900 dark:text-gray-100">MTS-Toolbox</span>
           </Link>
 
-          <nav className="hidden md:flex items-center">
-            <GooeyNav
-              items={navItems}
-              particleCount={20}
-              particleDistances={[120, 15]}
-              particleR={150}
-              animationTime={700}
-              timeVariance={350}
-              colors={[1, 2, 3, 4, 1, 2, 3, 4]}
-              initialActiveIndex={activeIndex}
-            />
+          <nav className="hidden md:flex items-center gap-1">
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`
+                  relative px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300
+                  ${isActive(item.href)
+                    ? 'text-white bg-gradient-to-r from-[#2656D9] to-[#6789E4] shadow-lg shadow-[#2656D9]/30'
+                    : 'text-gray-300 hover:text-white hover:bg-gray-800/50'
+                  }
+                `}
+              >
+                {item.label}
+                {isActive(item.href) && (
+                  <span className="absolute inset-0 rounded-lg bg-gradient-to-r from-[#2656D9] to-[#6789E4] opacity-0 blur-xl transition-opacity duration-300 -z-10" />
+                )}
+              </Link>
+            ))}
           </nav>
 
           <div className="flex items-center gap-2">
