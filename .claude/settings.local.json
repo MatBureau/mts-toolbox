@@ -10,7 +10,8 @@
       "Bash(dir:*)",
       "Bash(curl:*)",
       "Bash(npm uninstall:*)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "WebFetch(domain:reactbits.dev)"
     ],
     "deny": [],
     "ask": []

@@ -8,6 +8,7 @@ import AdBanner from '@/components/ads/AdBanner'
 import GoogleAnalytics from '@/components/GoogleAnalytics'
 import { env } from '@/lib/env'
 import Script from 'next/script'
+import Particles from '@/components/ui/Particles'
 
 const inter = Inter({ subsets: ['latin'] })
 const GA_ID = "G-GEBQLBSF17";
@@ -92,7 +93,23 @@ export default function RootLayout({
           />
         )}
         <ThemeProvider>
-          <div className="flex flex-col min-h-screen">
+          {/* Particles background */}
+          <div className="fixed inset-0 -z-10 opacity-30 dark:opacity-20">
+            <Particles
+              particleColors={['#3b82f6', '#7df9ff', '#60a5fa']}
+              particleCount={150}
+              particleSpread={12}
+              speed={0.05}
+              particleBaseSize={80}
+              moveParticlesOnHover={true}
+              particleHoverFactor={0.5}
+              alphaParticles={true}
+              disableRotation={false}
+              pixelRatio={1.5}
+            />
+          </div>
+
+          <div className="flex flex-col min-h-screen relative z-0">
             <Header />
 
             <div className="hidden md:flex justify-center py-4 border-b border-gray-200 dark:border-gray-800">
