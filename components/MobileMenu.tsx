@@ -88,6 +88,14 @@ export default function MobileMenu() {
                   🏠 Accueil
                 </Link>
 
+                <Link
+                  href="/categories"
+                  onClick={() => setIsOpen(false)}
+                  className="block px-4 py-3 rounded-lg text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium"
+                >
+                  📂 Catégories
+                </Link>
+
                 <div className="border-t border-gray-200 dark:border-gray-800 my-2" />
 
                 <div className="space-y-1">
