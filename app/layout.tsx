@@ -98,20 +98,19 @@ export default function RootLayout({
         <ThemeProvider>
           <ToastProvider />
           <CommandPalette />
-          {/* Particles background */}
-          <div className="fixed inset-0 -z-10 opacity-60 dark:opacity-50">
+          {/* Particles background - Optimized for mobile */}
+          <div className="fixed inset-0 -z-10 opacity-40 dark:opacity-30 hidden md:block">
             <Particles
-              particleColors={['#0F2257', '#1B3C98', '#2656D9', '#6789E4', '#A8BBF0']}
-              particleCount={250}
-              particleSpread={8}
-              speed={0.08}
-              particleBaseSize={120}
-              moveParticlesOnHover={true}
-              particleHoverFactor={0.8}
+              particleColors={['#2656D9', '#6789E4']}
+              particleCount={80}
+              particleSpread={10}
+              speed={0.05}
+              particleBaseSize={80}
+              moveParticlesOnHover={false}
               alphaParticles={true}
-              disableRotation={false}
-              sizeRandomness={2}
-              pixelRatio={1.5}
+              disableRotation={true}
+              sizeRandomness={1.5}
+              pixelRatio={1}
             />
           </div>
 

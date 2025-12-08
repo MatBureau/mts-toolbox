@@ -2,7 +2,6 @@
 
 import { HTMLAttributes, forwardRef } from 'react'
 import Link from 'next/link'
-import ElectricBorder from './ElectricBorder'
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
   hover?: boolean
@@ -11,25 +10,19 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
 
 const Card = forwardRef<HTMLDivElement, CardProps>(
   ({ className = '', hover = false, href, children, ...props }, ref) => {
-    const baseStyles = 'bg-white dark:bg-gray-800 rounded-lg h-full flex flex-col'
-    const hoverStyles = hover ? 'transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl hover:shadow-[#2656D9]/20 dark:hover:shadow-[#6789E4]/20' : ''
+    const baseStyles = 'bg-white dark:bg-gray-800 rounded-xl h-full flex flex-col border-2 border-gray-200 dark:border-gray-700'
+    const hoverStyles = hover
+      ? 'transition-all duration-200 hover:scale-[1.02] hover:shadow-xl hover:border-[#2656D9] dark:hover:border-[#6789E4]'
+      : ''
 
     const content = (
-      <ElectricBorder
-        color="#2656D9"
-        speed={0.8}
-        chaos={0.4}
-        thickness={1.5}
-        style={{ borderRadius: 12, height: '100%' }}
+      <div
+        ref={ref}
+        className={`${baseStyles} ${hoverStyles} ${className}`}
+        {...props}
       >
-        <div
-          ref={ref}
-          className={`${baseStyles} ${hoverStyles} ${className}`}
-          {...props}
-        >
-          {children}
-        </div>
-      </ElectricBorder>
+        {children}
+      </div>
     )
 
     if (href) {

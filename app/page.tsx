@@ -176,7 +176,7 @@ export default function HomePage() {
                     )}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {topToolsData.map((tool: any, index) => (
-                        <FadeIn key={tool.id} delay={index * 0.05} className="h-full">
+                        <FadeIn key={tool.id} delay={index * 0.02} className="h-full">
                           <Card href={`/${tool.category}/${tool.slug}`} hover>
                             <CardHeader>
                               <div className="flex items-start justify-between">
@@ -224,7 +224,7 @@ export default function HomePage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {category.tools.map((tool, index) => (
-                    <FadeIn key={tool.id} delay={index * 0.05} className="h-full">
+                    <FadeIn key={tool.id} delay={index * 0.02} className="h-full">
                       <Card href={`/${tool.category}/${tool.slug}`} hover>
                         <CardHeader>
                           <div className="flex items-start justify-between">
