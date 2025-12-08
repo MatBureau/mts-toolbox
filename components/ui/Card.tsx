@@ -47,7 +47,7 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
 Card.displayName = 'Card'
 
 export const CardHeader = ({ className = '', children, ...props }: HTMLAttributes<HTMLDivElement>) => (
-  <div className={`p-6 pb-4 ${className}`} {...props}>
+  <div className={`p-6 pb-4 flex-1 flex flex-col ${className}`} {...props}>
     {children}
   </div>
 )
