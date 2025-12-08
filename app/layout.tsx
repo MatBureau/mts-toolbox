@@ -98,8 +98,8 @@ export default function RootLayout({
         <ThemeProvider>
           <ToastProvider />
           <CommandPalette />
-          {/* Particles background - Optimized for mobile */}
-          <div className="fixed inset-0 -z-10 opacity-40 dark:opacity-30 hidden md:block">
+          {/* Particles background - Optimized */}
+          <div className="fixed inset-0 -z-10 opacity-40 dark:opacity-30">
             <Particles
               particleColors={['#2656D9', '#6789E4']}
               particleCount={80}
