@@ -55,13 +55,13 @@ const toolComponents: Record<string, any> = {
   'filigrane-image': dynamic(() => import('@/components/tools/FiligraneImage')),
   'convertisseur-heic': dynamic(() => import('@/components/tools/ConvertisseurHEIC')),
   // PDF
-  'editeur-pdf': dynamic(() => import('@/components/tools/EditeurPDF'), { ssr: false }),
-  'fusionner-pdf': dynamic(() => import('@/components/tools/FusionnerPDF'), { ssr: false }),
-  'decouper-pdf': dynamic(() => import('@/components/tools/DecouperPDF'), { ssr: false }),
-  'compresser-pdf': dynamic(() => import('@/components/tools/CompresserPDF'), { ssr: false }),
-  'rotation-pdf': dynamic(() => import('@/components/tools/RotationPDF'), { ssr: false }),
-  'images-vers-pdf': dynamic(() => import('@/components/tools/ImagesVersPDF'), { ssr: false }),
-  'pdf-vers-images': dynamic(() => import('@/components/tools/PDFVersImages'), { ssr: false }),
+  'editeur-pdf': dynamic(() => import('@/components/tools/EditeurPDF')),
+  'fusionner-pdf': dynamic(() => import('@/components/tools/FusionnerPDF')),
+  'decouper-pdf': dynamic(() => import('@/components/tools/DecouperPDF')),
+  'compresser-pdf': dynamic(() => import('@/components/tools/CompresserPDF')),
+  'rotation-pdf': dynamic(() => import('@/components/tools/RotationPDF')),
+  'images-vers-pdf': dynamic(() => import('@/components/tools/ImagesVersPDF')),
+  'pdf-vers-images': dynamic(() => import('@/components/tools/PDFVersImages')),
   // Calcul & Conversion
   'calculateur-pourcentage': dynamic(() => import('@/components/tools/CalculateurPourcentage')),
   'convertisseur-unites': dynamic(() => import('@/components/tools/ConvertisseurUnites')),
@@ -100,14 +100,15 @@ const toolComponents: Record<string, any> = {
 }
 
 interface ToolPageProps {
-  params: {
+  params: Promise<{
     category: string
     tool: string
-  }
+  }>
 }
 
 export async function generateMetadata({ params }: ToolPageProps): Promise<Metadata> {
-  const tool = getToolBySlug(params.category, params.tool)
+  const { category, tool: toolSlug } = await params
+  const tool = getToolBySlug(category, toolSlug)
 
   if (!tool) {
     return {}
@@ -135,9 +136,10 @@ export async function generateMetadata({ params }: ToolPageProps): Promise<Metad
   }
 }
 
-export default function ToolPage({ params }: ToolPageProps) {
-  const tool = getToolBySlug(params.category, params.tool)
-  const category = getCategoryBySlug(params.category)
+export default async function ToolPage({ params }: ToolPageProps) {
+  const { category: categorySlug, tool: toolSlug } = await params
+  const tool = getToolBySlug(categorySlug, toolSlug)
+  const category = getCategoryBySlug(categorySlug)
 
   if (!tool || !category) {
     notFound()

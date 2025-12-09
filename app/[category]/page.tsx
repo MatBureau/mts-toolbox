@@ -8,13 +8,14 @@ import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import FadeIn from '@/components/ui/FadeIn'
 
 interface CategoryPageProps {
-  params: {
+  params: Promise<{
     category: string
-  }
+  }>
 }
 
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
-  const category = getCategoryBySlug(params.category)
+  const { category: categorySlug } = await params
+  const category = getCategoryBySlug(categorySlug)
 
   if (!category) {
     return {}
@@ -30,8 +31,9 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
   }
 }
 
-export default function CategoryPage({ params }: CategoryPageProps) {
-  const category = getCategoryBySlug(params.category)
+export default async function CategoryPage({ params }: CategoryPageProps) {
+  const { category: categorySlug } = await params
+  const category = getCategoryBySlug(categorySlug)
 
   if (!category) {
     notFound()
