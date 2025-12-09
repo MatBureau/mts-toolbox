@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'À propos — MTS-Toolbox',
@@ -91,9 +92,9 @@ export default function AboutPage() {
           </h2>
           <p className="text-gray-700 dark:text-gray-300 mb-4">
             Des questions, suggestions ou bugs à signaler ? N'hésitez pas à nous contacter via notre{' '}
-            <a href="/contact" className="text-primary-600 hover:underline">
+            <Link href="/contact" className="text-primary-600 hover:underline">
               formulaire de contact
-            </a>
+            </Link>
             .
           </p>
         </section>

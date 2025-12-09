@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'Mentions légales — MTS-Toolbox',
@@ -76,9 +77,9 @@ export default function MentionsLegalesPage() {
           </p>
           <p className="text-gray-700 dark:text-gray-300 mt-4">
             Pour plus d'informations sur la protection de vos données, consultez notre{' '}
-            <a href="/politique-confidentialite" className="text-primary-600 hover:underline">
+            <Link href="/politique-confidentialite" className="text-primary-600 hover:underline">
               politique de confidentialité
-            </a>
+            </Link>
             .
           </p>
         </section>
