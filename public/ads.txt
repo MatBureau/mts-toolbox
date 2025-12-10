@@ -1,1 +1,2 @@
+# ads.txt for mts-toolbox.com - Updated: 2025-12-10
 google.com, pub-3985065672152959, DIRECT, f08c47fec0942fa0
