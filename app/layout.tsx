@@ -62,6 +62,8 @@ export default function RootLayout({
   return (
     <html lang="fr" suppressHydrationWarning>
       <head>
+        <meta name="google-adsense-account" content="ca-pub-3985065672152959" />
+
         {/* DNS Prefetch and Preconnect for Performance */}
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
