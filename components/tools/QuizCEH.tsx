@@ -21,6 +21,62 @@ interface Question {
   version: string
 }
 
+interface UserAnswer {
+  questionIndex: number
+  selectedAnswers: string[]
+  isCorrect: boolean
+}
+
+// Donut Chart Component
+function DonutChart({ percentage, score, total }: { percentage: number; score: number; total: number }) {
+  const size = 200
+  const strokeWidth = 20
+  const radius = (size - strokeWidth) / 2
+  const circumference = 2 * Math.PI * radius
+  const offset = circumference - (percentage / 100) * circumference
+
+  const passed = percentage >= 70
+
+  return (
+    <div className="flex flex-col items-center">
+      <svg width={size} height={size} className="transform -rotate-90">
+        {/* Background circle */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={strokeWidth}
+          className="text-gray-200 dark:text-gray-700"
+        />
+        {/* Progress circle */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={strokeWidth}
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+          className={passed ? 'text-green-500' : 'text-orange-500'}
+          style={{ transition: 'stroke-dashoffset 1s ease-in-out' }}
+        />
+      </svg>
+      <div className="absolute flex flex-col items-center justify-center" style={{ marginTop: '75px' }}>
+        <div className="text-4xl font-bold text-gray-900 dark:text-gray-100">
+          {percentage.toFixed(1)}%
+        </div>
+        <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+          {score}/{total}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function QuizCEH() {
   const [allQuestions, setAllQuestions] = useState<Question[]>([])
   const [selectedQuestions, setSelectedQuestions] = useState<Question[]>([])
@@ -33,6 +89,8 @@ export default function QuizCEH() {
   const [quizFinished, setQuizFinished] = useState(false)
   const [loading, setLoading] = useState(true)
   const [selectedVersion, setSelectedVersion] = useState<string>('12')
+  const [userAnswers, setUserAnswers] = useState<Map<number, UserAnswer>>(new Map())
+  const [showReview, setShowReview] = useState(false)
 
   useEffect(() => {
     // Load questions from JSON
@@ -69,6 +127,8 @@ export default function QuizCEH() {
     setCurrentQuestionIndex(0)
     setScore(0)
     setQuizFinished(false)
+    setUserAnswers(new Map())
+    setShowReview(false)
   }
 
   const isMultipleAnswer = (question: Question) => {
@@ -113,6 +173,15 @@ export default function QuizCEH() {
     setIsCorrect(isCorrectAnswer)
     setShowResult(true)
 
+    // Store user answer
+    const newUserAnswers = new Map(userAnswers)
+    newUserAnswers.set(currentQuestionIndex, {
+      questionIndex: currentQuestionIndex,
+      selectedAnswers: [...selectedAnswers],
+      isCorrect: isCorrectAnswer
+    })
+    setUserAnswers(newUserAnswers)
+
     if (isCorrectAnswer) {
       setScore(score + 1)
     }
@@ -120,12 +189,41 @@ export default function QuizCEH() {
 
   const handleNextQuestion = () => {
     if (currentQuestionIndex < selectedQuestions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1)
-      setSelectedAnswers([])
-      setShowResult(false)
-      setIsCorrect(false)
+      const nextIndex = currentQuestionIndex + 1
+      setCurrentQuestionIndex(nextIndex)
+
+      // Load previous answer if exists
+      const previousAnswer = userAnswers.get(nextIndex)
+      if (previousAnswer) {
+        setSelectedAnswers(previousAnswer.selectedAnswers)
+        setShowResult(true)
+        setIsCorrect(previousAnswer.isCorrect)
+      } else {
+        setSelectedAnswers([])
+        setShowResult(false)
+        setIsCorrect(false)
+      }
     } else {
       setQuizFinished(true)
+    }
+  }
+
+  const handlePreviousQuestion = () => {
+    if (currentQuestionIndex > 0) {
+      const prevIndex = currentQuestionIndex - 1
+      setCurrentQuestionIndex(prevIndex)
+
+      // Load previous answer
+      const previousAnswer = userAnswers.get(prevIndex)
+      if (previousAnswer) {
+        setSelectedAnswers(previousAnswer.selectedAnswers)
+        setShowResult(true)
+        setIsCorrect(previousAnswer.isCorrect)
+      } else {
+        setSelectedAnswers([])
+        setShowResult(false)
+        setIsCorrect(false)
+      }
     }
   }
 
@@ -136,6 +234,8 @@ export default function QuizCEH() {
     setSelectedAnswers([])
     setShowResult(false)
     setScore(0)
+    setUserAnswers(new Map())
+    setShowReview(false)
   }
 
   const getAnswerOptions = (question: Question) => {
@@ -269,36 +369,163 @@ export default function QuizCEH() {
   }
 
   if (quizFinished) {
-    const percentage = Math.round((score / selectedQuestions.length) * 100)
+    const percentage = (score / selectedQuestions.length) * 100
     const passed = percentage >= 70
+    const incorrect = selectedQuestions.length - score
 
+    if (showReview) {
+      // Review mode - show all questions with answers
+      return (
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle>Révision des Questions - CEH v{selectedVersion}</CardTitle>
+                <Button onClick={() => setShowReview(false)} variant="secondary">
+                  ← Retour aux résultats
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                {selectedQuestions.map((question, index) => {
+                  const userAnswer = userAnswers.get(index)
+                  const correctAnswers = getCorrectAnswers(question)
+                  const answerOptions = getAnswerOptions(question)
+                  const isMultiple = isMultipleAnswer(question)
+
+                  return (
+                    <div key={index} className="border-2 border-gray-300 dark:border-gray-700 rounded-lg p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="text-sm font-semibold text-gray-600 dark:text-gray-400">
+                          Question {index + 1} / {selectedQuestions.length}
+                          {isMultiple && <span className="ml-2 text-orange-600 dark:text-orange-400">• Réponses multiples</span>}
+                        </div>
+                        <div className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                          userAnswer?.isCorrect
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100'
+                            : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100'
+                        }`}>
+                          {userAnswer?.isCorrect ? '✓ Correct' : '✗ Incorrect'}
+                        </div>
+                      </div>
+
+                      <div className="font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                        {question.question}
+                      </div>
+
+                      {question.media && (
+                        <div className="my-4 border-2 border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden">
+                          <img
+                            src={`/ceh_media/${question.media}`}
+                            alt="Question illustration"
+                            className="w-full h-auto"
+                          />
+                        </div>
+                      )}
+
+                      <div className="space-y-2 mb-4">
+                        {answerOptions.map(({ letter, value }) => {
+                          const isUserSelection = userAnswer?.selectedAnswers.includes(letter)
+                          const isCorrectAnswer = correctAnswers.includes(letter)
+
+                          return (
+                            <div
+                              key={letter}
+                              className={`p-3 rounded-lg border-2 ${
+                                isCorrectAnswer
+                                  ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
+                                  : isUserSelection
+                                  ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
+                                  : 'border-gray-300 dark:border-gray-700'
+                              }`}
+                            >
+                              <div className="flex items-start gap-3">
+                                <span className="font-bold text-gray-700 dark:text-gray-300 min-w-[24px]">
+                                  {letter}.
+                                </span>
+                                <span className="text-gray-900 dark:text-gray-100 flex-1">{value}</span>
+                                {isCorrectAnswer && <span className="text-green-600 dark:text-green-400 font-bold">✓</span>}
+                                {isUserSelection && !isCorrectAnswer && <span className="text-red-600 dark:text-red-400 font-bold">✗</span>}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+
+                      {question.explanation && (
+                        <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-600">
+                          <div className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                            📖 Explication :
+                          </div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
+                            {question.explanation}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )
+    }
+
+    // Results screen with donut chart
     return (
       <Card>
         <CardHeader>
           <CardTitle>Résultats du Quiz CEH v{selectedVersion} Gratuit</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="text-center py-8">
-            <div className="text-6xl mb-4">{passed ? '🎉' : '📚'}</div>
-            <div className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-              {score} / {selectedQuestions.length}
-            </div>
-            <div className="text-2xl text-gray-600 dark:text-gray-400 mb-6">
-              {percentage}%
+          <div className="flex flex-col md:flex-row items-center justify-center gap-8 py-8">
+            {/* Donut Chart */}
+            <div className="relative">
+              <DonutChart percentage={percentage} score={score} total={selectedQuestions.length} />
             </div>
 
-            <div className={`inline-block px-6 py-3 rounded-lg text-lg font-semibold ${
-              passed
-                ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100'
-                : 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100'
-            }`}>
-              {passed ? '✓ Réussi (≥70%)' : '✗ Échec (<70%)'}
+            {/* Statistics */}
+            <div className="flex flex-col gap-4">
+              <div className="text-center md:text-left">
+                <div className="text-6xl mb-4">{passed ? '🎉' : '📚'}</div>
+                <div className={`inline-block px-6 py-3 rounded-lg text-lg font-semibold ${
+                  passed
+                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100'
+                    : 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100'
+                }`}>
+                  {passed ? '✓ Réussi' : '✗ Échec'} - Seuil: 70%
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 mt-4">
+                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                  <div className="text-sm text-green-700 dark:text-green-300 mb-1">Réponses correctes</div>
+                  <div className="text-3xl font-bold text-green-800 dark:text-green-100">{score}</div>
+                </div>
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                  <div className="text-sm text-red-700 dark:text-red-300 mb-1">Réponses incorrectes</div>
+                  <div className="text-3xl font-bold text-red-800 dark:text-red-100">{incorrect}</div>
+                </div>
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                  <div className="text-sm text-blue-700 dark:text-blue-300 mb-1">Total questions</div>
+                  <div className="text-3xl font-bold text-blue-800 dark:text-blue-100">{selectedQuestions.length}</div>
+                </div>
+                <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
+                  <div className="text-sm text-purple-700 dark:text-purple-300 mb-1">Version CEH</div>
+                  <div className="text-3xl font-bold text-purple-800 dark:text-purple-100">v{selectedVersion}</div>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="flex gap-4 justify-center">
-            <Button onClick={resetQuiz}>
-              Nouveau Quiz Gratuit
+          <div className="flex gap-4 justify-center flex-wrap">
+            <Button onClick={() => setShowReview(true)}>
+              📝 Revoir les questions
+            </Button>
+            <Button onClick={resetQuiz} variant="secondary">
+              🆕 Nouveau Quiz Gratuit
             </Button>
             <Button
               onClick={() => {
@@ -307,10 +534,11 @@ export default function QuizCEH() {
                 setScore(0)
                 setSelectedAnswers([])
                 setShowResult(false)
+                setUserAnswers(new Map())
               }}
               variant="secondary"
             >
-              Recommencer ce quiz
+              🔄 Recommencer ce quiz
             </Button>
           </div>
         </CardContent>
@@ -460,6 +688,14 @@ export default function QuizCEH() {
             {!showResult ? (
               <>
                 <Button
+                  onClick={handlePreviousQuestion}
+                  disabled={currentQuestionIndex === 0}
+                  variant="secondary"
+                  className="min-w-[100px]"
+                >
+                  ← Précédent
+                </Button>
+                <Button
                   onClick={handleSubmitAnswer}
                   disabled={selectedAnswers.length === 0}
                   className="flex-1"
@@ -474,12 +710,22 @@ export default function QuizCEH() {
                 </Button>
               </>
             ) : (
-              <Button
-                onClick={handleNextQuestion}
-                className="flex-1"
-              >
-                {currentQuestionIndex < selectedQuestions.length - 1 ? 'Question suivante →' : 'Voir les résultats'}
-              </Button>
+              <>
+                <Button
+                  onClick={handlePreviousQuestion}
+                  disabled={currentQuestionIndex === 0}
+                  variant="secondary"
+                  className="min-w-[100px]"
+                >
+                  ← Précédent
+                </Button>
+                <Button
+                  onClick={handleNextQuestion}
+                  className="flex-1"
+                >
+                  {currentQuestionIndex < selectedQuestions.length - 1 ? 'Suivant →' : 'Voir les résultats'}
+                </Button>
+              </>
             )}
           </div>
 
