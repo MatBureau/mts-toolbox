@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
+import Image from 'next/image'
 
 interface Question {
   A: string
@@ -16,6 +17,8 @@ interface Question {
   explanation: string
   question: string
   question_id: string
+  media: string
+  version: string
 }
 
 export default function QuizCEH() {
@@ -29,6 +32,7 @@ export default function QuizCEH() {
   const [quizStarted, setQuizStarted] = useState(false)
   const [quizFinished, setQuizFinished] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [selectedVersion, setSelectedVersion] = useState<string>('12')
 
   useEffect(() => {
     // Load questions from JSON
@@ -44,10 +48,22 @@ export default function QuizCEH() {
       })
   }, [])
 
+  const getQuestionCountByVersion = () => {
+    return allQuestions.filter(q => q.version === selectedVersion).length
+  }
+
   const startQuiz = (count: number) => {
+    // Filter questions by selected version
+    const filteredByVersion = allQuestions.filter(q => q.version === selectedVersion)
+
+    if (filteredByVersion.length === 0) {
+      alert(`Aucune question disponible pour la version ${selectedVersion}`)
+      return
+    }
+
     // Shuffle and select random questions
-    const shuffled = [...allQuestions].sort(() => Math.random() - 0.5)
-    const selected = shuffled.slice(0, count)
+    const shuffled = [...filteredByVersion].sort(() => Math.random() - 0.5)
+    const selected = shuffled.slice(0, Math.min(count, shuffled.length))
     setSelectedQuestions(selected)
     setQuizStarted(true)
     setCurrentQuestionIndex(0)
@@ -122,54 +138,86 @@ export default function QuizCEH() {
   }
 
   if (!quizStarted) {
+    const availableCount = getQuestionCountByVersion()
+
     return (
       <div className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Quiz CEH - Certified Ethical Hacker (v12)</CardTitle>
+            <CardTitle>Quiz CEH - Certified Ethical Hacker</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
             <p className="text-gray-700 dark:text-gray-300">
               Entraînez-vous pour l'examen de certification CEH avec {allQuestions.length} questions
-              officielles. Choisissez le nombre de questions que vous souhaitez pratiquer :
+              officielles. Sélectionnez la version et le nombre de questions :
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-              <button
-                onClick={() => startQuiz(10)}
-                className="p-6 border-2 border-gray-300 dark:border-gray-700 rounded-lg hover:border-primary-500 dark:hover:border-primary-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all"
+            {/* Version Selector */}
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                📚 Version CEH
+              </label>
+              <select
+                value={selectedVersion}
+                onChange={(e) => setSelectedVersion(e.target.value)}
+                className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-primary-500 dark:focus:border-primary-400 focus:outline-none transition-colors"
               >
-                <div className="text-4xl mb-2">🎯</div>
-                <div className="text-xl font-semibold text-gray-900 dark:text-gray-100">10 Questions</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Quiz rapide</div>
-              </button>
-
-              <button
-                onClick={() => startQuiz(50)}
-                className="p-6 border-2 border-gray-300 dark:border-gray-700 rounded-lg hover:border-primary-500 dark:hover:border-primary-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all"
-              >
-                <div className="text-4xl mb-2">📚</div>
-                <div className="text-xl font-semibold text-gray-900 dark:text-gray-100">50 Questions</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Entraînement moyen</div>
-              </button>
-
-              <button
-                onClick={() => startQuiz(125)}
-                className="p-6 border-2 border-gray-300 dark:border-gray-700 rounded-lg hover:border-primary-500 dark:hover:border-primary-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all"
-              >
-                <div className="text-4xl mb-2">🎓</div>
-                <div className="text-xl font-semibold text-gray-900 dark:text-gray-100">125 Questions</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Examen complet</div>
-              </button>
+                <option value="8">CEH v8</option>
+                <option value="9">CEH v9</option>
+                <option value="10">CEH v10</option>
+                <option value="11">CEH v11</option>
+                <option value="12">CEH v12</option>
+              </select>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {availableCount} questions disponibles pour la version {selectedVersion}
+              </p>
             </div>
 
-            <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+            {/* Question Count Selection */}
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                🎯 Nombre de questions
+              </label>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button
+                  onClick={() => startQuiz(10)}
+                  disabled={availableCount < 10}
+                  className="p-6 border-2 border-gray-300 dark:border-gray-700 rounded-lg hover:border-primary-500 dark:hover:border-primary-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <div className="text-4xl mb-2">🎯</div>
+                  <div className="text-xl font-semibold text-gray-900 dark:text-gray-100">10 Questions</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Quiz rapide</div>
+                </button>
+
+                <button
+                  onClick={() => startQuiz(50)}
+                  disabled={availableCount < 50}
+                  className="p-6 border-2 border-gray-300 dark:border-gray-700 rounded-lg hover:border-primary-500 dark:hover:border-primary-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <div className="text-4xl mb-2">📚</div>
+                  <div className="text-xl font-semibold text-gray-900 dark:text-gray-100">50 Questions</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Entraînement moyen</div>
+                </button>
+
+                <button
+                  onClick={() => startQuiz(125)}
+                  disabled={availableCount < 125}
+                  className="p-6 border-2 border-gray-300 dark:border-gray-700 rounded-lg hover:border-primary-500 dark:hover:border-primary-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <div className="text-4xl mb-2">🎓</div>
+                  <div className="text-xl font-semibold text-gray-900 dark:text-gray-100">125 Questions</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Examen complet</div>
+                </button>
+              </div>
+            </div>
+
+            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
               <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">📌 À propos de ce quiz</h3>
               <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
-                <li>• Questions tirées de l'examen CEH version 12</li>
+                <li>• Questions tirées des examens CEH v8 à v12</li>
                 <li>• Les questions sont présentées de manière aléatoire</li>
                 <li>• Chaque question a une seule bonne réponse</li>
-                <li>• Des explications sont fournies pour certaines questions</li>
+                <li>• Des explications et images sont fournies pour certaines questions</li>
               </ul>
             </div>
           </CardContent>
@@ -185,7 +233,7 @@ export default function QuizCEH() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Résultats du Quiz CEH</CardTitle>
+          <CardTitle>Résultats du Quiz CEH v{selectedVersion}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="text-center py-8">
@@ -244,7 +292,7 @@ export default function QuizCEH() {
 
       {/* Question Counter */}
       <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-        Question {currentQuestionIndex + 1} / {selectedQuestions.length}
+        Question {currentQuestionIndex + 1} / {selectedQuestions.length} • CEH v{selectedVersion}
       </div>
 
       {/* Question Card */}
@@ -255,6 +303,17 @@ export default function QuizCEH() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Question Image */}
+          {currentQuestion.media && (
+            <div className="my-4 border-2 border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden">
+              <img
+                src={`/ceh_media/${currentQuestion.media}`}
+                alt="Question illustration"
+                className="w-full h-auto"
+              />
+            </div>
+          )}
+
           {/* Answer Options */}
           <div className="space-y-3">
             {answerOptions.map(({ letter, value }) => (
