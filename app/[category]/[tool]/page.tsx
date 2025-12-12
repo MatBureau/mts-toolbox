@@ -97,6 +97,8 @@ const toolComponents: Record<string, any> = {
   'verificateur-meta': dynamic(() => import('@/components/tools/VerificateurMeta')),
   'generateur-sitemap': dynamic(() => import('@/components/tools/GenerateurSitemap')),
   'analyseur-onpage': dynamic(() => import('@/components/tools/AnalyseurOnPage')),
+  // Examen
+  'quiz-ceh': dynamic(() => import('@/components/tools/QuizCEH')),
 }
 
 interface ToolPageProps {

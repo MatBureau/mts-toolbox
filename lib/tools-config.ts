@@ -73,6 +73,13 @@ export const categories: Category[] = [
     description: 'Outils d\'optimisation et analyse SEO',
     icon: '🔎',
   },
+  {
+    id: 'examen',
+    name: 'Examen',
+    slug: 'examen',
+    description: 'Quiz et examens d\'entraînement',
+    icon: '📚',
+  },
 ]
 
 export const tools: Tool[] = [
@@ -756,6 +763,17 @@ export const tools: Tool[] = [
     slug: 'analyseur-onpage',
     icon: '📊',
     keywords: ['seo', 'on-page', 'analyse', 'h1', 'mots-clés', 'densité', 'optimisation seo'],
+  },
+
+  // Catégorie Examen
+  {
+    id: 'quiz-ceh',
+    name: 'Quiz CEH (v12)',
+    description: 'Quiz d\'entraînement pour la certification CEH avec 125 questions tirées du test officiel',
+    category: 'examen',
+    slug: 'quiz-ceh',
+    icon: '🎓',
+    keywords: ['ceh', 'quiz', 'examen', 'certification', 'ethical hacking', 'cybersécurité', 'test'],
   },
 ]
 

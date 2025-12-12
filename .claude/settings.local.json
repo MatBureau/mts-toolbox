@@ -11,7 +11,9 @@
       "Bash(curl:*)",
       "Bash(npm uninstall:*)",
       "Bash(git restore:*)",
-      "WebFetch(domain:reactbits.dev)"
+      "WebFetch(domain:reactbits.dev)",
+      "Bash(npm audit:*)",
+      "Bash(cp:*)"
     ],
     "deny": [],
     "ask": []
