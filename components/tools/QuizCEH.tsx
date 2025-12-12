@@ -25,7 +25,7 @@ export default function QuizCEH() {
   const [allQuestions, setAllQuestions] = useState<Question[]>([])
   const [selectedQuestions, setSelectedQuestions] = useState<Question[]>([])
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
-  const [selectedAnswer, setSelectedAnswer] = useState<string>('')
+  const [selectedAnswers, setSelectedAnswers] = useState<string[]>([])
   const [showResult, setShowResult] = useState(false)
   const [isCorrect, setIsCorrect] = useState(false)
   const [score, setScore] = useState(0)
@@ -71,22 +71,49 @@ export default function QuizCEH() {
     setQuizFinished(false)
   }
 
-  const handleAnswerSelect = (answer: string) => {
-    if (!showResult) {
-      setSelectedAnswer(answer)
+  const isMultipleAnswer = (question: Question) => {
+    return question.answer.includes(' ')
+  }
+
+  const getCorrectAnswers = (question: Question): string[] => {
+    return question.answer.split(' ').filter(a => a.trim() !== '')
+  }
+
+  const handleAnswerToggle = (answer: string) => {
+    if (showResult) return
+
+    const currentQuestion = selectedQuestions[currentQuestionIndex]
+    const isMultiple = isMultipleAnswer(currentQuestion)
+
+    if (isMultiple) {
+      // Multiple choice: toggle selection
+      if (selectedAnswers.includes(answer)) {
+        setSelectedAnswers(selectedAnswers.filter(a => a !== answer))
+      } else {
+        setSelectedAnswers([...selectedAnswers, answer])
+      }
+    } else {
+      // Single choice: replace selection
+      setSelectedAnswers([answer])
     }
   }
 
   const handleSubmitAnswer = () => {
-    if (!selectedAnswer) return
+    if (selectedAnswers.length === 0) return
 
     const currentQuestion = selectedQuestions[currentQuestionIndex]
-    const correct = selectedAnswer === currentQuestion.answer
+    const correctAnswers = getCorrectAnswers(currentQuestion)
 
-    setIsCorrect(correct)
+    // Check if selected answers match correct answers
+    const isCorrectAnswer =
+      selectedAnswers.length === correctAnswers.length &&
+      selectedAnswers.every(a => correctAnswers.includes(a)) &&
+      correctAnswers.every(a => selectedAnswers.includes(a))
+
+    setIsCorrect(isCorrectAnswer)
     setShowResult(true)
 
-    if (correct) {
+    if (isCorrectAnswer) {
       setScore(score + 1)
     }
   }
@@ -94,7 +121,7 @@ export default function QuizCEH() {
   const handleNextQuestion = () => {
     if (currentQuestionIndex < selectedQuestions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1)
-      setSelectedAnswer('')
+      setSelectedAnswers([])
       setShowResult(false)
       setIsCorrect(false)
     } else {
@@ -106,7 +133,7 @@ export default function QuizCEH() {
     setQuizStarted(false)
     setQuizFinished(false)
     setCurrentQuestionIndex(0)
-    setSelectedAnswer('')
+    setSelectedAnswers([])
     setShowResult(false)
     setScore(0)
   }
@@ -142,13 +169,27 @@ export default function QuizCEH() {
 
     return (
       <div className="space-y-6">
+        {/* Hidden SEO content */}
+        <div className="sr-only" aria-hidden="true">
+          <h1>Quiz CEH Gratuit - Entraînement Certification Certified Ethical Hacker</h1>
+          <p>
+            Préparez-vous gratuitement à l'examen CEH (Certified Ethical Hacker) avec notre quiz d'entraînement en ligne.
+            Test gratuit CEH, questions d'examen CEH gratuites, préparation CEH sans frais, quiz ethical hacker gratuit.
+            Entraînement CEH v8, v9, v10, v11, v12 100% gratuit. Test blanc CEH, examen blanc CEH gratuit en ligne.
+            Questions CEH officielles gratuites, pratique CEH sans inscription, quiz cybersécurité gratuit.
+            Formation CEH gratuite, entraînement ethical hacking gratuit, test CEH en français gratuit.
+            Préparation examen CEH gratuitement, quiz piratage éthique gratuit, certification CEH préparation gratuite.
+            Questions type examen CEH gratuites, simulation CEH gratuite, exercices CEH sans abonnement.
+          </p>
+        </div>
+
         <Card>
           <CardHeader>
-            <CardTitle>Quiz CEH - Certified Ethical Hacker</CardTitle>
+            <CardTitle>Quiz CEH Gratuit - Certified Ethical Hacker</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <p className="text-gray-700 dark:text-gray-300">
-              Entraînez-vous pour l'examen de certification CEH avec {allQuestions.length} questions
+              Entraînez-vous <strong>gratuitement</strong> pour l'examen de certification CEH avec {allQuestions.length} questions
               officielles. Sélectionnez la version et le nombre de questions :
             </p>
 
@@ -186,7 +227,7 @@ export default function QuizCEH() {
                 >
                   <div className="text-4xl mb-2">🎯</div>
                   <div className="text-xl font-semibold text-gray-900 dark:text-gray-100">10 Questions</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Quiz rapide</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Quiz rapide gratuit</div>
                 </button>
 
                 <button
@@ -196,7 +237,7 @@ export default function QuizCEH() {
                 >
                   <div className="text-4xl mb-2">📚</div>
                   <div className="text-xl font-semibold text-gray-900 dark:text-gray-100">50 Questions</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Entraînement moyen</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Entraînement moyen gratuit</div>
                 </button>
 
                 <button
@@ -206,18 +247,19 @@ export default function QuizCEH() {
                 >
                   <div className="text-4xl mb-2">🎓</div>
                   <div className="text-xl font-semibold text-gray-900 dark:text-gray-100">125 Questions</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Examen complet</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Examen complet gratuit</div>
                 </button>
               </div>
             </div>
 
             <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-              <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">📌 À propos de ce quiz</h3>
+              <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">📌 À propos de ce quiz gratuit</h3>
               <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
-                <li>• Questions tirées des examens CEH v8 à v12</li>
+                <li>• <strong>100% gratuit</strong> - Questions tirées des examens CEH v8 à v12</li>
+                <li>• Questions à choix unique et multiple gérées automatiquement</li>
                 <li>• Les questions sont présentées de manière aléatoire</li>
-                <li>• Chaque question a une seule bonne réponse</li>
                 <li>• Des explications et images sont fournies pour certaines questions</li>
+                <li>• Aucune inscription requise - Entraînement CEH entièrement gratuit</li>
               </ul>
             </div>
           </CardContent>
@@ -233,7 +275,7 @@ export default function QuizCEH() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Résultats du Quiz CEH v{selectedVersion}</CardTitle>
+          <CardTitle>Résultats du Quiz CEH v{selectedVersion} Gratuit</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="text-center py-8">
@@ -256,14 +298,14 @@ export default function QuizCEH() {
 
           <div className="flex gap-4 justify-center">
             <Button onClick={resetQuiz}>
-              Nouveau Quiz
+              Nouveau Quiz Gratuit
             </Button>
             <Button
               onClick={() => {
                 setQuizFinished(false)
                 setCurrentQuestionIndex(0)
                 setScore(0)
-                setSelectedAnswer('')
+                setSelectedAnswers([])
                 setShowResult(false)
               }}
               variant="secondary"
@@ -279,6 +321,8 @@ export default function QuizCEH() {
   const currentQuestion = selectedQuestions[currentQuestionIndex]
   const answerOptions = getAnswerOptions(currentQuestion)
   const progress = ((currentQuestionIndex + 1) / selectedQuestions.length) * 100
+  const isMultiple = isMultipleAnswer(currentQuestion)
+  const correctAnswers = getCorrectAnswers(currentQuestion)
 
   return (
     <div className="space-y-4">
@@ -293,6 +337,7 @@ export default function QuizCEH() {
       {/* Question Counter */}
       <div className="text-center text-sm text-gray-600 dark:text-gray-400">
         Question {currentQuestionIndex + 1} / {selectedQuestions.length} • CEH v{selectedVersion}
+        {isMultiple && <span className="ml-2 text-orange-600 dark:text-orange-400 font-semibold">• Réponses multiples</span>}
       </div>
 
       {/* Question Card */}
@@ -301,6 +346,11 @@ export default function QuizCEH() {
           <CardTitle className="text-lg leading-relaxed">
             {currentQuestion.question}
           </CardTitle>
+          {isMultiple && (
+            <div className="mt-2 text-sm text-orange-600 dark:text-orange-400 font-semibold">
+              ⚠️ Cette question a plusieurs bonnes réponses. Sélectionnez toutes les réponses correctes.
+            </div>
+          )}
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Question Image */}
@@ -316,35 +366,53 @@ export default function QuizCEH() {
 
           {/* Answer Options */}
           <div className="space-y-3">
-            {answerOptions.map(({ letter, value }) => (
-              <button
-                key={letter}
-                onClick={() => handleAnswerSelect(letter)}
-                disabled={showResult}
-                className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
-                  selectedAnswer === letter
-                    ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                    : 'border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600'
-                } ${
-                  showResult && letter === currentQuestion.answer
-                    ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
-                    : ''
-                } ${
-                  showResult && selectedAnswer === letter && letter !== currentQuestion.answer
-                    ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
-                    : ''
-                } ${
-                  showResult ? 'cursor-not-allowed' : 'cursor-pointer'
-                }`}
-              >
-                <div className="flex items-start gap-3">
-                  <span className="font-bold text-gray-700 dark:text-gray-300 min-w-[24px]">
-                    {letter}.
-                  </span>
-                  <span className="text-gray-900 dark:text-gray-100">{value}</span>
-                </div>
-              </button>
-            ))}
+            {answerOptions.map(({ letter, value }) => {
+              const isSelected = selectedAnswers.includes(letter)
+              const isCorrectAnswer = correctAnswers.includes(letter)
+              const showAsCorrect = showResult && isCorrectAnswer
+              const showAsWrong = showResult && isSelected && !isCorrectAnswer
+
+              return (
+                <button
+                  key={letter}
+                  onClick={() => handleAnswerToggle(letter)}
+                  disabled={showResult}
+                  className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                    isSelected && !showResult
+                      ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+                      : 'border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600'
+                  } ${
+                    showAsCorrect
+                      ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
+                      : ''
+                  } ${
+                    showAsWrong
+                      ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
+                      : ''
+                  } ${
+                    showResult ? 'cursor-not-allowed' : 'cursor-pointer'
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    {isMultiple && (
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => {}}
+                        disabled={showResult}
+                        className="mt-1 h-5 w-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                      />
+                    )}
+                    <span className="font-bold text-gray-700 dark:text-gray-300 min-w-[24px]">
+                      {letter}.
+                    </span>
+                    <span className="text-gray-900 dark:text-gray-100 flex-1">{value}</span>
+                    {showAsCorrect && <span className="text-green-600 dark:text-green-400 font-bold">✓</span>}
+                    {showAsWrong && <span className="text-red-600 dark:text-red-400 font-bold">✗</span>}
+                  </div>
+                </button>
+              )
+            })}
           </div>
 
           {/* Result Message */}
@@ -362,7 +430,15 @@ export default function QuizCEH() {
 
               {!isCorrect && (
                 <div className="text-sm text-gray-700 dark:text-gray-300 mb-2">
-                  La bonne réponse est : <strong>{currentQuestion.answer}</strong>
+                  {isMultiple ? (
+                    <>
+                      Les bonnes réponses sont : <strong>{correctAnswers.join(', ')}</strong>
+                    </>
+                  ) : (
+                    <>
+                      La bonne réponse est : <strong>{currentQuestion.answer}</strong>
+                    </>
+                  )}
                 </div>
               )}
 
@@ -385,10 +461,10 @@ export default function QuizCEH() {
               <>
                 <Button
                   onClick={handleSubmitAnswer}
-                  disabled={!selectedAnswer}
+                  disabled={selectedAnswers.length === 0}
                   className="flex-1"
                 >
-                  Valider la réponse
+                  Valider {isMultiple ? `(${selectedAnswers.length} sélectionnée${selectedAnswers.length > 1 ? 's' : ''})` : ''}
                 </Button>
                 <Button
                   onClick={resetQuiz}

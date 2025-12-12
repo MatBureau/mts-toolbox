@@ -768,12 +768,35 @@ export const tools: Tool[] = [
   // Catégorie Examen
   {
     id: 'quiz-ceh',
-    name: 'Quiz CEH (v12)',
-    description: 'Quiz d\'entraînement pour la certification CEH avec 125 questions tirées du test officiel',
+    name: 'Quiz CEH Gratuit - Entraînement Certification',
+    description: 'Quiz CEH 100% gratuit avec questions officielles v8-v12. Entraînement CEH gratuit sans inscription. Test blanc CEH, examen blanc gratuit, préparation certification ethical hacker gratuitement',
     category: 'examen',
     slug: 'quiz-ceh',
     icon: '🎓',
-    keywords: ['ceh', 'quiz', 'examen', 'certification', 'ethical hacking', 'cybersécurité', 'test'],
+    keywords: [
+      'ceh gratuit',
+      'quiz ceh gratuit',
+      'test ceh gratuit',
+      'examen ceh gratuit',
+      'certified ethical hacker gratuit',
+      'entrainement ceh gratuit',
+      'preparation ceh gratuite',
+      'test blanc ceh gratuit',
+      'examen blanc ceh',
+      'questions ceh gratuites',
+      'quiz ethical hacker gratuit',
+      'formation ceh gratuite',
+      'ceh v8 gratuit',
+      'ceh v9 gratuit',
+      'ceh v10 gratuit',
+      'ceh v11 gratuit',
+      'ceh v12 gratuit',
+      'pratique ceh sans inscription',
+      'simulation ceh gratuite',
+      'test cybersecurite gratuit',
+      'entrainement ethical hacking gratuit',
+      'certification ceh preparation gratuite'
+    ],
   },
 ]
 
