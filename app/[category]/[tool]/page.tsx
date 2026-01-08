@@ -4,7 +4,7 @@ import { getToolBySlug, getCategoryBySlug } from '@/lib/tools-config'
 import { generateToolMetadata, generateStructuredData, generateBreadcrumbStructuredData, generateHowToStructuredData, generateFAQStructuredData, generateOrganizationStructuredData } from '@/lib/seo'
 import { getToolSEOData } from '@/lib/tool-seo-data'
 import JsonLd from '@/components/seo/JsonLd'
-import AdBanner from '@/components/ads/AdBanner'
+import GoogleAdSense from '@/components/ads/GoogleAdSense'
 import ToolContent from '@/components/seo/ToolContent'
 import FAQ from '@/components/seo/FAQ'
 import RelatedTools from '@/components/seo/RelatedTools'
@@ -202,14 +202,14 @@ export default async function ToolPage({ params }: ToolPageProps) {
             <RelatedTools currentTool={tool} />
 
             <div className="mt-8 md:hidden flex justify-center">
-              <AdBanner id="ad-content" width={336} height={280} />
+              <GoogleAdSense slot="AUTO" />
             </div>
           </div>
 
           <div className="hidden lg:block">
             <div className="sticky top-24 space-y-6">
-              <AdBanner id="ad-sidebar" width={300} height={250} />
-              <AdBanner id="ad-sidebar-2" width={300} height={250} />
+              <GoogleAdSense slot="VERTICAL" />
+              <GoogleAdSense slot="VERTICAL" />
             </div>
           </div>
         </div>
