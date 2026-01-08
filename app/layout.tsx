@@ -4,7 +4,7 @@ import './globals.css'
 import { ThemeProvider } from '@/components/ThemeProvider'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
-import AdBanner from '@/components/ads/AdBanner'
+import GoogleAdSense from '@/components/ads/GoogleAdSense'
 import GoogleAnalytics from '@/components/GoogleAnalytics'
 import { env } from '@/lib/env'
 import Script from 'next/script'
@@ -121,7 +121,7 @@ export default function RootLayout({
             <Header />
 
             <div className="hidden md:flex justify-center py-4 border-b border-gray-200 dark:border-gray-800">
-              <AdBanner id="ad-header" width={728} height={90} />
+              <GoogleAdSense slot="HORIZONTAL" className="max-w-[728px] w-full" />
             </div>
 
             <main className="flex-1 container mx-auto px-4 py-8">

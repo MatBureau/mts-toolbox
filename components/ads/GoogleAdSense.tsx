@@ -1,16 +1,17 @@
 'use client'
 
 import { useEffect } from 'react'
+import { ADSENSE_CLIENT_ID, AD_SLOTS, type AdSlotType } from '@/lib/ads'
 
 interface GoogleAdSenseProps {
-  adSlot: string
+  slot: AdSlotType
   adFormat?: string
   fullWidthResponsive?: boolean
   className?: string
 }
 
 export default function GoogleAdSense({
-  adSlot,
+  slot,
   adFormat = 'auto',
   fullWidthResponsive = true,
   className = '',
@@ -31,8 +32,8 @@ export default function GoogleAdSense({
     <ins
       className={`adsbygoogle ${className}`}
       style={{ display: 'block' }}
-      data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" // À remplacer par votre ID AdSense
-      data-ad-slot={adSlot}
+      data-ad-client={ADSENSE_CLIENT_ID}
+      data-ad-slot={AD_SLOTS[slot]}
       data-ad-format={adFormat}
       data-full-width-responsive={fullWidthResponsive ? 'true' : 'false'}
     />
