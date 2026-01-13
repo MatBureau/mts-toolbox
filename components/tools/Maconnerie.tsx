@@ -719,10 +719,8 @@ export default function Maconnerie() {
           💾 Exporter JSON
         </Button>
 
-        <label className="cursor-pointer">
-          <Button variant="secondary" as="span">
-            📂 Importer JSON
-          </Button>
+        <label className="cursor-pointer inline-flex items-center justify-center rounded-md font-medium transition-colors h-10 px-4 text-base bg-gray-200 text-gray-900 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600">
+          📂 Importer JSON
           <input
             ref={fileInputRef}
             type="file"
