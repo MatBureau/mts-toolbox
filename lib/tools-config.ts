@@ -80,6 +80,13 @@ export const categories: Category[] = [
     description: 'Quiz et examens d\'entraînement',
     icon: '📚',
   },
+  {
+    id: 'metiers',
+    name: 'Métiers',
+    slug: 'metiers',
+    description: 'Outils de calcul pour les métiers du bâtiment',
+    icon: '🔨',
+  },
 ]
 
 export const tools: Tool[] = [
@@ -796,6 +803,33 @@ export const tools: Tool[] = [
       'test cybersecurite gratuit',
       'entrainement ethical hacking gratuit',
       'certification ceh preparation gratuite'
+    ],
+  },
+
+  // Catégorie Métiers
+  {
+    id: 'maconnerie',
+    name: 'Calculateur Maçonnerie',
+    description: 'Calculez béton, ciment, sable et gravier pour vos projets : dalles, murs, semelles. Devis PDF et sauvegarde locale',
+    category: 'metiers',
+    slug: 'maconnerie',
+    icon: '🧱',
+    keywords: [
+      'maçonnerie',
+      'béton',
+      'ciment',
+      'dalle',
+      'mur',
+      'semelle',
+      'calcul béton',
+      'dosage béton',
+      'quantité ciment',
+      'sable gravier',
+      'devis maçonnerie',
+      'calculateur bâtiment',
+      'métré',
+      'volume béton',
+      'sacs ciment',
     ],
   },
 ]

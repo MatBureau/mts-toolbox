@@ -76,6 +76,9 @@ const relatedToolsMapping: Record<string, string[]> = {
   'detecteur-ip': ['testeur-regex'],
   'test-frappe': ['compteur-mots'],
   'compteur-rebours': ['minuteur', 'calculateur-dates'],
+
+  // Métiers
+  'maconnerie': ['calculateur-pourcentage', 'convertisseur-unites', 'calculateur-tva'],
 }
 
 export default function RelatedTools({ currentTool }: RelatedToolsProps) {

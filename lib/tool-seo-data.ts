@@ -195,6 +195,38 @@ export const toolSEOData: Record<string, ToolSEOData> = {
         answer: "Oui, vous pouvez utiliser des nombres décimaux dans tous les calculs pour obtenir des résultats précis."
       }
     ]
+  },
+  'maconnerie': {
+    howToSteps: [
+      "Sélectionnez le type d'élément à calculer (Dalle, Mur, Semelle ou Ouverture)",
+      "Entrez les dimensions en mètres (ou cm pour l'épaisseur)",
+      "Ajoutez l'élément à votre projet avec le bouton 'Ajouter'",
+      "Répétez pour chaque élément de votre chantier",
+      "Consultez le récapitulatif des matériaux nécessaires",
+      "Téléchargez le devis PDF ou exportez en JSON pour sauvegarder"
+    ],
+    faqs: [
+      {
+        question: "Comment calculer la quantité de béton pour une dalle ?",
+        answer: "Entrez la longueur, la largeur et l'épaisseur de votre dalle. Le calculateur applique automatiquement le dosage sélectionné (350 kg de ciment par m³ par défaut) et vous donne les quantités de ciment, sable, gravier et eau nécessaires."
+      },
+      {
+        question: "Quelle est la différence entre dosage standard, maigre et riche ?",
+        answer: "Le dosage standard (350 kg/m³) convient pour la plupart des ouvrages. Le dosage maigre (250 kg/m³) est utilisé pour les fondations non structurelles. Le dosage riche (400 kg/m³) est recommandé pour les éléments porteurs et les conditions difficiles."
+      },
+      {
+        question: "Comment déduire les ouvertures (portes, fenêtres) ?",
+        answer: "Utilisez le module 'Ouverture' pour ajouter les dimensions des portes et fenêtres. Le calculateur déduira automatiquement ce volume du total de béton nécessaire."
+      },
+      {
+        question: "Mes données sont-elles sauvegardées ?",
+        answer: "Oui, votre projet est sauvegardé automatiquement dans votre navigateur (localStorage). Vous pouvez aussi exporter en JSON pour une sauvegarde externe ou partager avec un collègue."
+      },
+      {
+        question: "Comment obtenir un devis imprimable ?",
+        answer: "Cliquez sur 'Télécharger PDF' pour générer un document récapitulatif avec tous les éléments et les quantités de matériaux. Ce PDF peut être imprimé ou envoyé à un fournisseur."
+      }
+    ]
   }
 }
 

@@ -99,6 +99,8 @@ const toolComponents: Record<string, any> = {
   'analyseur-onpage': dynamic(() => import('@/components/tools/AnalyseurOnPage')),
   // Examen
   'quiz-ceh': dynamic(() => import('@/components/tools/QuizCEH')),
+  // Métiers
+  'maconnerie': dynamic(() => import('@/components/tools/Maconnerie')),
 }
 
 interface ToolPageProps {
