@@ -20,6 +20,11 @@ function sanitizeForPDF(text: string): string {
     .replace(/\u2026/g, '...') // Ellipsis → three dots
     .replace(/\u00B2/g, '2')  // Superscript 2 → 2
     .replace(/\u00B3/g, '3')  // Superscript 3 → 3
+    .replace(/\u2248/g, '~')  // Approximately equal → tilde
+    .replace(/\u2264/g, '<=') // Less than or equal → <=
+    .replace(/\u2265/g, '>=') // Greater than or equal → >=
+    .replace(/\u00D7/g, 'x')  // Multiplication sign → x
+    .replace(/\u00F7/g, '/')  // Division sign → /
 }
 
 /**
