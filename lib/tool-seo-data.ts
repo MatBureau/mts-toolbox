@@ -198,33 +198,82 @@ export const toolSEOData: Record<string, ToolSEOData> = {
   },
   'maconnerie': {
     howToSteps: [
-      "Sélectionnez le type d'élément à calculer (Dalle, Mur, Semelle ou Ouverture)",
-      "Entrez les dimensions en mètres (ou cm pour l'épaisseur)",
-      "Ajoutez l'élément à votre projet avec le bouton 'Ajouter'",
-      "Répétez pour chaque élément de votre chantier",
-      "Consultez le récapitulatif des matériaux nécessaires",
-      "Téléchargez le devis PDF ou exportez en JSON pour sauvegarder"
+      "Sélectionnez le type d'élément à calculer : dalle béton, mur, semelle de fondation ou ouverture à déduire",
+      "Entrez les dimensions précises : longueur et largeur en mètres, épaisseur en centimètres",
+      "Choisissez le dosage adapté à votre ouvrage : standard 350 kg/m³, maigre 250 kg/m³ ou riche 400 kg/m³",
+      "Ajoutez l'élément à votre projet et répétez pour chaque partie de votre chantier",
+      "Ajustez le pourcentage de pertes (5-10%) et le poids des sacs de ciment (25 ou 35 kg)",
+      "Consultez le récapitulatif : volume total en m³, nombre de sacs de ciment, sable et gravier en tonnes",
+      "Téléchargez votre devis en PDF professionnel ou exportez en JSON pour sauvegarder votre projet"
     ],
     faqs: [
       {
-        question: "Comment calculer la quantité de béton pour une dalle ?",
-        answer: "Entrez la longueur, la largeur et l'épaisseur de votre dalle. Le calculateur applique automatiquement le dosage sélectionné (350 kg de ciment par m³ par défaut) et vous donne les quantités de ciment, sable, gravier et eau nécessaires."
+        question: "Comment calculer le volume de béton pour une dalle en m³ ?",
+        answer: "La formule est simple : Longueur (m) × Largeur (m) × Épaisseur (m). Par exemple, pour une dalle de 5m × 3m × 10cm : 5 × 3 × 0,10 = 1,5 m³. Notre calculateur fait ce calcul automatiquement et ajoute une marge pour les pertes."
       },
       {
-        question: "Quelle est la différence entre dosage standard, maigre et riche ?",
-        answer: "Le dosage standard (350 kg/m³) convient pour la plupart des ouvrages. Le dosage maigre (250 kg/m³) est utilisé pour les fondations non structurelles. Le dosage riche (400 kg/m³) est recommandé pour les éléments porteurs et les conditions difficiles."
+        question: "Quel est le dosage de ciment pour 1 m³ de béton ?",
+        answer: "Le dosage standard est de 350 kg de ciment par m³ de béton, ce qui correspond à 10 sacs de 35 kg. Pour un béton maigre (fondations légères), utilisez 250 kg/m³. Pour un béton riche (piliers, éléments porteurs), montez à 400 kg/m³."
       },
       {
-        question: "Comment déduire les ouvertures (portes, fenêtres) ?",
-        answer: "Utilisez le module 'Ouverture' pour ajouter les dimensions des portes et fenêtres. Le calculateur déduira automatiquement ce volume du total de béton nécessaire."
+        question: "Combien de sacs de ciment pour 1 m³ de béton ?",
+        answer: "Avec un dosage standard de 350 kg/m³ et des sacs de 35 kg, il faut 10 sacs de ciment par m³. Avec des sacs de 25 kg, comptez 14 sacs. Notre calculateur ajuste automatiquement selon le poids de sac choisi."
       },
       {
-        question: "Mes données sont-elles sauvegardées ?",
-        answer: "Oui, votre projet est sauvegardé automatiquement dans votre navigateur (localStorage). Vous pouvez aussi exporter en JSON pour une sauvegarde externe ou partager avec un collègue."
+        question: "Quelle quantité de sable et gravier pour 1 m³ de béton ?",
+        answer: "Pour 1 m³ de béton standard, comptez environ 0,4 m³ de sable (soit ~600 kg) et 0,8 m³ de gravier (soit ~1280 kg). Le ratio classique est 1 volume de ciment pour 2 de sable et 3 de gravier."
       },
       {
-        question: "Comment obtenir un devis imprimable ?",
-        answer: "Cliquez sur 'Télécharger PDF' pour générer un document récapitulatif avec tous les éléments et les quantités de matériaux. Ce PDF peut être imprimé ou envoyé à un fournisseur."
+        question: "Comment calculer le béton pour un mur ?",
+        answer: "Le calcul est : Longueur × Hauteur × Épaisseur. Par exemple, un mur de 4m de long, 2,5m de haut et 20cm d'épaisseur : 4 × 2,5 × 0,20 = 2 m³. N'oubliez pas de déduire les ouvertures (portes, fenêtres)."
+      },
+      {
+        question: "Quelle est la différence entre dosage maigre, standard et riche ?",
+        answer: "Le dosage maigre (250 kg/m³) convient aux fondations non structurelles et remplissages. Le dosage standard (350 kg/m³) est idéal pour dalles, terrasses et murs. Le dosage riche (400 kg/m³) est réservé aux éléments porteurs, poutres et conditions exigeantes."
+      },
+      {
+        question: "Comment convertir des m³ de sable en tonnes ?",
+        answer: "Multipliez le volume par la densité du sable (environ 1500 kg/m³). Exemple : 0,5 m³ × 1500 = 750 kg soit 0,75 tonne. Pour le gravier, la densité est d'environ 1600 kg/m³. Notre calculateur effectue ces conversions automatiquement."
+      },
+      {
+        question: "Combien d'eau pour 1 sac de ciment de 35 kg ?",
+        answer: "Comptez environ 17,5 litres d'eau par sac de 35 kg, soit un ratio eau/ciment de 0,5. Ce ratio peut varier de 0,45 à 0,55 selon l'humidité du sable et la consistance souhaitée. Trop d'eau fragilise le béton."
+      },
+      {
+        question: "Comment calculer une semelle de fondation ?",
+        answer: "La semelle se calcule : Longueur × Largeur × Hauteur. Pour une semelle filante de 10m de long, 50cm de large et 30cm de haut : 10 × 0,5 × 0,3 = 1,5 m³. Prévoyez un dosage standard à riche (350-400 kg/m³) pour les fondations."
+      },
+      {
+        question: "Comment déduire les ouvertures (portes, fenêtres) du calcul ?",
+        answer: "Utilisez le module 'Ouverture' de notre calculateur. Entrez les dimensions de chaque porte/fenêtre et leur quantité. Le volume sera automatiquement soustrait du total. Par exemple, une porte de 2m × 0,9m dans un mur de 20cm = 0,36 m³ à déduire."
+      },
+      {
+        question: "Quelle épaisseur de dalle pour une terrasse ?",
+        answer: "Pour une terrasse piétonne, 10 cm suffisent. Pour un garage ou passage de véhicule léger, prévoyez 12 à 15 cm. Pour un passage de véhicules lourds, montez à 20 cm minimum. N'oubliez pas le treillis soudé pour armer la dalle."
+      },
+      {
+        question: "Comment estimer les pertes de béton ?",
+        answer: "Les pertes varient de 5% à 10% selon les conditions. Comptez 5% pour un coffrage soigné sur terrain plat, 7% en conditions normales, et jusqu'à 10% sur terrain irrégulier ou pour des petits volumes. Notre calculateur intègre ce paramètre."
+      },
+      {
+        question: "Vaut-il mieux commander du béton prêt à l'emploi ou le faire soi-même ?",
+        answer: "Pour les volumes supérieurs à 1-2 m³, le béton prêt à l'emploi (toupie) est plus économique et garantit un dosage précis. Pour les petits travaux, faire son béton à la bétonnière reste viable. Notre outil calcule les quantités pour les deux options."
+      },
+      {
+        question: "Comment arrondir ma commande de béton pour une toupie ?",
+        answer: "Les centrales à béton livrent généralement par tranches de 0,25 m³ ou 0,5 m³. Notre calculateur propose l'option d'arrondir automatiquement votre volume. Mieux vaut commander légèrement plus que de manquer de béton en cours de coulage."
+      },
+      {
+        question: "Quel est le temps de séchage du béton ?",
+        answer: "Le béton commence à prendre après 2-3 heures et peut être décoffré après 24-48 heures. Il atteint 80% de sa résistance à 7 jours et sa résistance finale à 28 jours. Évitez de marcher sur une dalle fraîche avant 24 heures minimum."
+      },
+      {
+        question: "Mes données de projet sont-elles sauvegardées ?",
+        answer: "Oui, votre projet est sauvegardé automatiquement dans votre navigateur (localStorage). Vous pouvez aussi exporter en JSON pour une sauvegarde externe, ou générer un PDF récapitulatif professionnel à imprimer ou envoyer à votre fournisseur."
+      },
+      {
+        question: "Comment calculer le prix de mon béton ?",
+        answer: "Multipliez les quantités par les prix unitaires : ciment (~6-8€/sac de 35kg), sable (~30-40€/tonne), gravier (~35-45€/tonne). Pour du béton prêt à l'emploi, comptez 100-150€/m³ livré. Notre outil vous donne les quantités exactes pour établir votre budget."
       }
     ]
   }

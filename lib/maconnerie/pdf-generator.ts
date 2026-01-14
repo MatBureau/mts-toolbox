@@ -3,6 +3,26 @@ import { formatNumber, getDosageConfig } from './calculations'
 import { ELEMENT_LABELS, DOSAGE_LABELS } from './constants'
 
 /**
+ * Nettoie le texte pour les fonts standard PDF (WinAnsi encoding)
+ * Remplace les caractères Unicode non supportés par leurs équivalents ASCII
+ */
+function sanitizeForPDF(text: string): string {
+  return text
+    .replace(/\u202F/g, ' ')  // Narrow no-break space → space
+    .replace(/\u00A0/g, ' ')  // No-break space → space
+    .replace(/\u2009/g, ' ')  // Thin space → space
+    .replace(/\u2013/g, '-')  // En dash → hyphen
+    .replace(/\u2014/g, '-')  // Em dash → hyphen
+    .replace(/\u2019/g, "'")  // Right single quote → apostrophe
+    .replace(/\u2018/g, "'")  // Left single quote → apostrophe
+    .replace(/\u201C/g, '"')  // Left double quote → quote
+    .replace(/\u201D/g, '"')  // Right double quote → quote
+    .replace(/\u2026/g, '...') // Ellipsis → three dots
+    .replace(/\u00B2/g, '2')  // Superscript 2 → 2
+    .replace(/\u00B3/g, '3')  // Superscript 3 → 3
+}
+
+/**
  * Génère un PDF récapitulatif du projet (lazy import pdf-lib)
  */
 export async function generateProjectPDF(
@@ -28,7 +48,7 @@ export async function generateProjectPDF(
     color?: { r: number; g: number; b: number }
   } = {}) => {
     const { x = margin, size = 10, bold = false, color = { r: 0.1, g: 0.1, b: 0.1 } } = options
-    page.drawText(text, {
+    page.drawText(sanitizeForPDF(text), {
       x,
       y,
       size,
@@ -188,14 +208,14 @@ export async function generateProjectPDF(
     borderWidth: 1,
   })
   y -= 15
-  drawText('⚠ Estimations indicatives', { x: margin + 10, size: 9, bold: true })
+  drawText('/!\\ Estimations indicatives', { x: margin + 10, size: 9, bold: true })
   y -= 12
   drawText('Ces calculs sont fournis à titre indicatif. Les quantités réelles peuvent varier selon', { x: margin + 10, size: 8, color: { r: 0.4, g: 0.4, b: 0.4 } })
   y -= 10
   drawText('les conditions du chantier, la qualité des matériaux et les techniques de mise en œuvre.', { x: margin + 10, size: 8, color: { r: 0.4, g: 0.4, b: 0.4 } })
 
   // === FOOTER ===
-  page.drawText('Généré avec MTS-Toolbox — mts-toolbox.com/metiers/maconnerie', {
+  page.drawText(sanitizeForPDF('Généré avec MTS-Toolbox - mts-toolbox.com/metiers/maconnerie'), {
     x: margin,
     y: 30,
     size: 8,

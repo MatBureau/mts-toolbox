@@ -195,6 +195,44 @@ const toolContents: Record<string, {
       "Évaluer des évolutions financières",
       "Résoudre des problèmes de mathématiques"
     ]
+  },
+  'maconnerie': {
+    description: "Calculateur de béton professionnel et gratuit pour estimer avec précision le volume en m³, le dosage ciment/sable/gravier et les quantités de matériaux pour vos travaux de maçonnerie. Que vous couliez une dalle de terrasse, montiez un mur en béton, réalisiez des semelles de fondation ou planifiiez un chantier complet, notre outil calcule automatiquement les besoins en ciment (nombre de sacs de 25 ou 35 kg), sable et gravier (en m³ et tonnes), ainsi que l'eau nécessaire. Idéal pour les bricoleurs, artisans maçons et professionnels du BTP, ce calculateur intègre les normes de dosage standard (350 kg/m³), maigre (250 kg/m³) et riche (400 kg/m³), avec gestion des pertes et export PDF.",
+    howTo: [
+      "Sélectionnez le type d'élément : dalle béton, mur, semelle de fondation ou ouverture à déduire",
+      "Entrez les dimensions précises : longueur et largeur en mètres, épaisseur ou hauteur en centimètres",
+      "Choisissez le dosage adapté : standard 350 kg/m³ pour dalles et terrasses, maigre 250 kg/m³ pour fondations légères, riche 400 kg/m³ pour éléments porteurs",
+      "Ajoutez l'élément et répétez pour chaque partie de votre chantier (murs, dalles, ouvertures)",
+      "Configurez le pourcentage de pertes (5-10%) selon les conditions de chantier",
+      "Consultez le récapitulatif : volume total en m³, nombre de sacs de ciment, sable et gravier en tonnes",
+      "Générez un devis PDF professionnel ou exportez en JSON pour sauvegarder votre projet"
+    ],
+    features: [
+      "Calcul précis du volume de béton en m³",
+      "Dosage automatique ciment, sable, gravier et eau",
+      "4 types d'éléments : dalle, mur, semelle, ouverture",
+      "3 presets de dosage : maigre, standard, riche + personnalisé",
+      "Conversion automatique m³ vers tonnes",
+      "Nombre de sacs de ciment (25 kg ou 35 kg)",
+      "Gestion des pertes de chantier (5-10%)",
+      "Arrondi pour commande toupie béton",
+      "Export PDF professionnel avec récapitulatif",
+      "Sauvegarde automatique dans le navigateur",
+      "Import/Export JSON pour partage",
+      "100% gratuit, sans inscription"
+    ],
+    useCases: [
+      "Calculer le béton pour une dalle de terrasse ou garage",
+      "Estimer les matériaux pour des fondations de maison",
+      "Planifier un chantier de mur en béton banché",
+      "Préparer une commande de béton prêt à l'emploi (toupie)",
+      "Établir un devis pour un client (artisan maçon)",
+      "Calculer les quantités pour une extension ou véranda",
+      "Estimer le budget matériaux d'un projet de construction",
+      "Comparer béton fait maison vs livré",
+      "Planifier l'achat de sacs de ciment en grande surface",
+      "Calculer les semelles filantes d'une clôture"
+    ]
   }
 }
 
