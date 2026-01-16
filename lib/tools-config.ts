@@ -87,6 +87,20 @@ export const categories: Category[] = [
     description: 'Outils de calcul pour les métiers du bâtiment',
     icon: '🔨',
   },
+  {
+    id: 'immobilier',
+    name: 'Immobilier',
+    slug: 'immobilier',
+    description: 'Calculateurs pour l\'investissement immobilier',
+    icon: '🏠',
+  },
+  {
+    id: 'logistique',
+    name: 'Logistique',
+    slug: 'logistique',
+    description: 'Outils d\'optimisation logistique et transport',
+    icon: '📦',
+  },
 ]
 
 export const tools: Tool[] = [
@@ -871,6 +885,37 @@ export const tools: Tool[] = [
       'calcul matériaux construction',
       'outil maçon',
     ],
+  },
+  {
+    id: 'optimisateur-coupe',
+    name: 'Optimisateur de Découpe (Calepinage 1D)',
+    description: 'Optimisez vos découpes de barres, planches ou tubes avec le moins de chutes possible. Algorithme professionnel gratuit.',
+    category: 'metiers',
+    slug: 'optimisateur-coupe',
+    icon: '✂️',
+    keywords: ['calepinage', 'découpe', 'optimisation', 'cutting stock', 'menuiserie', 'métallerie', 'débit', 'bois', 'acier'],
+  },
+
+  // Catégorie Immobilier
+  {
+    id: 'simulateur-lmnp',
+    name: 'Simulateur LMNP Réel vs Micro',
+    description: 'Simulez votre rentabilité LMNP avec calcul de l\'amortissement et comparatif Micro-BIC vs Régime Réel.',
+    category: 'immobilier',
+    slug: 'simulateur-lmnp',
+    icon: '🏢',
+    keywords: ['lmnp', 'immobilier', 'fiscalité', 'amortissement', 'rendement', 'simulation', 'impôts', 'loyer'],
+  },
+
+  // Catégorie Logistique
+  {
+    id: 'visualiseur-palette',
+    name: 'Optimisateur de Palettisation 3D',
+    description: 'Calculez et visualisez combien de cartons tiennent sur une palette (Europe, ISO).',
+    category: 'logistique',
+    slug: 'visualiseur-palette',
+    icon: '🏗️',
+    keywords: ['palette', 'logistique', 'cartons', 'chargement', 'transport', 'colis', 'europalette', 'palettisation'],
   },
 ]
 

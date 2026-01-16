@@ -101,6 +101,11 @@ const toolComponents: Record<string, any> = {
   'quiz-ceh': dynamic(() => import('@/components/tools/QuizCEH')),
   // Métiers
   'maconnerie': dynamic(() => import('@/components/tools/Maconnerie')),
+  'optimisateur-coupe': dynamic(() => import('@/components/tools/OptimisateurCoupe')),
+  // Immobilier
+  'simulateur-lmnp': dynamic(() => import('@/components/tools/SimulateurLMNP')),
+  // Logistique
+  'visualiseur-palette': dynamic(() => import('@/components/tools/VisualiseurPalette')),
 }
 
 interface ToolPageProps {

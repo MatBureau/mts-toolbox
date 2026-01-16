@@ -13,7 +13,9 @@
       "Bash(git restore:*)",
       "WebFetch(domain:reactbits.dev)",
       "Bash(npm audit:*)",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "WebSearch",
+      "WebFetch(domain:calcul-beton.com)"
     ],
     "deny": [],
     "ask": []
