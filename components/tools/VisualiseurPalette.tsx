@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Box, Layers, RefreshCw, ZoomIn, ZoomOut } from 'lucide-react'
 
@@ -103,6 +103,46 @@ export default function VisualiseurPalette() {
     })
 
   }, [box, pallet, maxHeight])
+
+  // Sort boxes by depth (Painter's Algorithm) to fix CSS 3D z-fighting
+  const sortedLayout = useMemo(() => {
+    // Convert degrees to radians
+    const radZ = rotation.z * (Math.PI / 180)
+    const radX = rotation.x * (Math.PI / 180)
+    
+    return layout.map((item, index) => {
+      // Dimensions of this specific item in its current orientation
+      // NOTE: We access the global 'box' state for dimensions, but use 'item' (from layout) for position/rotation
+      const w = item.rotated ? box.width : box.length
+      const l = item.rotated ? box.length : box.width
+      const h = box.height
+
+      // Calculate center of box relative to pallet center
+      // Box coordinates (item.x, item.y) are from top-left of pallet (0,0)
+      // Pallet center is (pallet.length/2, pallet.width/2)
+      
+      const cx = item.x - pallet.length / 2 + w / 2
+      const cy = item.y - pallet.width / 2 + l / 2
+      const cz = item.z + h / 2
+      
+      // Apply Rotate Z
+      // Standard rotation matrix around Z axis
+      const nx = cx * Math.cos(radZ) - cy * Math.sin(radZ)
+      const ny = cx * Math.sin(radZ) + cy * Math.cos(radZ)
+      
+      // Apply Rotate X (affects Z depth relative to camera)
+      // To determine draw order, we need the transformed Y or Z value depending on the coordinate system convention.
+      // In CSS 3D:
+      // Z is depth (positive towards viewer).
+      // We want to draw items with smaller Z (further away) first.
+      
+      // Simplification: We calculate a "depth score".
+      // When rotated X, the Y coordinate contributes to depth.
+      const depth = ny * Math.sin(radX) + cz * Math.cos(radX)
+      
+      return { ...item, originalIndex: index, depth }
+    }).sort((a, b) => a.depth - b.depth) // Draw furthest (lowest Z) first
+  }, [layout, rotation, pallet, box])
 
   return (
     <div className="flex flex-col xl:flex-row gap-8 min-h-[600px]">
@@ -229,34 +269,54 @@ export default function VisualiseurPalette() {
                 transformStyle: 'preserve-3d'
               }}
             >
-               {/* Pallet Top Face */}
-               <div className="absolute inset-0 bg-[#d4a873] border border-[#a07c50]" 
-                    style={{ transform: 'translateZ(0px)' }} >
-                 <div className="w-full h-full border-4 border-[#8B4513]/20"></div>
+               {/* Pallet Top Face (Wood Texture) */}
+               <div 
+                  className="absolute inset-0 border border-[#8b5a2b]" 
+                  style={{ 
+                    transform: 'translateZ(0px)',
+                    backgroundColor: '#deb887',
+                    backgroundImage: `
+                      linear-gradient(90deg, rgba(139,69,19,0.1) 0%, rgba(139,69,19,0.1) 5%, transparent 5%, transparent 100%),
+                      repeating-linear-gradient(45deg, rgba(139,69,19,0.05) 0px, rgba(139,69,19,0.05) 2px, transparent 2px, transparent 8px)
+                    `,
+                    backgroundSize: '100% 100%, 20px 20px'
+                  }} 
+               >
+                 {/* Planks visual separation */}
+                 <div className="w-full h-full flex justify-between px-1">
+                    {[...Array(5)].map((_, i) => (
+                      <div key={i} className="h-full w-[18%] bg-black/5 border-l border-r border-[#8b5a2b]/20"></div>
+                    ))}
+                 </div>
+                 
                  {/* Pallet Side Faces (Fake thickness) */}
-                 <div className="absolute -bottom-2 left-0 right-0 h-4 bg-[#b58b5a] origin-top transform rotate-x-90 translate-y-full" style={{ transform: 'rotateX(-90deg)' }}></div>
-                 <div className="absolute top-0 bottom-0 -right-2 w-4 bg-[#a07c50] origin-left transform rotate-y-90 translate-x-full" style={{ transform: 'rotateY(90deg)' }}></div>
+                 <div className="absolute -bottom-3 left-0 right-0 h-6 bg-[#8b5a2b] origin-top transform rotate-x-90 translate-y-full flex items-center justify-center gap-8 overflow-hidden" style={{ transform: 'rotateX(-90deg)' }}>
+                    {/* Pallet Blocks (Euro pallet style) */}
+                    <div className="w-12 h-full bg-[#5c3a1b]"></div>
+                    <div className="w-12 h-full bg-[#5c3a1b]"></div>
+                    <div className="w-12 h-full bg-[#5c3a1b]"></div>
+                 </div>
+                 <div className="absolute top-0 bottom-0 -right-3 w-6 bg-[#a06b3a] origin-left transform rotate-y-90 translate-x-full" style={{ transform: 'rotateY(90deg)' }}></div>
                </div>
 
-               {/* Shadow */}
-               <div className="absolute inset-0 bg-black/40 blur-xl transform translate-z-[-20px]" style={{ transform: 'translateZ(-20px)' }}></div>
+               {/* Shadow (Ambient Occlusion) */}
+               <div className="absolute inset-0 bg-black/60 blur-2xl transform translate-z-[-40px]" style={{ transform: 'translateZ(-40px)' }}></div>
             
-               {/* Boxes Container (Relative to Pallet Top-Left which is 0,0 locally in this div) */}
-               {layout.map((b, i) => {
+               {/* Boxes Container */}
+               {sortedLayout.map((b, i) => {
                   const w = b.rotated ? box.width : box.length
-                  const l = b.rotated ? box.length : box.width // Visual length (y-axis)
+                  const l = b.rotated ? box.length : box.width
                   const h = box.height
                   
-                  // Color variation for distinction
-                  const isEven = (i % 2 === 0)
-                  const colorTop = isEven ? '#fb923c' : '#f97316' // orange-400 / orange-500
-                  const colorSide = isEven ? '#ea580c' : '#c2410c' // orange-600 / orange-700
-                  const colorFront = isEven ? '#f97316' : '#ea580c' // orange-500 / orange-600
+                  // Kraft Cardboard Colors
+                  const kraftBase = '#d4a373'
+                  const kraftDark = '#bc8a5f'
+                  const kraftLight = '#e0b894'
 
                   return (
                     <div
-                      key={i}
-                      className="absolute group"
+                      key={b.originalIndex}
+                      className="absolute group transition-transform"
                       style={{
                         width: w,
                         height: l,
@@ -264,15 +324,20 @@ export default function VisualiseurPalette() {
                         transformStyle: 'preserve-3d'
                       }}
                     >
-                      {/* Top Face */}
+                      {/* Top Face (Tape & Cardboard) */}
                       <div 
-                        className="absolute inset-0 border border-black/10 flex items-center justify-center text-[10px] font-bold text-black/30 group-hover:bg-blue-400 transition-colors"
+                        className="absolute inset-0 border border-[#b08d55] flex items-center justify-center text-[10px] font-bold text-[#8a6b48]/50 group-hover:bg-blue-400 group-hover:text-white transition-colors"
                         style={{ 
-                          backgroundColor: colorTop,
+                          backgroundColor: kraftBase,
+                          backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.8\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\' opacity=\'0.08\'/%3E%3C/svg%3E")',
                           transform: `translateZ(${h}px)` 
                         }}
                       >
-                        {stats.totalBoxes < 100 && i+1}
+                        {/* Tape Simulation */}
+                        <div className="absolute w-full h-[60%] border-t border-b border-[#c2966b] bg-[#e6c29a]/30"></div>
+                        <div className="absolute h-full w-[10%] bg-[#d9b38c]/50 border-l border-r border-[#c2966b]/50"></div>
+                        
+                        <span className="relative z-10">{stats.totalBoxes < 100 && b.originalIndex+1}</span>
                       </div>
 
                       {/* Front Face (South) */}
@@ -280,9 +345,12 @@ export default function VisualiseurPalette() {
                         className="absolute top-full left-0 w-full origin-top"
                         style={{ 
                           height: h, 
-                          backgroundColor: colorFront,
+                          backgroundColor: kraftDark,
+                          backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.8\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\' opacity=\'0.15\'/%3E%3C/svg%3E")',
                           transform: 'rotateX(-90deg)',
-                          borderBottom: '1px solid rgba(0,0,0,0.1)'
+                          borderBottom: '1px solid rgba(0,0,0,0.1)',
+                          borderLeft: '1px solid rgba(0,0,0,0.05)',
+                          borderRight: '1px solid rgba(0,0,0,0.05)'
                         }}
                       ></div>
                       
@@ -291,9 +359,12 @@ export default function VisualiseurPalette() {
                         className="absolute top-0 left-full h-full origin-left"
                         style={{ 
                           width: h, 
-                          backgroundColor: colorSide,
+                          backgroundColor: kraftLight,
+                          backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.8\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\' opacity=\'0.1\'/%3E%3C/svg%3E")',
                           transform: 'rotateY(90deg)',
-                          borderRight: '1px solid rgba(0,0,0,0.1)'
+                          borderRight: '1px solid rgba(0,0,0,0.1)',
+                          borderTop: '1px solid rgba(0,0,0,0.05)',
+                          borderBottom: '1px solid rgba(0,0,0,0.1)'
                         }}
                       ></div>
                     </div>
@@ -303,7 +374,7 @@ export default function VisualiseurPalette() {
          </div>
 
          <div className="absolute bottom-4 left-4 text-xs font-mono text-gray-400 pointer-events-none select-none">
-            CSS 3D Engine • Rot: {rotation.x}°/{rotation.z}°
+            CSS 3D Engine • Rot: {Math.round(rotation.x)}°/{Math.round(rotation.z)}°
          </div>
       </div>
     </div>
