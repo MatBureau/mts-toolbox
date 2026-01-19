@@ -308,11 +308,9 @@ export default function VisualiseurPalette() {
                   const l = b.rotated ? box.length : box.width
                   const h = box.height
                   
-                  // Kraft Cardboard Colors
-                  const kraftBase = '#d4a373'
-                  const kraftDark = '#bc8a5f'
-                  const kraftLight = '#e0b894'
-
+                  // Kraft Cardboard Texture Data
+                  const cardboardPattern = 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.8\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\' opacity=\'0.15\'/%3E%3C/svg%3E")'
+                  
                   return (
                     <div
                       key={b.originalIndex}
@@ -320,17 +318,18 @@ export default function VisualiseurPalette() {
                       style={{
                         width: w,
                         height: l,
-                        transform: `translate3d(${b.x}px, ${b.y}px, ${b.z}px)`,
+                        transform: `translate3d(${b.x}px, ${b.y}px, ${b.z + 1}px)`, // +1px to avoid z-fighting with pallet
                         transformStyle: 'preserve-3d'
                       }}
                     >
                       {/* Top Face (Tape & Cardboard) */}
                       <div 
-                        className="absolute inset-0 border border-[#b08d55] flex items-center justify-center text-[10px] font-bold text-[#8a6b48]/50 group-hover:bg-blue-400 group-hover:text-white transition-colors"
+                        className="absolute inset-0 border border-[#b08d55] flex items-center justify-center text-[10px] font-bold text-[#8a6b48]/50 group-hover:bg-blue-400 group-hover:text-white transition-colors backface-hidden"
                         style={{ 
-                          backgroundColor: kraftBase,
-                          backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.8\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\' opacity=\'0.08\'/%3E%3C/svg%3E")',
-                          transform: `translateZ(${h}px)` 
+                          backgroundColor: '#d4a373',
+                          backgroundImage: cardboardPattern,
+                          transform: `translateZ(${h}px)`,
+                          backfaceVisibility: 'hidden' 
                         }}
                       >
                         {/* Tape Simulation */}
@@ -342,29 +341,53 @@ export default function VisualiseurPalette() {
 
                       {/* Front Face (South) */}
                       <div 
-                        className="absolute top-full left-0 w-full origin-top"
+                        className="absolute top-full left-0 w-full origin-top backface-hidden"
                         style={{ 
                           height: h, 
-                          backgroundColor: kraftDark,
-                          backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.8\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\' opacity=\'0.15\'/%3E%3C/svg%3E")',
+                          backgroundColor: '#bc8a5f',
+                          backgroundImage: cardboardPattern,
                           transform: 'rotateX(-90deg)',
-                          borderBottom: '1px solid rgba(0,0,0,0.1)',
-                          borderLeft: '1px solid rgba(0,0,0,0.05)',
-                          borderRight: '1px solid rgba(0,0,0,0.05)'
+                          border: '1px solid rgba(0,0,0,0.1)',
+                          backfaceVisibility: 'hidden'
                         }}
                       ></div>
                       
                       {/* Right Face (East) */}
                       <div 
-                        className="absolute top-0 left-full h-full origin-left"
+                        className="absolute top-0 left-full h-full origin-left backface-hidden"
                         style={{ 
                           width: h, 
-                          backgroundColor: kraftLight,
-                          backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.8\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\' opacity=\'0.1\'/%3E%3C/svg%3E")',
+                          backgroundColor: '#cca57b',
+                          backgroundImage: cardboardPattern,
                           transform: 'rotateY(90deg)',
-                          borderRight: '1px solid rgba(0,0,0,0.1)',
-                          borderTop: '1px solid rgba(0,0,0,0.05)',
-                          borderBottom: '1px solid rgba(0,0,0,0.1)'
+                          border: '1px solid rgba(0,0,0,0.1)',
+                          backfaceVisibility: 'hidden'
+                        }}
+                      ></div>
+
+                      {/* Back Face (North) */}
+                      <div 
+                        className="absolute bottom-full left-0 w-full origin-bottom backface-hidden"
+                        style={{ 
+                          height: h, 
+                          backgroundColor: '#bc8a5f',
+                          backgroundImage: cardboardPattern,
+                          transform: 'rotateX(90deg)',
+                          border: '1px solid rgba(0,0,0,0.1)',
+                          backfaceVisibility: 'hidden'
+                        }}
+                      ></div>
+
+                      {/* Left Face (West) */}
+                      <div 
+                        className="absolute top-0 right-full h-full origin-right backface-hidden"
+                        style={{ 
+                          width: h, 
+                          backgroundColor: '#cca57b',
+                          backgroundImage: cardboardPattern,
+                          transform: 'rotateY(-90deg)',
+                          border: '1px solid rgba(0,0,0,0.1)',
+                          backfaceVisibility: 'hidden'
                         }}
                       ></div>
                     </div>
