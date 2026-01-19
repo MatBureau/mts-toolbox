@@ -18,6 +18,31 @@ export default function VisualiseurPalette() {
   const [zoom, setZoom] = useState(0.8)
   const [rotation, setRotation] = useState({ x: 60, z: 45 })
   
+  // Interactive Rotation Logic
+  const [isDragging, setIsDragging] = useState(false)
+  const lastMousePos = useRef({ x: 0, y: 0 })
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+    lastMousePos.current = { x: e.clientX, y: e.clientY }
+  }
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return
+    const deltaX = e.clientX - lastMousePos.current.x
+    const deltaY = e.clientY - lastMousePos.current.y
+    
+    setRotation(prev => ({
+      x: Math.max(0, Math.min(90, prev.x - deltaY * 0.5)), // Limit X rotation to avoid flipping
+      z: prev.z + deltaX * 0.5
+    }))
+    
+    lastMousePos.current = { x: e.clientX, y: e.clientY }
+  }
+
+  const handleMouseUp = () => setIsDragging(false)
+  
   // Stats
   const [stats, setStats] = useState({ totalBoxes: 0, totalWeight: 0, layers: 0, efficiency: 0, stackHeight: 0 })
   const [layout, setLayout] = useState<{ x: number, y: number, z: number, rotated: boolean }[]>([])
@@ -172,12 +197,18 @@ export default function VisualiseurPalette() {
       </div>
 
       {/* 3D Visualization */}
-      <div className="flex-1 bg-gray-100 dark:bg-gray-900 rounded-xl overflow-hidden relative border border-gray-200 dark:border-gray-800 flex items-center justify-center min-h-[500px] perspective-1000">
+      <div 
+        className={`flex-1 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-950 rounded-xl overflow-hidden relative border border-gray-200 dark:border-gray-800 flex items-center justify-center min-h-[500px] perspective-1000 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+      >
          
-         <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
-            <button onClick={() => setZoom(z => Math.min(z + 0.1, 2))} className="p-2 bg-white dark:bg-gray-800 rounded shadow hover:bg-gray-50"><ZoomIn size={20}/></button>
-            <button onClick={() => setZoom(z => Math.max(z - 0.1, 0.3))} className="p-2 bg-white dark:bg-gray-800 rounded shadow hover:bg-gray-50"><ZoomOut size={20}/></button>
-            <button onClick={() => setRotation({ x: 60, z: 45 })} className="p-2 bg-white dark:bg-gray-800 rounded shadow hover:bg-gray-50"><RefreshCw size={20}/></button>
+         <div className="absolute top-4 right-4 flex flex-col gap-2 z-10 w-10">
+            <button onClick={(e) => { e.stopPropagation(); setZoom(z => Math.min(z + 0.1, 2)) }} className="p-2 bg-white dark:bg-gray-800 rounded-lg shadow hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition-colors tooltip-left" title="Zoom In"><ZoomIn size={20}/></button>
+            <button onClick={(e) => { e.stopPropagation(); setZoom(z => Math.max(z - 0.1, 0.3)) }} className="p-2 bg-white dark:bg-gray-800 rounded-lg shadow hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition-colors" title="Zoom Out"><ZoomOut size={20}/></button>
+            <button onClick={(e) => { e.stopPropagation(); setRotation({ x: 60, z: 45 }) }} className="p-2 bg-white dark:bg-gray-800 rounded-lg shadow hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition-colors" title="Réinitialiser vue"><RefreshCw size={20}/></button>
          </div>
 
          {/* 3D Scene Root */}
@@ -188,74 +219,92 @@ export default function VisualiseurPalette() {
              transformStyle: 'preserve-3d'
            }}
          >
-            {/* Pallet Base */}
+            {/* Pallet Base - Centered */}
             <div 
-              className="absolute bg-[#C19A6B] border border-[#a08055]"
+              className="absolute"
               style={{
                 width: pallet.length,
                 height: pallet.width,
-                transform: `translate(-50%, -50%) translateZ(0px)`,
-                boxShadow: '0 0 50px rgba(0,0,0,0.2)'
+                transform: `translate(-50%, -50%)`,
+                transformStyle: 'preserve-3d'
               }}
             >
-               {/* Pallet detailed simulation (wood planks look) */}
-               <div className="w-full h-full border-4 border-[#8B4513] opacity-20"></div>
-            </div>
+               {/* Pallet Top Face */}
+               <div className="absolute inset-0 bg-[#d4a873] border border-[#a07c50]" 
+                    style={{ transform: 'translateZ(0px)' }} >
+                 <div className="w-full h-full border-4 border-[#8B4513]/20"></div>
+                 {/* Pallet Side Faces (Fake thickness) */}
+                 <div className="absolute -bottom-2 left-0 right-0 h-4 bg-[#b58b5a] origin-top transform rotate-x-90 translate-y-full" style={{ transform: 'rotateX(-90deg)' }}></div>
+                 <div className="absolute top-0 bottom-0 -right-2 w-4 bg-[#a07c50] origin-left transform rotate-y-90 translate-x-full" style={{ transform: 'rotateY(90deg)' }}></div>
+               </div>
 
-            {/* Boxes */}
-            {layout.map((b, i) => {
-              // Only render minimal faces for performance if plenty of boxes
-              // Using a simple Cube approximation
-              const w = b.rotated ? box.width : box.length
-              const h = b.rotated ? box.length : box.width
-              
-              return (
-                <div
-                  key={i}
-                  className="absolute group hover:z-50"
-                  style={{
-                    width: w,
-                    height: h,
-                    // Transform origin is center, so we need to offset coordinates
-                    // Our coordinate system is 0,0 at top-left of pallet. 
-                    // Scene center is 0,0. Pallet top-left is -L/2, -W/2
-                    transform: `
-                      translate3d(
-                        ${b.x - pallet.length/2}px, 
-                        ${b.y - pallet.width/2}px, 
-                        ${b.z + pallet.height}px
-                      )
-                    `,
-                    transformStyle: 'preserve-3d'
-                  }}
-                >
-                  {/* BOX - Using simple CSS Cube */}
-                  {/* Top Face */}
-                  <div 
-                    className="absolute bg-orange-400 border border-orange-600/50 flex items-center justify-center text-[10px] text-orange-900/50 font-bold"
-                    style={{ width: w, height: h, transform: 'translateZ(' + box.height + 'px)' }}
-                  >
-                    {i+1}
-                  </div>
-                  {/* Front/Side Faces (Simulated with thick borders or pseudo elements if needed, but for top-down view mostly top face + slight extrusion effect works) */}
-                  {/* Side Face (Thickness) */}
-                   <div 
-                    className="absolute bg-orange-600 w-full top-full origin-top"
-                    style={{ height: box.height, transform: 'rotateX(-90deg)' }}
-                  ></div>
-                  <div 
-                    className="absolute bg-orange-500 h-full left-full origin-left"
-                    style={{ width: box.height, transform: 'rotateY(90deg)' }}
-                  ></div>
-                </div>
-              )
-            })}
+               {/* Shadow */}
+               <div className="absolute inset-0 bg-black/40 blur-xl transform translate-z-[-20px]" style={{ transform: 'translateZ(-20px)' }}></div>
+            
+               {/* Boxes Container (Relative to Pallet Top-Left which is 0,0 locally in this div) */}
+               {layout.map((b, i) => {
+                  const w = b.rotated ? box.width : box.length
+                  const l = b.rotated ? box.length : box.width // Visual length (y-axis)
+                  const h = box.height
+                  
+                  // Color variation for distinction
+                  const isEven = (i % 2 === 0)
+                  const colorTop = isEven ? '#fb923c' : '#f97316' // orange-400 / orange-500
+                  const colorSide = isEven ? '#ea580c' : '#c2410c' // orange-600 / orange-700
+                  const colorFront = isEven ? '#f97316' : '#ea580c' // orange-500 / orange-600
+
+                  return (
+                    <div
+                      key={i}
+                      className="absolute group"
+                      style={{
+                        width: w,
+                        height: l,
+                        transform: `translate3d(${b.x}px, ${b.y}px, ${b.z}px)`,
+                        transformStyle: 'preserve-3d'
+                      }}
+                    >
+                      {/* Top Face */}
+                      <div 
+                        className="absolute inset-0 border border-black/10 flex items-center justify-center text-[10px] font-bold text-black/30 group-hover:bg-blue-400 transition-colors"
+                        style={{ 
+                          backgroundColor: colorTop,
+                          transform: `translateZ(${h}px)` 
+                        }}
+                      >
+                        {stats.totalBoxes < 100 && i+1}
+                      </div>
+
+                      {/* Front Face (South) */}
+                      <div 
+                        className="absolute top-full left-0 w-full origin-top"
+                        style={{ 
+                          height: h, 
+                          backgroundColor: colorFront,
+                          transform: 'rotateX(-90deg)',
+                          borderBottom: '1px solid rgba(0,0,0,0.1)'
+                        }}
+                      ></div>
+                      
+                      {/* Right Face (East) */}
+                      <div 
+                        className="absolute top-0 left-full h-full origin-left"
+                        style={{ 
+                          width: h, 
+                          backgroundColor: colorSide,
+                          transform: 'rotateY(90deg)',
+                          borderRight: '1px solid rgba(0,0,0,0.1)'
+                        }}
+                      ></div>
+                    </div>
+                  )
+               })}
+             </div>
          </div>
 
-         <div className="absolute bottom-4 left-4 text-xs text-gray-400 pointer-events-none">
-            CSS 3D Render • 1px = 1mm
+         <div className="absolute bottom-4 left-4 text-xs font-mono text-gray-400 pointer-events-none select-none">
+            CSS 3D Engine • Rot: {rotation.x}°/{rotation.z}°
          </div>
-
       </div>
     </div>
   )

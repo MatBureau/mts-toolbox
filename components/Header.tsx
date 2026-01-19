@@ -15,7 +15,13 @@ export default function Header() {
   const navItems = [
     { label: 'Accueil', href: '/' },
     { label: 'Catégories', href: '/categories' },
-    ...categories.slice(0, 4).map((cat) => ({
+    // Outils Premium
+    ...categories.filter(c => ['immobilier', 'logistique', 'metiers'].includes(c.id)).map((cat) => ({
+      label: cat.name,
+      href: `/${cat.slug}`
+    })),
+    // Outils Standard
+    ...categories.slice(0, 2).map((cat) => ({
       label: cat.name,
       href: `/${cat.slug}`
     })),
