@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { DiceRoll, AttributeName, SkillName, ATTRIBUTE_LABELS, SKILL_LABELS, SKILL_TO_ATTRIBUTE } from '@/types/jdr'
-import RealisticDice from './RealisticDice'
+import ThreeDiceRoller from './ThreeDiceRoller'
 
 interface Props {
   isOpen: boolean
@@ -417,9 +417,9 @@ export default function DiceRoller({
               />
 
               {/* Zone de dés */}
-              <div className="min-h-[250px] bg-neutral-800/50 rounded-lg p-4 flex flex-col items-center justify-center">
+              <div className="min-h-[250px] bg-neutral-800/50 rounded-lg flex flex-col items-center justify-center overflow-hidden">
                 {isRolling || results ? (
-                  <RealisticDice 
+                  <ThreeDiceRoller 
                     results={results || { base: Array(baseDice).fill(0), stress: Array(stressDice).fill(0) }} 
                     isRolling={isRolling} 
                     onFinished={handleAnimationFinished}

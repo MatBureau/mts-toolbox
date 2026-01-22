@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@types/three": "^0.182.0",
+    "cannon-es": "^0.20.0",
     "cmdk": "^1.1.1",
     "framer-motion": "^12.23.25",
     "jsbarcode": "^3.12.1",
@@ -23,7 +25,8 @@
     "react-hot-toast": "^2.6.0",
     "react-intersection-observer": "^10.0.0",
     "redis": "^5.10.0",
-    "sharp": "^0.33.0"
+    "sharp": "^0.33.0",
+    "three": "^0.182.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
