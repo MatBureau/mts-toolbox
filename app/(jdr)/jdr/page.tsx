@@ -116,7 +116,7 @@ export default function JdrLandingPage() {
               </motion.div>
 
               <div className="mt-6 text-sm text-neutral-500">
-                Les sessions sont sauvegardées pendant 7 jours
+                Les sessions sont sauvegardées indéfiniment
               </div>
 
               <button

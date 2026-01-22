@@ -175,9 +175,8 @@ export async function POST(
         )
     }
 
-    // Sauvegarde avec le même TTL (reset à 7 jours)
+    // Sauvegarde sans expiration
     await redis.set(`jdr:game:${gameId}`, JSON.stringify(gameState), {
-      EX: 604800, // 7 jours
       XX: true, // Seulement si existe déjà
     })
 

@@ -15,7 +15,8 @@
       "Bash(npm audit:*)",
       "Bash(cp:*)",
       "WebSearch",
-      "WebFetch(domain:calcul-beton.com)"
+      "WebFetch(domain:calcul-beton.com)",
+      "Bash(ls -la \"C:\\\\Users\\\\mat\\\\Documents\\\\GitHub\\\\mts-toolbox\\\\data\"\" 2>&1 || dir \"C:UsersmatDocumentsGitHubmts-toolboxdata \")"
     ],
     "deny": [],
     "ask": []

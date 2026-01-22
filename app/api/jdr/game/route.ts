@@ -68,10 +68,8 @@ export async function POST(req: Request) {
       sharedNotes: '',
     }
 
-    // Expire en 7 jours au lieu de 24h pour les parties longues
-    await redis.set(`jdr:game:${gameId}`, JSON.stringify(initialState), {
-      EX: 604800, // 7 jours
-    })
+    // Pas d'expiration - les parties sont conservées indéfiniment
+    await redis.set(`jdr:game:${gameId}`, JSON.stringify(initialState))
 
     return NextResponse.json({ gameId, gameState: initialState })
   } catch (error) {
