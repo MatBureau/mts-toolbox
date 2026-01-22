@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CharacterSheet as CharacterSheetType } from '@/types/jdr'
-import { PREGENERATED_CHARACTERS, PLAYER_COLORS } from '@/data/jdr-pregenerated'
+import { PREGENERATED_CHARACTERS, PLAYER_COLORS } from '@/lib/jdr/pregenerated'
 import CharacterSheet from './CharacterSheet'
 
 interface Props {
