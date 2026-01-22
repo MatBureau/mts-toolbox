@@ -116,7 +116,7 @@ export default function ThreeDiceRoller({ results, isRolling, onFinished }: Prop
         dice.mesh.quaternion.copy(dice.body.quaternion as any)
 
         // Check if stopped
-        if (dice.body.velocity.length() > 0.2 || dice.body.angularVelocity.length() > 0.2) {
+        if (dice.body.velocity.length() > 0.3 || dice.body.angularVelocity.length() > 0.3) {
           allIdle = false
           hasStartedMovingRef.current = true
         }
@@ -124,9 +124,9 @@ export default function ThreeDiceRoller({ results, isRolling, onFinished }: Prop
 
       if (allIdle && isRollingRef.current && diceBoxes.current.length > 0 && !hasFinishedRef.current && hasStartedMovingRef.current) {
         hasFinishedRef.current = true
-        // Aligner les faces avec les résultats ciblés juste avant de finir
+        // Aligner visuellement les résultats sans saut brusque de rotation (Texture Swap)
         diceBoxes.current.forEach((dice) => {
-            alignDiceFace(dice)
+            forceResultViaTextureSwap(dice)
         })
         onFinishedRef.current?.()
       }
@@ -217,33 +217,52 @@ export default function ThreeDiceRoller({ results, isRolling, onFinished }: Prop
 
   }, [isRolling, results])
 
-  // Aligner la face du dé avec le résultat voulu
-  const alignDiceFace = (dice: { mesh: THREE.Mesh; body: CANNON.Body; targetResult: number }) => {
-    // 1: Right, 6: Left, 3: Top, 4: Bottom, 2: Front, 5: Back
-    // On veut le targetResult en haut (Y+)
-    const rotations: Record<number, THREE.Euler> = {
-      1: new THREE.Euler(0, 0, Math.PI / 2),
-      6: new THREE.Euler(0, 0, -Math.PI / 2),
-      3: new THREE.Euler(0, 0, 0),
-      4: new THREE.Euler(Math.PI, 0, 0),
-      2: new THREE.Euler(-Math.PI / 2, 0, 0),
-      5: new THREE.Euler(Math.PI / 2, 0, 0),
-    }
+  // Aligner la face du dé avec le résultat voulu de manière invisible (Texture Swap)
+  const forceResultViaTextureSwap = (dice: { mesh: THREE.Mesh; targetResult: number }) => {
+    const materials = dice.mesh.material as THREE.MeshStandardMaterial[]
+    const labels = [1, 6, 3, 4, 2, 5] // Ordre standard Three.js BoxGeometry (+X, -X, +Y, -Y, +Z, -Z)
+    
+    // 1. Trouver quelle face pointe actuellement vers le haut
+    const directions = [
+      new THREE.Vector3(1, 0, 0),  // 0: +X
+      new THREE.Vector3(-1, 0, 0), // 1: -X
+      new THREE.Vector3(0, 1, 0),  // 2: +Y
+      new THREE.Vector3(0, -1, 0), // 3: -Y
+      new THREE.Vector3(0, 0, 1),  // 4: +Z
+      new THREE.Vector3(0, 0, -1)  // 5: -Z
+    ]
+    
+    let maxUp = -Infinity
+    let upIndex = 0
+    
+    directions.forEach((dir, i) => {
+      // Rotation locale vers globale
+      const worldDir = dir.clone().applyQuaternion(dice.mesh.quaternion)
+      if (worldDir.y > maxUp) {
+        maxUp = worldDir.y
+        upIndex = i
+      }
+    })
+    
+    const currentNum = labels[upIndex]
+    if (currentNum === dice.targetResult) return // Coup de chance, déjà correct
 
-    const targetRot = rotations[dice.targetResult]
-    if (targetRot) {
-      // Pour éviter un saut brusque, on pourrait interpoler, mais ici on le fait à l'arrêt
-      // On ajuste la rotation du mesh RELATIVE au body pour que la face voulue soit UP
-      dice.mesh.quaternion.copy(dice.body.quaternion as any)
-      const invBodyQuat = dice.body.quaternion.clone().inverse()
-      
-      // On calcule la rotation nécessaire pour que la face target soit orientée vers le haut
-      // C'est plus simple de tricher : quand le dé dort, on force sa rotation physique
-      // pour qu'elle corresponde à un des axes parfaits, puis on ajuste le mesh.
-      dice.body.quaternion.setFromEuler(0, 0, 0) // Reset temporel
-      dice.mesh.rotation.copy(targetRot)
-      dice.body.quaternion.copy(dice.mesh.quaternion as any)
-    }
+    // 2. Échanger les textures pour forcer le résultat
+    const targetIdx = labels.indexOf(dice.targetResult)
+    const targetOppositeIdx = labels.indexOf(7 - dice.targetResult)
+    const currentOppositeIdx = upIndex % 2 === 0 ? upIndex + 1 : upIndex - 1
+
+    // Swap Top face with Target face
+    const tmpMap = materials[upIndex].map
+    materials[upIndex].map = materials[targetIdx].map
+    materials[targetIdx].map = tmpMap
+
+    // Swap Bottom face with Opposite of Target face (pour rester réaliste)
+    const tmpOppositeMap = materials[currentOppositeIdx].map
+    materials[currentOppositeIdx].map = materials[targetOppositeIdx].map
+    materials[targetOppositeIdx].map = tmpOppositeMap
+
+    materials.forEach(m => m.needsUpdate = true)
   }
 
   return (
