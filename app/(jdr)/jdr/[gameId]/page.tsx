@@ -49,9 +49,12 @@ export default function GamePage() {
   const [showCharacterSheet, setShowCharacterSheet] = useState(false)
   const [viewingCharacter, setViewingCharacter] = useState<CharacterSheetType | null>(null)
   const [isDragging, setIsDragging] = useState(false)
+  const [draggedToken, setDraggedToken] = useState<string | null>(null)
 
   // Refs
   const boardRef = useRef<HTMLDivElement>(null)
+  const lastActionTime = useRef<number>(0)
+  const gameStateRef = useRef<GameState | null>(null)
 
   // Initialize player from localStorage
   useEffect(() => {
@@ -66,6 +69,11 @@ export default function GamePage() {
     let isMounted = true
 
     const fetchState = async () => {
+      // Don't poll if we just performed an action (grace period of 2s)
+      if (Date.now() - lastActionTime.current < 2000) {
+        return
+      }
+
       try {
         const res = await fetch(`/api/jdr/game/${gameId}`)
         if (!res.ok) {
@@ -79,23 +87,27 @@ export default function GamePage() {
 
         const data: GameState = await res.json()
         if (isMounted && !isDragging) {
-          setGameState(data)
-          setLoading(false)
+          // Only update if the incoming state is newer than what we have
+          if (!gameStateRef.current || data.lastUpdated > (gameStateRef.current.lastUpdated || 0)) {
+            setGameState(data)
+            gameStateRef.current = data
+            setLoading(false)
 
-          // Check if current player is GM
-          if (playerId && data.gmId === playerId) {
-            setIsGM(true)
-          }
+            // Check if current player is GM
+            if (playerId && data.gmId === playerId) {
+              setIsGM(true)
+            }
 
-          // Check if player needs onboarding
-          if (playerId) {
-            const existingPlayer = data.players.find((p) => p.id === playerId)
-            if (!existingPlayer && !isGM) {
+            // Check if player needs onboarding
+            if (playerId) {
+              const existingPlayer = data.players.find((p) => p.id === playerId)
+              if (!existingPlayer && !isGM) {
+                setShowOnboarding(true)
+              }
+            } else if (!loading) {
+              // No player ID in storage, show onboarding
               setShowOnboarding(true)
             }
-          } else if (!loading) {
-            // No player ID in storage, show onboarding
-            setShowOnboarding(true)
           }
         }
       } catch (err) {
@@ -114,6 +126,9 @@ export default function GamePage() {
   // API action helper
   const sendAction = useCallback(
     async (action: string, payload: unknown) => {
+      // Update local timestamp reference immediately
+      lastActionTime.current = Date.now()
+      
       try {
         const res = await fetch(`/api/jdr/game/${gameId}`, {
           method: 'POST',
@@ -123,6 +138,7 @@ export default function GamePage() {
         if (res.ok) {
           const data = await res.json()
           setGameState(data)
+          gameStateRef.current = data
           return data
         }
       } catch (err) {
@@ -182,11 +198,20 @@ export default function GamePage() {
   // Token handlers
   const handleTokenMove = async (tokenId: string, x: number, y: number) => {
     if (!gameState) return
+    
+    // Finalize state
     setIsDragging(false)
+    setDraggedToken(null)
 
     const newTokens = gameState.tokens.map((t) =>
       t.id === tokenId ? { ...t, x, y } : t
     )
+    
+    // Optimistic update
+    const optimisticState = { ...gameState, tokens: newTokens, lastUpdated: Date.now() }
+    setGameState(optimisticState)
+    gameStateRef.current = optimisticState
+    
     await sendAction('UPDATE_TOKENS', newTokens)
   }
 
@@ -405,7 +430,10 @@ export default function GamePage() {
                 animate={{ x: token.x, y: token.y }}
                 drag={isGM || token.characterId === currentPlayer?.characterId}
                 dragMomentum={false}
-                onDragStart={() => setIsDragging(true)}
+                onDragStart={() => {
+                  setIsDragging(true)
+                  setDraggedToken(token.id)
+                }}
                 onDragEnd={(_, info) => {
                   handleTokenMove(
                     token.id,
