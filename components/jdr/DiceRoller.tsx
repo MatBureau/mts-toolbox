@@ -184,6 +184,7 @@ export default function DiceRoller({
 
   const [isRolling, setIsRolling] = useState(false)
   const [results, setResults] = useState<{ base: number[]; stress: number[] } | null>(null)
+  const [pendingRoll, setPendingRoll] = useState<Omit<DiceRoll, 'id' | 'timestamp'> | null>(null)
 
   // Calcul auto des dés basé sur attribut + compétence
   useEffect(() => {
@@ -206,37 +207,38 @@ export default function DiceRoller({
   }, [])
 
   const handleRoll = () => {
+    const bResults = rollDice(baseDice)
+    const sResults = rollDice(stressDice)
+
+    setResults({ base: bResults, stress: sResults })
     setIsRolling(true)
-    setResults(null)
 
-    // Animation de 1.5 secondes
-    setTimeout(() => {
-      const baseResults = rollDice(baseDice)
-      const stressResults = rollDice(stressDice)
+    // Compter succès et traumas
+    const successes = [...bResults, ...sResults].filter((r) => r === 6).length
+    const traumas = sResults.filter((r) => r === 1).length
 
-      setResults({ base: baseResults, stress: stressResults })
-      setIsRolling(false)
+    setPendingRoll({
+      playerId,
+      playerName,
+      attribute: selectedAttribute || undefined,
+      skill: selectedSkill || undefined,
+      baseDice,
+      stressDice,
+      modifier,
+      baseResults: bResults,
+      stressResults: sResults,
+      successes,
+      traumas,
+      description: description || undefined,
+    })
+  }
 
-      // Compter succès et traumas
-      const successes = [...baseResults, ...stressResults].filter((r) => r === 6).length
-      const traumas = stressResults.filter((r) => r === 1).length
-
-      // Envoyer le résultat
-      onRoll({
-        playerId,
-        playerName,
-        attribute: selectedAttribute || undefined,
-        skill: selectedSkill || undefined,
-        baseDice,
-        stressDice,
-        modifier,
-        baseResults,
-        stressResults,
-        successes,
-        traumas,
-        description: description || undefined,
-      })
-    }, 1500)
+  const handleAnimationFinished = () => {
+    if (!isRolling || !pendingRoll) return
+    
+    setIsRolling(false)
+    onRoll(pendingRoll)
+    setPendingRoll(null)
   }
 
   const totalSuccesses = results
@@ -420,6 +422,7 @@ export default function DiceRoller({
                   <RealisticDice 
                     results={results || { base: Array(baseDice).fill(0), stress: Array(stressDice).fill(0) }} 
                     isRolling={isRolling} 
+                    onFinished={handleAnimationFinished}
                   />
                 ) : (
                   <div className="text-neutral-500 text-center">

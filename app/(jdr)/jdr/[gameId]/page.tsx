@@ -285,6 +285,11 @@ export default function GamePage() {
 
   // Drawing handlers
   const handleUpdateDrawings = async (drawings: DrawingPath[]) => {
+    // Optimistic update
+    if (gameStateRef.current) {
+      gameStateRef.current.drawings = drawings
+      setGameState({ ...gameStateRef.current })
+    }
     await sendAction('UPDATE_DRAWINGS', drawings)
   }
 

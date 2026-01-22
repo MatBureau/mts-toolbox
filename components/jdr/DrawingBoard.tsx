@@ -89,8 +89,9 @@ export default function DrawingBoard({
     <div className={`absolute inset-0 z-20 ${isEnabled ? 'cursor-crosshair pointer-events-auto' : 'pointer-events-none'}`}>
       <svg
         ref={svgRef}
-        viewBox="0 0 1600 900" // ViewBox arbitraire, à adapter à la taille réelle de la scène
-        className="w-full h-full"
+        viewBox="0 0 1600 900" 
+        className="w-full h-full touch-none"
+        style={{ pointerEvents: isEnabled ? 'auto' : 'none' }}
         onMouseDown={startDrawing}
         onMouseMove={draw}
         onMouseUp={stopDrawing}
@@ -118,10 +119,9 @@ export default function DrawingBoard({
             points={currentPath.map(pt => `${pt.x},${pt.y}`).join(' ')}
             fill="none"
             stroke={color}
-            strokeWidth={3}
+            strokeWidth={4}
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="opacity-70"
           />
         )}
       </svg>

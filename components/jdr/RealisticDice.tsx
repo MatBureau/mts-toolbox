@@ -7,9 +7,10 @@ import { createInitialDiceState, updateDicePhysics, getFinalRotationForDice, Dic
 interface Props {
   results: { base: number[]; stress: number[] }
   isRolling: boolean
+  onFinished?: () => void
 }
 
-export default function RealisticDice({ results, isRolling }: Props) {
+export default function RealisticDice({ results, isRolling, onFinished }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [diceStates, setDiceStates] = useState<DiceState[]>([])
@@ -61,8 +62,9 @@ export default function RealisticDice({ results, isRolling }: Props) {
         gl_FragColor.rgb = uColor * lighting;
         gl_FragColor.a = 1.0;
         
-        // Simuler des points de dés simples
-        if (vUv.x > 0.4 && vUv.x < 0.6 && vUv.y > 0.4 && vUv.y < 0.6) {
+        // Simuler des points de dés plus arrondis
+        float dist = distance(vUv, vec2(0.5, 0.5));
+        if (dist < 0.1) {
            gl_FragColor.rgb *= 0.2;
         }
       }
@@ -96,6 +98,7 @@ export default function RealisticDice({ results, isRolling }: Props) {
       const dt = (time - lastTime) / 1000
       lastTime = time
 
+      let allStable = true;
       initialStates.forEach((state, i) => {
         const updated = updateDicePhysics(state, dt)
         initialStates[i] = updated
@@ -106,8 +109,14 @@ export default function RealisticDice({ results, isRolling }: Props) {
         if (updated.isStable) {
           const final = getFinalRotationForDice(updated.result)
           meshes[i].rotation.set(final.x, final.y, final.z)
+        } else {
+          allStable = false;
         }
       })
+
+      if (allStable && isRolling) {
+        onFinished?.()
+      }
 
       renderer.render({ scene, camera })
     }
