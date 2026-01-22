@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
@@ -13,20 +13,7 @@ export default function CompteurRebours() {
   const [timeLeft, setTimeLeft] = useState<any>(null)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
-  useEffect(() => {
-    if (started && targetDate) {
-      calculateTimeLeft()
-      intervalRef.current = setInterval(calculateTimeLeft, 1000)
-    }
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-      }
-    }
-  }, [started, targetDate, targetTime])
-
-  const calculateTimeLeft = () => {
+  const calculateTimeLeft = useCallback(() => {
     const target = new Date(`${targetDate}T${targetTime}`)
     const now = new Date()
     const difference = target.getTime() - now.getTime()
@@ -51,7 +38,20 @@ export default function CompteurRebours() {
     const seconds = Math.floor((difference % (1000 * 60)) / 1000)
 
     setTimeLeft({ days, hours, minutes, seconds, expired: false })
-  }
+  }, [targetDate, targetTime])
+
+  useEffect(() => {
+    if (started && targetDate) {
+      calculateTimeLeft()
+      intervalRef.current = setInterval(calculateTimeLeft, 1000)
+    }
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+      }
+    }
+  }, [started, targetDate, calculateTimeLeft])
 
   const start = () => {
     if (!targetDate) return

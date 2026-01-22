@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Textarea from '@/components/ui/Textarea'
 import Button from '@/components/ui/Button'
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
@@ -22,6 +22,14 @@ export default function BlocNotes() {
     }
   }, [])
 
+  // Save notes to localStorage
+  const saveNotes = useCallback(() => {
+    localStorage.setItem('mts-notes', notes)
+    const now = new Date()
+    localStorage.setItem('mts-notes-date', now.toISOString())
+    setLastSaved(now)
+  }, [notes])
+
   // Auto-save with debounce
   useEffect(() => {
     if (!autoSave) return
@@ -31,14 +39,7 @@ export default function BlocNotes() {
     }, 1000)
 
     return () => clearTimeout(timer)
-  }, [notes, autoSave])
-
-  const saveNotes = () => {
-    localStorage.setItem('mts-notes', notes)
-    const now = new Date()
-    localStorage.setItem('mts-notes-date', now.toISOString())
-    setLastSaved(now)
-  }
+  }, [notes, autoSave, saveNotes])
 
   const clearNotes = () => {
     if (confirm('Êtes-vous sûr de vouloir effacer toutes vos notes ?')) {

@@ -61,16 +61,16 @@ export default function HomePage() {
   const totalTools = tools.length
   const displayedTools = filteredCategories.reduce((sum, cat) => sum + cat.tools.length, 0)
 
-  // Outils populaires par défaut (fallback si pas de stats)
-  const defaultPopularTools = [
-    'compteur-mots', 'formateur-json', 'convertisseur-images',
-    'editeur-pdf', 'generateur-qrcode', 'encodeur-base64',
-    'compresseur-images', 'generateur-password', 'calculateur-pourcentage',
-    'fusionner-pdf', 'redimensionneur-images', 'convertisseur-devises'
-  ]
-
   // Convertir les slugs des top tools en objets Tool complets
   const topToolsData = useMemo(() => {
+    // Outils populaires par défaut (fallback si pas de stats)
+    const defaultPopularTools = [
+      'compteur-mots', 'formateur-json', 'convertisseur-images',
+      'editeur-pdf', 'generateur-qrcode', 'encodeur-base64',
+      'compresseur-images', 'generateur-password', 'calculateur-pourcentage',
+      'fusionner-pdf', 'redimensionneur-images', 'convertisseur-devises'
+    ]
+
     // Si on a des stats, on les utilise
     if (topTools.length > 0) {
       return topTools
@@ -87,7 +87,7 @@ export default function HomePage() {
       .map(slug => tools.find(t => t.slug === slug))
       .filter(Boolean)
       .map(tool => ({ ...tool, views: 0 }))
-  }, [topTools, defaultPopularTools])
+  }, [topTools])
 
   return (
     <>

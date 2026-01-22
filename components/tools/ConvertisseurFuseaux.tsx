@@ -1,27 +1,27 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
+
+const timezones = [
+  { value: 'Europe/Paris', label: 'Paris (CET/CEST)', offset: 1 },
+  { value: 'Europe/London', label: 'Londres (GMT/BST)', offset: 0 },
+  { value: 'America/New_York', label: 'New York (EST/EDT)', offset: -5 },
+  { value: 'America/Los_Angeles', label: 'Los Angeles (PST/PDT)', offset: -8 },
+  { value: 'America/Chicago', label: 'Chicago (CST/CDT)', offset: -6 },
+  { value: 'Asia/Tokyo', label: 'Tokyo (JST)', offset: 9 },
+  { value: 'Asia/Shanghai', label: 'Shanghai (CST)', offset: 8 },
+  { value: 'Asia/Dubai', label: 'Dubai (GST)', offset: 4 },
+  { value: 'Australia/Sydney', label: 'Sydney (AEDT/AEST)', offset: 11 },
+  { value: 'Pacific/Auckland', label: 'Auckland (NZDT/NZST)', offset: 13 },
+]
 
 export default function ConvertisseurFuseaux() {
   const [time, setTime] = useState<string>('')
   const [fromTimezone, setFromTimezone] = useState<string>('Europe/Paris')
   const [results, setResults] = useState<any[]>([])
-
-  const timezones = [
-    { value: 'Europe/Paris', label: 'Paris (CET/CEST)', offset: 1 },
-    { value: 'Europe/London', label: 'Londres (GMT/BST)', offset: 0 },
-    { value: 'America/New_York', label: 'New York (EST/EDT)', offset: -5 },
-    { value: 'America/Los_Angeles', label: 'Los Angeles (PST/PDT)', offset: -8 },
-    { value: 'America/Chicago', label: 'Chicago (CST/CDT)', offset: -6 },
-    { value: 'Asia/Tokyo', label: 'Tokyo (JST)', offset: 9 },
-    { value: 'Asia/Shanghai', label: 'Shanghai (CST)', offset: 8 },
-    { value: 'Asia/Dubai', label: 'Dubai (GST)', offset: 4 },
-    { value: 'Australia/Sydney', label: 'Sydney (AEDT/AEST)', offset: 11 },
-    { value: 'Pacific/Auckland', label: 'Auckland (NZDT/NZST)', offset: 13 },
-  ]
 
   useEffect(() => {
     const now = new Date()
@@ -30,13 +30,7 @@ export default function ConvertisseurFuseaux() {
     setTime(`${hours}:${minutes}`)
   }, [])
 
-  useEffect(() => {
-    if (time) {
-      convertTime()
-    }
-  }, [time, fromTimezone])
-
-  const convertTime = () => {
+  const convertTime = useCallback(() => {
     if (!time) return
 
     const [hours, minutes] = time.split(':').map(Number)
@@ -69,7 +63,13 @@ export default function ConvertisseurFuseaux() {
       })
 
     setResults(converted)
-  }
+  }, [time, fromTimezone])
+
+  useEffect(() => {
+    if (time) {
+      convertTime()
+    }
+  }, [time, fromTimezone, convertTime])
 
   return (
     <div className="space-y-6">

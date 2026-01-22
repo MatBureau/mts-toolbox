@@ -25,18 +25,17 @@ export default function ConvertisseurDevises() {
     { value: 'CNY', label: 'CNY - Yuan chinois' },
   ]
 
-  const staticRates: any = {
-    EUR: { EUR: 1, USD: 1.09, GBP: 0.86, CHF: 0.95, JPY: 162.5, CAD: 1.48, AUD: 1.66, CNY: 7.85 },
-    USD: { EUR: 0.92, USD: 1, GBP: 0.79, CHF: 0.87, JPY: 149.2, CAD: 1.36, AUD: 1.52, CNY: 7.21 },
-    GBP: { EUR: 1.16, USD: 1.27, GBP: 1, CHF: 1.10, JPY: 189.0, CAD: 1.72, AUD: 1.93, CNY: 9.12 },
-    CHF: { EUR: 1.05, USD: 1.15, GBP: 0.91, CHF: 1, JPY: 171.8, CAD: 1.56, AUD: 1.75, CNY: 8.28 },
-    JPY: { EUR: 0.0062, USD: 0.0067, GBP: 0.0053, CHF: 0.0058, JPY: 1, CAD: 0.0091, AUD: 0.010, CNY: 0.048 },
-    CAD: { EUR: 0.68, USD: 0.74, GBP: 0.58, CHF: 0.64, JPY: 110.0, CAD: 1, AUD: 1.12, CNY: 5.31 },
-    AUD: { EUR: 0.60, USD: 0.66, GBP: 0.52, CHF: 0.57, JPY: 98.2, CAD: 0.89, AUD: 1, CNY: 4.73 },
-    CNY: { EUR: 0.13, USD: 0.14, GBP: 0.11, CHF: 0.12, JPY: 20.8, CAD: 0.19, AUD: 0.21, CNY: 1 },
-  }
-
   useEffect(() => {
+    const staticRates: any = {
+      EUR: { EUR: 1, USD: 1.09, GBP: 0.86, CHF: 0.95, JPY: 162.5, CAD: 1.48, AUD: 1.66, CNY: 7.85 },
+      USD: { EUR: 0.92, USD: 1, GBP: 0.79, CHF: 0.87, JPY: 149.2, CAD: 1.36, AUD: 1.52, CNY: 7.21 },
+      GBP: { EUR: 1.16, USD: 1.27, GBP: 1, CHF: 1.10, JPY: 189.0, CAD: 1.72, AUD: 1.93, CNY: 9.12 },
+      CHF: { EUR: 1.05, USD: 1.15, GBP: 0.91, CHF: 1, JPY: 171.8, CAD: 1.56, AUD: 1.75, CNY: 8.28 },
+      JPY: { EUR: 0.0062, USD: 0.0067, GBP: 0.0053, CHF: 0.0058, JPY: 1, CAD: 0.0091, AUD: 0.010, CNY: 0.048 },
+      CAD: { EUR: 0.68, USD: 0.74, GBP: 0.58, CHF: 0.64, JPY: 110.0, CAD: 1, AUD: 1.12, CNY: 5.31 },
+      AUD: { EUR: 0.60, USD: 0.66, GBP: 0.52, CHF: 0.57, JPY: 98.2, CAD: 0.89, AUD: 1, CNY: 4.73 },
+      CNY: { EUR: 0.13, USD: 0.14, GBP: 0.11, CHF: 0.12, JPY: 20.8, CAD: 0.19, AUD: 0.21, CNY: 1 },
+    }
     setRates(staticRates)
   }, [])
 

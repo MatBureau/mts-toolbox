@@ -5,10 +5,10 @@ import { GameState, GameAction, Player, CharacterSheet, NPC, Token, DiceRoll, Sc
 // GET: Récupérer l'état du jeu (Polling)
 export async function GET(
   req: Request,
-  { params }: { params: Promise<{ gameId: string }> }
+  props: { params: Promise<{ gameId: string }> }
 ) {
   try {
-    const { gameId } = await params
+    const { gameId } = await props.params
     const redis = await getRedisClient()
 
     const gameState = await redis.get(`jdr:game:${gameId}`)
@@ -27,10 +27,10 @@ export async function GET(
 // POST: Actions de jeu
 export async function POST(
   req: Request,
-  { params }: { params: Promise<{ gameId: string }> }
+  props: { params: Promise<{ gameId: string }> }
 ) {
   try {
-    const { gameId } = await params
+    const { gameId } = await props.params
     const body = await req.json()
     const { action, payload } = body as GameAction
 
@@ -190,10 +190,10 @@ export async function POST(
 // DELETE: Supprimer une partie (MJ seulement)
 export async function DELETE(
   req: Request,
-  { params }: { params: Promise<{ gameId: string }> }
+  props: { params: Promise<{ gameId: string }> }
 ) {
   try {
-    const { gameId } = await params
+    const { gameId } = await props.params
     const { searchParams } = new URL(req.url)
     const playerId = searchParams.get('playerId')
 

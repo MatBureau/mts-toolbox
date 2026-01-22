@@ -390,6 +390,7 @@ export default function GamePage() {
                 src={gameState.scene.imageUrl}
                 alt="Scene"
                 className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+                loading="eager"
               />
             )}
 
