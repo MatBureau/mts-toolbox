@@ -207,17 +207,21 @@ export default function DiceRoller({
   }, [])
 
   const handleRoll = () => {
-    const bResults = rollDice(baseDice)
-    const sResults = rollDice(stressDice)
-
-    setResults({ base: bResults, stress: sResults })
     setIsRolling(true)
+    setResults(null)
+    setPendingRoll(null)
+  }
 
-    // Compter succès et traumas
-    const successes = [...bResults, ...sResults].filter((r) => r === 6).length
-    const traumas = sResults.filter((r) => r === 1).length
+  const handleAnimationFinished = (finalResults: { base: number[]; stress: number[] }) => {
+    if (!isRolling) return
+    
+    setResults(finalResults)
 
-    setPendingRoll({
+    // Compter succès et traumas sur les résultats physiques
+    const successes = [...finalResults.base, ...finalResults.stress].filter((r) => r === 6).length
+    const traumas = finalResults.stress.filter((r) => r === 1).length
+
+    const rollData: Omit<DiceRoll, 'id' | 'timestamp'> = {
       playerId,
       playerName,
       attribute: selectedAttribute || undefined,
@@ -225,20 +229,15 @@ export default function DiceRoller({
       baseDice,
       stressDice,
       modifier,
-      baseResults: bResults,
-      stressResults: sResults,
+      baseResults: finalResults.base,
+      stressResults: finalResults.stress,
       successes,
       traumas,
       description: description || undefined,
-    })
-  }
+    }
 
-  const handleAnimationFinished = () => {
-    if (!isRolling || !pendingRoll) return
-    
     setIsRolling(false)
-    onRoll(pendingRoll)
-    setPendingRoll(null)
+    onRoll(rollData)
   }
 
   const totalSuccesses = results
@@ -420,7 +419,8 @@ export default function DiceRoller({
               <div className="min-h-[250px] bg-neutral-800/50 rounded-lg flex flex-col items-center justify-center overflow-hidden">
                 {isRolling || results ? (
                   <ThreeDiceRoller 
-                    results={results || { base: Array(baseDice).fill(0), stress: Array(stressDice).fill(0) }} 
+                    baseCount={baseDice}
+                    stressCount={stressDice} 
                     isRolling={isRolling} 
                     onFinished={handleAnimationFinished}
                   />

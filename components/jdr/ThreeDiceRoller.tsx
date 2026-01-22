@@ -5,18 +5,19 @@ import * as THREE from 'three'
 import * as CANNON from 'cannon-es'
 
 interface Props {
-  results: { base: number[]; stress: number[] }
+  baseCount: number
+  stressCount: number
   isRolling: boolean
-  onFinished?: () => void
+  onFinished?: (results: { base: number[]; stress: number[] }) => void
 }
 
-export default function ThreeDiceRoller({ results, isRolling, onFinished }: Props) {
+export default function ThreeDiceRoller({ baseCount, stressCount, isRolling, onFinished }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null)
   const sceneRef = useRef<THREE.Scene | null>(null)
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null)
   const worldRef = useRef<CANNON.World | null>(null)
-  const diceBoxes = useRef<{ mesh: THREE.Mesh; body: CANNON.Body; targetResult: number }[]>([])
+  const diceBoxes = useRef<{ mesh: THREE.Mesh; body: CANNON.Body; isStress: boolean }[]>([])
   const requestRef = useRef<number>(0)
   const isRollingRef = useRef(isRolling)
   const onFinishedRef = useRef(onFinished)
@@ -124,11 +125,16 @@ export default function ThreeDiceRoller({ results, isRolling, onFinished }: Prop
 
       if (allIdle && isRollingRef.current && diceBoxes.current.length > 0 && !hasFinishedRef.current && hasStartedMovingRef.current) {
         hasFinishedRef.current = true
-        // Aligner visuellement les résultats sans saut brusque de rotation (Texture Swap)
+        
+        // Calculer les résultats basés sur la face actuellement en haut
+        const calculatedResults: { base: number[]; stress: number[] } = { base: [], stress: [] }
         diceBoxes.current.forEach((dice) => {
-            forceResultViaTextureSwap(dice)
+            const result = getDieResult(dice.mesh)
+            if (dice.isStress) calculatedResults.stress.push(result)
+            else calculatedResults.base.push(result)
         })
-        onFinishedRef.current?.()
+
+        onFinishedRef.current?.(calculatedResults)
       }
 
       renderer.render(scene, camera)
@@ -155,7 +161,7 @@ export default function ThreeDiceRoller({ results, isRolling, onFinished }: Prop
     })
     diceBoxes.current = []
 
-    const spawnDie = (result: number, isStress: boolean, index: number) => {
+    const spawnDie = (isStress: boolean, index: number) => {
       const size = 1
       const geometry = new THREE.BoxGeometry(size, size, size)
       
@@ -209,60 +215,38 @@ export default function ThreeDiceRoller({ results, isRolling, onFinished }: Prop
       body.sleepTimeLimit = 1
 
       worldRef.current?.addBody(body)
-      diceBoxes.current.push({ mesh, body, targetResult: result })
+      diceBoxes.current.push({ mesh, body, isStress })
     }
 
-    results.base.forEach((r, i) => spawnDie(r, false, i))
-    results.stress.forEach((r, i) => spawnDie(r, true, results.base.length + i))
+    for (let i = 0; i < baseCount; i++) spawnDie(false, i)
+    for (let i = 0; i < stressCount; i++) spawnDie(true, baseCount + i)
 
-  }, [isRolling, results])
+  }, [isRolling, baseCount, stressCount])
 
-  // Aligner la face du dé avec le résultat voulu de manière invisible (Texture Swap)
-  const forceResultViaTextureSwap = (dice: { mesh: THREE.Mesh; targetResult: number }) => {
-    const materials = dice.mesh.material as THREE.MeshStandardMaterial[]
-    const labels = [1, 6, 3, 4, 2, 5] // Ordre standard Three.js BoxGeometry (+X, -X, +Y, -Y, +Z, -Z)
-    
-    // 1. Trouver quelle face pointe actuellement vers le haut
+  // Déterminer quel nombre est sur la face du haut
+  const getDieResult = (mesh: THREE.Mesh): number => {
+    const labels = [1, 6, 3, 4, 2, 5] // (+X, -X, +Y, -Y, +Z, -Z)
     const directions = [
-      new THREE.Vector3(1, 0, 0),  // 0: +X
-      new THREE.Vector3(-1, 0, 0), // 1: -X
-      new THREE.Vector3(0, 1, 0),  // 2: +Y
-      new THREE.Vector3(0, -1, 0), // 3: -Y
-      new THREE.Vector3(0, 0, 1),  // 4: +Z
-      new THREE.Vector3(0, 0, -1)  // 5: -Z
+      new THREE.Vector3(1, 0, 0),
+      new THREE.Vector3(-1, 0, 0),
+      new THREE.Vector3(0, 1, 0),
+      new THREE.Vector3(0, -1, 0),
+      new THREE.Vector3(0, 0, 1),
+      new THREE.Vector3(0, 0, -1)
     ]
     
     let maxUp = -Infinity
     let upIndex = 0
     
     directions.forEach((dir, i) => {
-      // Rotation locale vers globale
-      const worldDir = dir.clone().applyQuaternion(dice.mesh.quaternion)
+      const worldDir = dir.clone().applyQuaternion(mesh.quaternion)
       if (worldDir.y > maxUp) {
         maxUp = worldDir.y
         upIndex = i
       }
     })
     
-    const currentNum = labels[upIndex]
-    if (currentNum === dice.targetResult) return // Coup de chance, déjà correct
-
-    // 2. Échanger les textures pour forcer le résultat
-    const targetIdx = labels.indexOf(dice.targetResult)
-    const targetOppositeIdx = labels.indexOf(7 - dice.targetResult)
-    const currentOppositeIdx = upIndex % 2 === 0 ? upIndex + 1 : upIndex - 1
-
-    // Swap Top face with Target face
-    const tmpMap = materials[upIndex].map
-    materials[upIndex].map = materials[targetIdx].map
-    materials[targetIdx].map = tmpMap
-
-    // Swap Bottom face with Opposite of Target face (pour rester réaliste)
-    const tmpOppositeMap = materials[currentOppositeIdx].map
-    materials[currentOppositeIdx].map = materials[targetOppositeIdx].map
-    materials[targetOppositeIdx].map = tmpOppositeMap
-
-    materials.forEach(m => m.needsUpdate = true)
+    return labels[upIndex]
   }
 
   return (
