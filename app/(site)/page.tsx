@@ -205,6 +205,7 @@ export default function HomePage() {
             )}
 
             {/* Catégories normales */}
+            <div id="categories" className="space-y-12">
             {filteredCategories.map((category) => (
               <section key={category.id}>
                 <div className="flex items-center space-x-3 mb-6">
@@ -239,6 +240,7 @@ export default function HomePage() {
                 </div>
               </section>
             ))}
+            </div>
           </div>
         )}
       </div>

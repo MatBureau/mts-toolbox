@@ -13,7 +13,8 @@ import ToastProvider from '@/components/ui/ToastProvider'
 import BackToTop from '@/components/ui/BackToTop'
 import CommandPalette from '@/components/CommandPalette'
 
-const inter = Inter({ subsets: ['latin'] })
+// Retiré car déjà présent dans RootLayout
+// const inter = Inter({ subsets: ['latin'] })
 const GA_ID = "G-GEBQLBSF17";
 
 export const metadata: Metadata = {
