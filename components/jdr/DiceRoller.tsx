@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { DiceRoll, AttributeName, SkillName, ATTRIBUTE_LABELS, SKILL_LABELS, SKILL_TO_ATTRIBUTE } from '@/types/jdr'
+import RealisticDice from './RealisticDice'
 
 interface Props {
   isOpen: boolean
@@ -414,29 +415,12 @@ export default function DiceRoller({
               />
 
               {/* Zone de dés */}
-              <div className="min-h-[150px] bg-neutral-800/50 rounded-lg p-4 flex flex-wrap items-center justify-center gap-4">
+              <div className="min-h-[250px] bg-neutral-800/50 rounded-lg p-4 flex flex-col items-center justify-center">
                 {isRolling || results ? (
-                  <>
-                    {/* Dés de base */}
-                    {(results?.base || Array(baseDice).fill(0)).map((result, i) => (
-                      <Dice3D
-                        key={`base-${i}`}
-                        result={result || Math.floor(Math.random() * 6) + 1}
-                        isRolling={isRolling}
-                        delay={i * 0.1}
-                      />
-                    ))}
-                    {/* Dés de stress */}
-                    {(results?.stress || Array(stressDice).fill(0)).map((result, i) => (
-                      <Dice3D
-                        key={`stress-${i}`}
-                        result={result || Math.floor(Math.random() * 6) + 1}
-                        isRolling={isRolling}
-                        isStressDie
-                        delay={(baseDice + i) * 0.1}
-                      />
-                    ))}
-                  </>
+                  <RealisticDice 
+                    results={results || { base: Array(baseDice).fill(0), stress: Array(stressDice).fill(0) }} 
+                    isRolling={isRolling} 
+                  />
                 ) : (
                   <div className="text-neutral-500 text-center">
                     <div className="text-4xl mb-2">🎲</div>

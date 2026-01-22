@@ -155,6 +155,7 @@ export interface Token {
   characterId?: string // Lien vers la fiche
   size?: 'small' | 'medium' | 'large'
   visible?: boolean // Pour les tokens cachés (MJ only)
+  status?: string[] // Liste des statuts (ex: ['blessé', 'paniqué'])
 }
 
 // ============ JOUEUR ============
@@ -209,6 +210,7 @@ export interface Scene {
   zoom: number
   offsetX: number
   offsetY: number
+  id?: string // Identifiant interne pour la bibliothèque
 }
 
 // ============ PNJ (Panel gauche) ============
@@ -222,6 +224,17 @@ export interface NPC {
   imageUrl?: string
   notes?: string
   sheet?: CharacterSheet
+}
+
+// ============ DESSINS ============
+
+export interface DrawingPath {
+  id: string
+  userId: string
+  color: string
+  width: number
+  points: { x: number; y: number }[]
+  timestamp: number
 }
 
 // ============ ÉTAT DU JEU COMPLET ============
@@ -259,6 +272,12 @@ export interface GameState {
 
   // Chat/Notes partagées (optionnel)
   sharedNotes?: string
+
+  // Bibliothèque de scènes
+  sceneLibrary: Scene[]
+
+  // Dessins
+  drawings: DrawingPath[]
 }
 
 // ============ ACTIONS API ============
@@ -277,6 +296,11 @@ export type GameAction =
   | { action: 'UPDATE_TITLE'; payload: { title: string } }
   | { action: 'UPDATE_MUSIC'; payload: GameState['currentTrack'] }
   | { action: 'UPDATE_SHARED_NOTES'; payload: { notes: string } }
+  | { action: 'UPDATE_DRAWINGS'; payload: DrawingPath[] }
+  | { action: 'SAVE_SCENE_TO_LIB'; payload: Scene }
+  | { action: 'LOAD_SCENE_FROM_LIB'; payload: { id: string } }
+  | { action: 'UPDATE_TOKEN_STATUS'; payload: { tokenId: string; status: string[] } }
+  | { action: 'PUSH_ROLL'; payload: { rollId: string } }
 
 // ============ HELPERS ============
 

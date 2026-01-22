@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getRedisClient } from '@/lib/redis'
-import { GameState, GameAction, Player, CharacterSheet, NPC, Token, DiceRoll, Scene } from '@/types/jdr'
+import { GameState, GameAction, Player, CharacterSheet, NPC, Token, DiceRoll, Scene, DrawingPath } from '@/types/jdr'
 
 // GET: Récupérer l'état du jeu (Polling)
 export async function GET(
@@ -165,6 +165,71 @@ export async function POST(
       case 'UPDATE_SHARED_NOTES': {
         const notesPayload = payload as { notes: string }
         gameState.sharedNotes = notesPayload.notes
+        break
+      }
+
+      case 'UPDATE_DRAWINGS':
+        gameState.drawings = payload as DrawingPath[]
+        break
+
+      case 'SAVE_SCENE_TO_LIB': {
+        const sceneToSave = payload as Scene
+        if (!gameState.sceneLibrary) gameState.sceneLibrary = []
+        // Générer un ID si manquant
+        const libScene = { ...sceneToSave, id: sceneToSave.id || crypto.randomUUID() }
+        gameState.sceneLibrary.push(libScene)
+        break
+      }
+
+      case 'LOAD_SCENE_FROM_LIB': {
+        const { id } = payload as { id: string }
+        const sceneInLib = gameState.sceneLibrary?.find((s) => s.id === id)
+        if (sceneInLib) {
+          gameState.scene = { ...sceneInLib }
+        }
+        break
+      }
+
+      case 'UPDATE_TOKEN_STATUS': {
+        const { tokenId, status } = payload as { tokenId: string; status: string[] }
+        gameState.tokens = gameState.tokens.map((t) =>
+          t.id === tokenId ? { ...t, status } : t
+        )
+        break
+      }
+
+      case 'PUSH_ROLL': {
+        const { rollId } = payload as { rollId: string }
+        const rollIndex = gameState.diceRolls.findIndex((r) => r.id === rollId)
+        if (rollIndex >= 0 && !gameState.diceRolls[rollIndex].pushed) {
+          const oldRoll = gameState.diceRolls[rollIndex]
+          
+          // Reroll logic
+          const newBaseResults = oldRoll.baseResults.map(r => r === 6 ? 6 : Math.floor(Math.random() * 6) + 1)
+          const newStressResults = oldRoll.stressResults.map(r => r === 6 ? 6 : Math.floor(Math.random() * 6) + 1)
+          
+          // Add one more stress die (YZE rule: pushing increases stress)
+          const player = gameState.players.find(p => p.id === oldRoll.playerId)
+          const character = gameState.characters.find(c => c.id === player?.characterId)
+          
+          if (character) {
+            character.stress = (character.stress || 0) + 1
+            newStressResults.push(Math.floor(Math.random() * 6) + 1)
+          }
+
+          const newSuccesses = [...newBaseResults, ...newStressResults].filter(r => r === 6).length
+          const newTraumas = newStressResults.filter(r => r === 1).length
+
+          gameState.diceRolls[rollIndex] = {
+            ...oldRoll,
+            baseResults: newBaseResults,
+            stressResults: newStressResults,
+            successes: newSuccesses,
+            traumas: newTraumas,
+            pushed: true,
+            timestamp: Date.now()
+          }
+        }
         break
       }
 

@@ -7,23 +7,34 @@ import { Scene } from '@/types/jdr'
 interface Props {
   title: string
   scene: Scene
+  sceneLibrary: Scene[]
   isGM: boolean
   gameId: string
+  drawingMode: boolean
   onUpdateTitle: (title: string) => void
   onUpdateScene: (scene: Partial<Scene>) => void
+  onSaveScene: (scene: Scene) => void
+  onLoadScene: (id: string) => void
+  onToggleDrawing: () => void
 }
 
 export default function GMToolbar({
   title,
   scene,
+  sceneLibrary,
   isGM,
   gameId,
+  drawingMode,
   onUpdateTitle,
   onUpdateScene,
+  onSaveScene,
+  onLoadScene,
+  onToggleDrawing,
 }: Props) {
   const [isEditingTitle, setIsEditingTitle] = useState(false)
   const [editTitle, setEditTitle] = useState(title)
   const [showScenePanel, setShowScenePanel] = useState(false)
+  const [activeTab, setActiveTab] = useState<'settings' | 'library'>('settings')
   const [imageUrl, setImageUrl] = useState(scene.imageUrl)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -134,6 +145,18 @@ export default function GMToolbar({
           >
             📐 Grille
           </button>
+
+          {/* Bouton Dessin */}
+          <button
+            onClick={onToggleDrawing}
+            className={`px-3 py-1.5 rounded text-sm flex items-center gap-2 transition-all ${
+              drawingMode
+                ? 'bg-yellow-600 text-white shadow-lg shadow-yellow-600/20'
+                : 'bg-neutral-800 hover:bg-neutral-700 text-neutral-300'
+            }`}
+          >
+            🎨 Dessin
+          </button>
         </div>
       )}
 
@@ -158,102 +181,135 @@ export default function GMToolbar({
             exit={{ opacity: 0, y: -10 }}
             className="absolute top-14 left-1/2 -translate-x-1/2 bg-neutral-900 border border-neutral-700 rounded-lg shadow-2xl p-4 w-96 z-50"
           >
-            <h3 className="font-bold text-white mb-3">Paramètres de scène</h3>
-
-            {/* Nom de la scène */}
-            <div className="mb-3">
-              <label className="block text-xs uppercase text-neutral-500 mb-1">
-                Nom de la scène
-              </label>
-              <input
-                value={scene.name}
-                onChange={(e) => onUpdateScene({ name: e.target.value })}
-                className="w-full bg-neutral-800 border border-neutral-700 rounded px-3 py-2 text-white focus:border-red-500 outline-none"
-                placeholder="Ex: Forêt abandonnée"
-              />
-            </div>
-
-            {/* Image URL */}
-            <div className="mb-3">
-              <label className="block text-xs uppercase text-neutral-500 mb-1">
-                Image de fond (URL)
-              </label>
-              <div className="flex gap-2">
-                <input
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  onBlur={handleImageUrlChange}
-                  onKeyDown={(e) => e.key === 'Enter' && handleImageUrlChange()}
-                  className="flex-1 bg-neutral-800 border border-neutral-700 rounded px-3 py-2 text-white focus:border-red-500 outline-none text-sm"
-                  placeholder="https://..."
-                />
-              </div>
-            </div>
-
-            {/* Upload local */}
-            <div className="mb-3">
-              <label className="block text-xs uppercase text-neutral-500 mb-1">
-                Ou importer une image
-              </label>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileUpload}
-                className="hidden"
-              />
+            <div className="flex border-b border-neutral-700 mb-4">
               <button
-                onClick={() => fileInputRef.current?.click()}
-                className="w-full py-2 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 border-dashed rounded text-sm text-neutral-400"
+                onClick={() => setActiveTab('settings')}
+                className={`flex-1 py-1 px-2 text-xs font-bold transition-all ${
+                  activeTab === 'settings' ? 'text-white border-b-2 border-red-600' : 'text-neutral-500'
+                }`}
               >
-                📁 Choisir un fichier
+                Configuration
+              </button>
+              <button
+                onClick={() => setActiveTab('library')}
+                className={`flex-1 py-1 px-2 text-xs font-bold transition-all ${
+                  activeTab === 'library' ? 'text-white border-b-2 border-red-600' : 'text-neutral-500'
+                }`}
+              >
+                Bibliothèque ({sceneLibrary.length})
               </button>
             </div>
 
-            {/* Aperçu */}
-            {scene.imageUrl && (
-              <div className="mb-3">
-                <label className="block text-xs uppercase text-neutral-500 mb-1">Aperçu</label>
-                <div className="relative w-full h-32 bg-neutral-800 rounded overflow-hidden">
-                  <img
-                    src={scene.imageUrl}
-                    alt="Aperçu"
-                    className="w-full h-full object-cover"
+            {activeTab === 'settings' ? (
+              <>
+                {/* Nom de la scène */}
+                <div className="mb-3">
+                  <label className="block text-xs uppercase text-neutral-500 mb-1">
+                    Nom de la scène
+                  </label>
+                  <input
+                    value={scene.name}
+                    onChange={(e) => onUpdateScene({ name: e.target.value })}
+                    className="w-full bg-neutral-800 border border-neutral-700 rounded px-3 py-2 text-white focus:border-red-500 outline-none"
+                    placeholder="Ex: Forêt abandonnée"
+                  />
+                </div>
+
+                {/* Image URL */}
+                <div className="mb-3">
+                  <label className="block text-xs uppercase text-neutral-500 mb-1">
+                    Image de fond (URL)
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      value={imageUrl}
+                      onChange={(e) => setImageUrl(e.target.value)}
+                      onBlur={handleImageUrlChange}
+                      onKeyDown={(e) => e.key === 'Enter' && handleImageUrlChange()}
+                      className="flex-1 bg-neutral-800 border border-neutral-700 rounded px-3 py-2 text-white focus:border-red-500 outline-none text-sm"
+                      placeholder="https://..."
+                    />
+                  </div>
+                </div>
+
+                {/* Upload local */}
+                <div className="mb-3">
+                  <label className="block text-xs uppercase text-neutral-500 mb-1">
+                    Ou importer une image
+                  </label>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    className="hidden"
                   />
                   <button
-                    onClick={() => {
-                      onUpdateScene({ imageUrl: '' })
-                      setImageUrl('')
-                    }}
-                    className="absolute top-2 right-2 w-6 h-6 bg-red-700 hover:bg-red-600 rounded-full flex items-center justify-center text-xs"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full py-2 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 border-dashed rounded text-sm text-neutral-400"
                   >
-                    ✕
+                    📁 Choisir un fichier
                   </button>
                 </div>
-              </div>
-            )}
 
-            {/* Options de grille */}
-            {scene.gridEnabled && (
-              <div className="mb-3">
-                <label className="block text-xs uppercase text-neutral-500 mb-1">
-                  Taille de la grille
-                </label>
-                <input
-                  type="range"
-                  min="20"
-                  max="100"
-                  value={scene.gridSize}
-                  onChange={(e) => onUpdateScene({ gridSize: parseInt(e.target.value) })}
-                  className="w-full"
-                />
-                <div className="text-xs text-neutral-500 text-center">{scene.gridSize}px</div>
+                {/* Options de grille */}
+                {scene.gridEnabled && (
+                  <div className="mb-3">
+                    <label className="block text-xs uppercase text-neutral-500 mb-1">
+                      Taille de la grille
+                    </label>
+                    <input
+                      type="range"
+                      min="20"
+                      max="100"
+                      value={scene.gridSize}
+                      onChange={(e) => onUpdateScene({ gridSize: parseInt(e.target.value) })}
+                      className="w-full"
+                    />
+                    <div className="text-xs text-neutral-500 text-center">{scene.gridSize}px</div>
+                  </div>
+                )}
+
+                <button
+                  onClick={() => onSaveScene(scene)}
+                  className="w-full py-2 bg-blue-700 hover:bg-blue-600 rounded font-bold mb-2 text-sm"
+                >
+                  💾 Sauvegarder dans la biblio
+                </button>
+              </>
+            ) : (
+              <div className="max-h-80 overflow-y-auto space-y-2 mb-4">
+                {sceneLibrary.length === 0 ? (
+                  <p className="text-center text-neutral-500 py-4 text-sm italic">
+                    Aucune scène sauvegardée
+                  </p>
+                ) : (
+                  sceneLibrary.map((libScene) => (
+                    <div
+                      key={libScene.id}
+                      className="flex items-center gap-2 p-2 bg-neutral-800 rounded-lg hover:bg-neutral-750 group cursor-pointer"
+                      onClick={() => onLoadScene(libScene.id!)}
+                    >
+                      <div className="w-16 h-10 bg-black rounded overflow-hidden flex-shrink-0">
+                        {libScene.imageUrl && (
+                          <img src={libScene.imageUrl} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" alt="" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs font-bold truncate text-white">{libScene.name || 'Sans titre'}</div>
+                      </div>
+                      <button className="p-1 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                        ✕
+                      </button>
+                    </div>
+                  ))
+                )}
               </div>
             )}
 
             <button
               onClick={() => setShowScenePanel(false)}
-              className="w-full py-2 bg-red-700 hover:bg-red-600 rounded font-bold"
+              className="w-full py-2 bg-neutral-700 hover:bg-neutral-600 rounded font-bold text-sm"
             >
               Fermer
             </button>

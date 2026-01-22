@@ -63,6 +63,8 @@ export async function POST(req: Request) {
       scene: defaultScene,
       tokens: [],
       npcs: [],
+      sceneLibrary: [],
+      drawings: [],
       diceRolls: [],
       currentTrack: undefined,
       sharedNotes: '',

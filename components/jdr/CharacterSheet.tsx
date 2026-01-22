@@ -21,6 +21,7 @@ interface Props {
   onCancel?: () => void
   readOnly?: boolean
   showSecret?: boolean // Visible seulement pour le joueur et le MJ
+  onRoll?: (attribute: AttributeName, skill?: SkillName) => void
 }
 
 // Composant pour les cases à cocher de compétences
@@ -74,6 +75,14 @@ function AttributeBox({
         disabled={readOnly}
         className="w-12 h-12 text-center text-2xl font-black bg-neutral-800 text-white rounded border-2 border-neutral-600 focus:border-red-500 outline-none disabled:opacity-70"
       />
+      {!readOnly && (
+        <button
+          onClick={() => onChange(-1)} // Signal pour le roll (hacky but works since it's a subcomponent)
+          className="mt-1 w-full py-1 bg-red-900/40 hover:bg-red-900/60 text-red-500 rounded text-[10px] font-bold uppercase tracking-tighter"
+        >
+          Lancer 🎲
+        </button>
+      )}
     </div>
   )
 }
@@ -91,8 +100,19 @@ function SkillRow({
   readOnly?: boolean
 }) {
   return (
-    <div className="flex items-center justify-between py-1 border-b border-neutral-700/50">
-      <span className="text-sm text-neutral-300">{SKILL_LABELS[skillKey]}</span>
+    <div className="flex items-center justify-between py-1 border-b border-neutral-700/50 group">
+      <div className="flex items-center gap-2">
+        {!readOnly && (
+          <button
+            onClick={() => onChange(-1)} // Signal pour le roll
+            className="opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-400"
+            title="Lancer les dés"
+          >
+            🎲
+          </button>
+        )}
+        <span className="text-sm text-neutral-300">{SKILL_LABELS[skillKey]}</span>
+      </div>
       <SkillDots value={value} onChange={onChange} readOnly={readOnly} />
     </div>
   )
@@ -135,7 +155,14 @@ function HealthTrack({
   )
 }
 
-export default function CharacterSheet({ initialData, onSave, onCancel, readOnly = false, showSecret = false }: Props) {
+export default function CharacterSheet({ 
+  initialData, 
+  onSave, 
+  onCancel, 
+  readOnly = false, 
+  showSecret = false,
+  onRoll
+}: Props) {
   const [data, setData] = useState<CharacterSheetType>(() => ({
     ...createEmptyCharacter(),
     ...initialData,
@@ -153,6 +180,10 @@ export default function CharacterSheet({ initialData, onSave, onCancel, readOnly
   }
 
   const updateAttribute = (attr: AttributeName, value: number) => {
+    if (value === -1) {
+      onRoll?.(attr)
+      return
+    }
     setData((prev) => ({
       ...prev,
       attributes: { ...prev.attributes, [attr]: value },
@@ -160,6 +191,10 @@ export default function CharacterSheet({ initialData, onSave, onCancel, readOnly
   }
 
   const updateSkill = (skill: SkillName, value: number) => {
+    if (value === -1) {
+      onRoll?.(SKILL_TO_ATTRIBUTE[skill], skill)
+      return
+    }
     setData((prev) => ({
       ...prev,
       skills: { ...prev.skills, [skill]: value },
@@ -230,6 +265,32 @@ export default function CharacterSheet({ initialData, onSave, onCancel, readOnly
     )
   }
 
+  const handleExport = () => {
+    const json = JSON.stringify(data, null, 2)
+    const blob = new Blob([json], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${data.name || 'personnage'}_fiche.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      try {
+        const imported = JSON.parse(event.target?.result as string)
+        setData({ ...imported, id: data.id }) // Keep current session ID
+      } catch (err) {
+        alert('Erreur lors de l\'importation du fichier JSON.')
+      }
+    }
+    reader.readAsText(file)
+  }
+
   // Grouper les skills par attribut
   const skillsByAttribute: Record<AttributeName, SkillName[]> = {
     vigueur: ['combatRapproche', 'endurance', 'force'],
@@ -247,7 +308,27 @@ export default function CharacterSheet({ initialData, onSave, onCancel, readOnly
             <h1 className="text-2xl font-black uppercase tracking-wider text-white">The Walking Dead</h1>
             <p className="text-xs text-red-300 uppercase tracking-widest">Universe RPG - Fiche de personnage</p>
           </div>
-          <div className="text-4xl">{data.avatar || '👤'}</div>
+          <div className="flex items-center gap-4">
+            {!readOnly && (
+              <div className="flex gap-2">
+                <button
+                  onClick={handleExport}
+                  className="p-2 bg-neutral-800/50 hover:bg-neutral-800 rounded text-xs border border-white/10"
+                  title="Exporter en JSON"
+                >
+                  📤
+                </button>
+                <label 
+                  className="p-2 bg-neutral-800/50 hover:bg-neutral-800 rounded text-xs border border-white/10 cursor-pointer"
+                  title="Importer JSON"
+                >
+                  📥
+                  <input type="file" accept=".json" onChange={handleImport} className="hidden" />
+                </label>
+              </div>
+            )}
+            <div className="text-4xl">{data.avatar || '👤'}</div>
+          </div>
         </div>
       </div>
 

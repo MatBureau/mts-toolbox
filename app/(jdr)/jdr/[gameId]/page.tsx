@@ -15,6 +15,7 @@ import {
   NPC,
   DiceRoll,
   Scene,
+  DrawingPath,
 } from '@/types/jdr'
 
 // Components
@@ -25,6 +26,7 @@ import PlayersPanel from '@/components/jdr/PlayersPanel'
 import GMToolbar from '@/components/jdr/GMToolbar'
 import DiceRoller from '@/components/jdr/DiceRoller'
 import MusicPlayer from '@/components/jdr/MusicPlayer'
+import DrawingBoard from '@/components/jdr/DrawingBoard'
 
 // Local storage keys
 const STORAGE_PLAYER_ID = 'jdr-player-id'
@@ -50,6 +52,9 @@ export default function GamePage() {
   const [viewingCharacter, setViewingCharacter] = useState<CharacterSheetType | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [draggedToken, setDraggedToken] = useState<string | null>(null)
+  const [drawingMode, setDrawingMode] = useState(false)
+  const [drawingColor, setDrawingColor] = useState('#ef4444')
+
 
   // Refs
   const boardRef = useRef<HTMLDivElement>(null)
@@ -215,6 +220,19 @@ export default function GamePage() {
     await sendAction('UPDATE_TOKENS', newTokens)
   }
 
+  const handleToggleTokenStatus = async (tokenId: string, status: string) => {
+    if (!gameState) return
+    const token = gameState.tokens.find(t => t.id === tokenId)
+    if (!token) return
+
+    const currentStatus = token.status || []
+    const newStatus = currentStatus.includes(status)
+      ? currentStatus.filter(s => s !== status)
+      : [...currentStatus, status]
+
+    await sendAction('UPDATE_TOKEN_STATUS', { tokenId, status: newStatus })
+  }
+
   const handleAddTokenFromNPC = async (npc: NPC) => {
     if (!gameState || !isGM) return
 
@@ -249,9 +267,25 @@ export default function GamePage() {
     await sendAction('UPDATE_TITLE', { title })
   }
 
+  // Scene Library handlers
+  const handleSaveScene = async (sceneToSave: Scene) => {
+    await sendAction('SAVE_SCENE_TO_LIB', sceneToSave)
+    toast.success('Scène sauvegardée dans la bibliothèque')
+  }
+
+  const handleLoadScene = async (sceneId: string) => {
+    await sendAction('LOAD_SCENE_FROM_LIB', { id: sceneId })
+    toast.success('Scène chargée')
+  }
+
   // Music update handler
   const handleUpdateMusic = async (track: GameState['currentTrack']) => {
     await sendAction('UPDATE_MUSIC', track)
+  }
+
+  // Drawing handlers
+  const handleUpdateDrawings = async (drawings: DrawingPath[]) => {
+    await sendAction('UPDATE_DRAWINGS', drawings)
   }
 
   // NPC handlers
@@ -278,6 +312,11 @@ export default function GamePage() {
     setShowCharacterSheet(false)
     setViewingCharacter(null)
     toast.success('Personnage sauvegardé')
+  }
+
+  const handlePushRoll = async (rollId: string) => {
+    await sendAction('PUSH_ROLL', { rollId })
+    toast.success('Jet forcé !', { icon: '🔥' })
   }
 
   // Get current player
@@ -366,6 +405,13 @@ export default function GamePage() {
                   viewingCharacter.id !== currentPlayer?.characterId
                 }
                 showSecret={isGM || viewingCharacter.id === currentPlayer?.characterId}
+                onRoll={(attr, skill) => {
+                  setShowCharacterSheet(false)
+                  setTimeout(() => {
+                    setShowDiceRoller(true)
+                    // TODO: Pass pre-selected attr/skill to DiceRoller if needed
+                  }, 100)
+                }}
               />
             </div>
           </motion.div>
@@ -376,10 +422,15 @@ export default function GamePage() {
       <GMToolbar
         title={gameState.title}
         scene={gameState.scene}
+        sceneLibrary={gameState.sceneLibrary || []}
         isGM={isGM}
         gameId={gameId}
+        drawingMode={drawingMode}
         onUpdateTitle={handleUpdateTitle}
         onUpdateScene={handleUpdateScene}
+        onSaveScene={handleSaveScene}
+        onLoadScene={handleLoadScene}
+        onToggleDrawing={() => setDrawingMode(!drawingMode)}
       />
 
       {/* Main Content */}
@@ -409,6 +460,16 @@ export default function GamePage() {
                 : 'auto',
             }}
           >
+            {/* Drawing Layer */}
+            <DrawingBoard
+              paths={gameState.drawings || []}
+              onUpdatePaths={handleUpdateDrawings}
+              isGM={isGM}
+              playerId={playerId || ''}
+              isEnabled={drawingMode}
+              color={drawingColor}
+            />
+
             {/* Scene Background */}
             {gameState.scene.imageUrl && (
               <img
@@ -423,7 +484,7 @@ export default function GamePage() {
             {gameState.tokens.map((token) => (
               <motion.div
                 key={token.id}
-                className={`absolute flex flex-col items-center cursor-grab active:cursor-grabbing z-10
+                className={`absolute flex flex-col items-center cursor-grab active:cursor-grabbing z-10 group
                   ${token.visible === false && !isGM ? 'hidden' : ''}
                   ${token.visible === false ? 'opacity-50' : ''}`}
                 style={{ left: 0, top: 0 }}
@@ -447,9 +508,33 @@ export default function GamePage() {
                   )
                   if (char) handleViewCharacter(char)
                 }}
+                onContextMenu={(e) => {
+                  e.preventDefault()
+                  // On pourrait ouvrir un menu plus complexe, mais pour l'instant
+                  // on va cycler les statuts ou proposer un petit overlay
+                }}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
               >
+                {/* Status Toggle Menu (Simple overlay on hover/active) */}
+                {(isGM || token.characterId === currentPlayer?.characterId) && (
+                  <div className="absolute -left-10 top-0 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); handleToggleTokenStatus(token.id, 'blessé') }}
+                      className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] border border-neutral-700 shadow-lg ${token.status?.includes('blessé') ? 'bg-red-600' : 'bg-neutral-800'}`}
+                      title="Blessé"
+                    >
+                      🩸
+                    </button>
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); handleToggleTokenStatus(token.id, 'paniqué') }}
+                      className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] border border-neutral-700 shadow-lg ${token.status?.includes('paniqué') ? 'bg-yellow-600' : 'bg-neutral-800'}`}
+                      title="Paniqué"
+                    >
+                      😱
+                    </button>
+                  </div>
+                )}
                 <div
                   className={`w-14 h-14 rounded-full border-3 shadow-lg flex items-center justify-center text-2xl
                     ${token.type === 'player' ? 'bg-blue-900' : 'bg-red-900'}`}
@@ -459,6 +544,21 @@ export default function GamePage() {
                 >
                   {token.avatar || '👤'}
                 </div>
+                
+                {/* Status Badges */}
+                <div className="absolute -top-1 -right-1 flex flex-wrap-reverse justify-end gap-1 pointer-events-none">
+                  {token.status?.map((s, i) => (
+                    <div 
+                      key={i} 
+                      className={`w-5 h-5 rounded-full border border-neutral-900 flex items-center justify-center text-[10px] shadow-sm
+                        ${s === 'blessé' ? 'bg-red-600' : s === 'paniqué' ? 'bg-yellow-600' : 'bg-blue-600'}`}
+                      title={s}
+                    >
+                      {s === 'blessé' ? '🩸' : s === 'paniqué' ? '😱' : '✨'}
+                    </div>
+                  ))}
+                </div>
+
                 <div className="mt-1 px-2 py-0.5 bg-black/70 rounded text-xs font-bold whitespace-nowrap">
                   {token.name}
                 </div>
@@ -496,6 +596,15 @@ export default function GamePage() {
                       <span className="text-neutral-500 text-xs truncate">
                         - {roll.description}
                       </span>
+                    )}
+                    {roll.playerId === playerId && !roll.pushed && (
+                      <button
+                        onClick={() => handlePushRoll(roll.id)}
+                        className="ml-auto text-[10px] bg-red-900/50 hover:bg-red-900 border border-red-700 px-1.5 py-0.5 rounded text-red-200"
+                        title="Forcer le jet (+1 Stress, relance les échecs)"
+                      >
+                        Pousser
+                      </button>
                     )}
                   </motion.div>
                 ))}
