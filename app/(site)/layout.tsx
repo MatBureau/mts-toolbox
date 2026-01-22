@@ -1,9 +1,17 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import './globals.css'
+import '@/app/globals.css'
+import { ThemeProvider } from '@/components/ThemeProvider'
+import Header from '@/components/Header'
+import Footer from '@/components/Footer'
+import GoogleAdSense from '@/components/ads/GoogleAdSense'
+import GoogleAnalytics from '@/components/GoogleAnalytics'
 import { env } from '@/lib/env'
 import Script from 'next/script'
-import GoogleAnalytics from '@/components/GoogleAnalytics'
+import Particles from '@/components/ui/Particles'
+import ToastProvider from '@/components/ui/ToastProvider'
+import BackToTop from '@/components/ui/BackToTop'
+import CommandPalette from '@/components/CommandPalette'
 
 const inter = Inter({ subsets: ['latin'] })
 const GA_ID = "G-GEBQLBSF17";
@@ -46,43 +54,46 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+export default function SiteLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
   return (
-    <html lang="fr" suppressHydrationWarning>
-      <head>
-        <meta name="google-adsense-account" content="ca-pub-3985065672152959" />
-
-        {/* DNS Prefetch and Preconnect for Performance */}
-        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
-        <link rel="dns-prefetch" href="https://www.google-analytics.com" />
-        <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
-        <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://www.google-analytics.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-
-        {/* Script de Google tag (gtag.js) */}
-        <Script
-          src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
-          strategy="afterInteractive"
+    <ThemeProvider>
+        <ToastProvider />
+        <CommandPalette />
+        {/* Particles background */}
+        <div className="fixed inset-0 -z-10 opacity-60 dark:opacity-50">
+        <Particles
+            particleColors={['#0F2257', '#1B3C98', '#2656D9', '#6789E4', '#A8BBF0']}
+            particleCount={250}
+            particleSpread={8}
+            speed={0.08}
+            particleBaseSize={120}
+            moveParticlesOnHover={true}
+            particleHoverFactor={0.8}
+            alphaParticles={true}
+            disableRotation={false}
+            sizeRandomness={2}
+            pixelRatio={1.5}
         />
-        <Script id="ga-script" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){window.dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', '${GA_ID}');
-          `}
-        </Script>
-      </head>
-      <body className={inter.className}>
-        {env.GA_MEASUREMENT_ID && <GoogleAnalytics gaId={env.GA_MEASUREMENT_ID} />}
-        {children}
-      </body>
-    </html>
+        </div>
+
+        <div className="flex flex-col min-h-screen relative z-0">
+        <Header />
+
+        <div className="hidden md:flex justify-center py-4 border-b border-gray-200 dark:border-gray-800">
+            <GoogleAdSense slot="HORIZONTAL" className="max-w-[728px] w-full" />
+        </div>
+
+        <main className="flex-1 container mx-auto px-4 py-8">
+            {children}
+        </main>
+
+        <Footer />
+        </div>
+        <BackToTop />
+    </ThemeProvider>
   )
 }
