@@ -320,6 +320,18 @@ export default function GamePage() {
   }
 
   const handlePushRoll = async (rollId: string) => {
+    const roll = gameState?.diceRolls.find(r => r.id === rollId)
+    if (!roll || roll.pushed) return
+
+    // Optimistic update to UI button
+    if (gameStateRef.current) {
+      const idx = gameStateRef.current.diceRolls.findIndex(r => r.id === rollId)
+      if (idx !== -1) {
+        gameStateRef.current.diceRolls[idx].pushed = true
+        setGameState({ ...gameStateRef.current })
+      }
+    }
+
     await sendAction('PUSH_ROLL', { rollId })
     toast.success('Jet forcé !', { icon: '🔥' })
   }

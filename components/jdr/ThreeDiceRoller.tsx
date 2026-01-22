@@ -18,6 +18,23 @@ export default function ThreeDiceRoller({ results, isRolling, onFinished }: Prop
   const worldRef = useRef<CANNON.World | null>(null)
   const diceBoxes = useRef<{ mesh: THREE.Mesh; body: CANNON.Body; targetResult: number }[]>([])
   const requestRef = useRef<number>(0)
+  const isRollingRef = useRef(isRolling)
+  const onFinishedRef = useRef(onFinished)
+  const hasFinishedRef = useRef(false)
+  const hasStartedMovingRef = useRef(false)
+
+  // Update refs to avoid stale closures in animate loop
+  useEffect(() => {
+    isRollingRef.current = isRolling
+    if (isRolling) {
+      hasFinishedRef.current = false
+      hasStartedMovingRef.current = false
+    }
+  }, [isRolling])
+
+  useEffect(() => {
+    onFinishedRef.current = onFinished
+  }, [onFinished])
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -99,17 +116,19 @@ export default function ThreeDiceRoller({ results, isRolling, onFinished }: Prop
         dice.mesh.quaternion.copy(dice.body.quaternion as any)
 
         // Check if stopped
-        if (dice.body.velocity.length() > 0.1 || dice.body.angularVelocity.length() > 0.1) {
+        if (dice.body.velocity.length() > 0.2 || dice.body.angularVelocity.length() > 0.2) {
           allIdle = false
+          hasStartedMovingRef.current = true
         }
       })
 
-      if (allIdle && isRolling && diceBoxes.current.length > 0) {
+      if (allIdle && isRollingRef.current && diceBoxes.current.length > 0 && !hasFinishedRef.current && hasStartedMovingRef.current) {
+        hasFinishedRef.current = true
         // Aligner les faces avec les résultats ciblés juste avant de finir
         diceBoxes.current.forEach((dice) => {
             alignDiceFace(dice)
         })
-        onFinished?.()
+        onFinishedRef.current?.()
       }
 
       renderer.render(scene, camera)
