@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { capPhase, sortForCap } from '@/lib/palette-mixte/cap'
+import { CAP_ORDERS, capPhase, sortForCap } from '@/lib/palette-mixte/cap'
 import { checkPlacement, commit, newState } from '@/lib/palette-mixte/state'
 import { items, settings } from './fixtures'
 
@@ -58,5 +58,51 @@ describe('chapeau', () => {
     const s = newState(settings({ overhang: 50 }))
     capPhase(s, items('a', 1, { length: 80, width: 80, height: 100 }), 'volume')
     expect(s.placements[0]).toMatchObject({ x: 50, y: 50, z: 0 })
+  })
+
+  it('couche le colis seulement s’il est couchable', () => {
+    const conf = settings({ maxHeight: 944 }) // 800 mm disponibles
+    const upright = newState(conf)
+    capPhase(upright, items('a', 1, { length: 700, width: 100, height: 900 }), 'volume')
+    expect(upright.placements).toHaveLength(0)
+    const tipped = newState(conf)
+    capPhase(tipped, items('a', 1, { length: 700, width: 100, height: 900, upright: false }), 'volume')
+    expect(tipped.placements).toHaveLength(1)
+    expect(tipped.placements[0].h).toBeLessThanOrEqual(800)
+  })
+
+  it('respecte la charge supportée par un colis du chapeau', () => {
+    const s = newState(settings())
+    capPhase(s, [...items('base', 1, { length: 1200, width: 800, height: 100, maxLoadOnTop: 10 }), ...items('a', 5, { weight: 5 })], 'volume')
+    expect(s.placements.filter(p => p.refId === 'a')).toHaveLength(2)
+  })
+
+  it('refuse une place appuyée à moins de 75 %', () => {
+    const s = newState(settings())
+    const put = (refId: string, x: number, l: number, h: number) => {
+      const [it] = items(refId, 1, { length: l, width: 800, height: h })
+      const c = { x, y: 0, z: 0, l, w: 800, h }
+      commit(s, it, c, checkPlacement(s, it, c)!, null)
+    }
+    put('haut', 0, 400, 200)
+    put('bas', 400, 800, 100)
+    // Seule place : sur le colis haut, 400 mm portés sur 1 000 (40 %)
+    capPhase(s, items('a', 1, { length: 1000, width: 800, height: 50 }), 'volume')
+    expect(s.placements).toHaveLength(2)
+  })
+
+  it('garde consécutifs les colis d’une même référence, pour chaque ordre', () => {
+    const list = [
+      ...items('a', 3, { length: 300, width: 200, height: 100, weight: 4 }),
+      ...items('b', 3, { length: 200, width: 300, height: 100, weight: 4 }),
+      ...items('c', 3, { length: 300, width: 200, height: 100, weight: 4, stop: 2 }),
+      ...items('d', 3, { length: 600, width: 100, height: 100, weight: 4, fragile: true }),
+      ...items('e', 3, { length: 300, width: 200, height: 100, weight: 0 }),
+    ].reverse()
+    for (const order of CAP_ORDERS) {
+      const refs = sortForCap(list, order).map(i => i.refId)
+      const runs = refs.filter((r, k) => k === 0 || refs[k - 1] !== r)
+      expect(new Set(runs).size, order).toBe(runs.length)
+    }
   })
 })

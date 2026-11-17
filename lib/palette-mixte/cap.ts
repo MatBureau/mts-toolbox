@@ -1,36 +1,18 @@
 import type { BoxItem, Placement } from './types'
 import { EPS, SUPPORT_RATIO } from './types'
-import { footprintOverlap, massOf, orientations, type Box3 } from './geometry'
+import { footprintOverlap, orientations, type Box3 } from './geometry'
 import { Grid } from './grid'
+import { byDeliveryThen, KEYS } from './sort'
 import { checkPlacement, commit, type PalletState } from './state'
 
-export type CapOrder = 'volume' | 'base' | 'height' | 'weight'
+export { heaviness } from './sort'
+
+export type CapOrder = keyof typeof KEYS
 export const CAP_ORDERS: CapOrder[] = ['volume', 'base', 'height', 'weight']
-
-const volume = (i: BoxItem) => i.length * i.width * i.height
-
-export function heaviness(i: BoxItem): number {
-  return massOf(i.weight, volume(i))
-}
-
-const KEY: Record<CapOrder, (i: BoxItem) => number> = {
-  volume,
-  base: i => i.length * i.width,
-  height: i => i.height,
-  weight: heaviness,
-}
 
 // Dernier client d'abord (en bas), fragiles en dernier, puis le critère, puis un ordre stable
 export function sortForCap(items: BoxItem[], order: CapOrder): BoxItem[] {
-  const key = KEY[order]
-  return [...items].sort(
-    (a, b) =>
-      b.stop - a.stop ||
-      Number(a.fragile) - Number(b.fragile) ||
-      key(b) - key(a) ||
-      (a.refId < b.refId ? -1 : a.refId > b.refId ? 1 : 0) ||
-      a.index - b.index
-  )
+  return [...items].sort(byDeliveryThen(KEYS[order]))
 }
 
 interface Point {
@@ -133,8 +115,11 @@ const NEVER: Corner = { x: Infinity, y: Infinity, z: Infinity }
 
 /**
  * Pose les colis un à un au point candidat le plus bas, puis le plus au fond, puis le plus
- * à gauche, dans l'ordre de tri demandé. Une référence qui ne passe plus est abandonnée
- * pour cette palette : l'état ne fait que se remplir, ses colis suivants échoueraient aussi.
+ * à gauche, dans l'ordre de tri demandé.
+ * Quand un colis ne trouve aucune place, le reste de sa référence est abandonné pour cette
+ * palette. C'est exact : dans l'ordre de `sortForCap`, les colis d'une référence sont
+ * consécutifs (clés identiques), donc aucune pose n'a lieu entre deux d'entre eux, et le
+ * colis suivant, identique, retrouverait exactement le même état et le même refus.
  */
 export function capPhase(state: PalletState, items: BoxItem[], order: CapOrder): void {
   const grid = new Grid<Placement>(state.zone.length, state.zone.width)

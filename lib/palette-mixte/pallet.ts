@@ -1,19 +1,13 @@
 import type { BoxItem, OrderSettings } from './types'
 import { massOf } from './geometry'
 import { layerPhase } from './layers'
-import { CAP_ORDERS, capPhase, heaviness, sortForCap } from './cap'
+import { CAP_ORDERS, capPhase, sortForCap } from './cap'
+import { byDeliveryThen, heaviness } from './sort'
 import { cloneState, newState, type PalletState } from './state'
 
 // Dernier client d'abord (en bas), non fragiles avant fragiles, lourds avant légers
 export function sortItems(items: BoxItem[]): BoxItem[] {
-  return [...items].sort(
-    (a, b) =>
-      b.stop - a.stop ||
-      Number(a.fragile) - Number(b.fragile) ||
-      heaviness(b) - heaviness(a) ||
-      (a.refId < b.refId ? -1 : a.refId > b.refId ? 1 : 0) ||
-      a.index - b.index
-  )
+  return [...items].sort(byDeliveryThen(heaviness))
 }
 
 function centerOfMassZ(s: PalletState): number {

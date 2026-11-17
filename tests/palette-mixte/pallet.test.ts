@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import { computePalletization } from '@/lib/palette/packing'
 import { buildPallet, sortItems } from '@/lib/palette-mixte/pallet'
-import { checkPlacement, commit, newState } from '@/lib/palette-mixte/state'
+import { CAP_ORDERS, capPhase } from '@/lib/palette-mixte/cap'
+import { layerPhase } from '@/lib/palette-mixte/layers'
+import { checkPlacement, cloneState, commit, newState } from '@/lib/palette-mixte/state'
 import type { BoxItem, OrderSettings } from '@/lib/palette-mixte/types'
 import { EUR, items, settings } from './fixtures'
 
@@ -89,5 +91,24 @@ describe('construction d’une palette', () => {
       list.push(...items(`r${k}`, 60, { length, width, height, weight: 1 + k, upright: k % 2 === 0, maxLoadOnTop: k === 2 ? 40 : null, fragile: k === 5 }))
     )
     expect(replay(list, settings({ overhang, maxHeight: 1200 }))).toBeGreaterThan(0)
+  })
+
+  it('garde l’ordre de chapeau qui pose le plus de colis', () => {
+    const conf = settings({ maxHeight: 944 })
+    const list = [
+      ...items('a', 4, { length: 800, width: 100, height: 600, weight: 8 }),
+      ...items('b', 3, { length: 600, width: 400, height: 300, weight: 20 }),
+    ]
+    const base = newState(conf)
+    const sorted = sortItems(list)
+    layerPhase(base, sorted)
+    const rest = sorted.filter(i => !base.placements.some(p => p.uid === i.uid))
+    const counts = CAP_ORDERS.map(order => {
+      const trial = cloneState(base)
+      capPhase(trial, rest, order)
+      return trial.placements.length
+    })
+    expect(new Set(counts).size).toBeGreaterThan(1) // les ordres ne se valent pas ici
+    expect(buildPallet(list, conf).placements).toHaveLength(Math.max(...counts))
   })
 })
