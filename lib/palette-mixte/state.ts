@@ -31,7 +31,7 @@ export function checkPlacement(state: PalletState, item: BoxItem, c: Box3): Plac
   if (c.x < -EPS || c.y < -EPS || c.x + c.l > zone.length + EPS || c.y + c.w > zone.width + EPS) return null
   if (c.z < -EPS || c.z + c.h > zone.usableHeight + EPS) return null
   // Un poids inconnu compte pour 0 : il n'entre pas dans les contrôles de charge (choix de la spec).
-  if (state.maxLoad > 0 &&state.loadWeight + item.weight > state.maxLoad + 1e-9) return null
+  if (state.maxLoad > 0 && state.loadWeight + item.weight > state.maxLoad + 1e-9) return null
 
   let support = 0
   const below: Placement[] = []
