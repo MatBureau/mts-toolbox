@@ -1,4 +1,5 @@
 import { Tool } from '@/lib/tools-config'
+import { getToolSEOData } from '@/lib/tool-seo-data'
 
 interface FAQProps {
   tool: Tool
@@ -143,7 +144,8 @@ const toolFAQs: Record<string, FAQItem[]> = {
 }
 
 export default function FAQ({ tool }: FAQProps) {
-  const faqs = toolFAQs[tool.slug]
+  // Repli sur les FAQ des données structurées : Google exige qu'elles soient visibles sur la page
+  const faqs = toolFAQs[tool.slug] ?? getToolSEOData(tool.slug)?.faqs
 
   if (!faqs) {
     return null

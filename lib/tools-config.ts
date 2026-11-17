@@ -910,12 +910,28 @@ export const tools: Tool[] = [
   // Catégorie Logistique
   {
     id: 'visualiseur-palette',
-    name: 'Optimisateur de Palettisation 3D',
-    description: 'Calculez et visualisez combien de cartons tiennent sur une palette (Europe, ISO).',
+    name: 'Calcul de palettisation 3D – cartons par palette',
+    description: "Calculez combien de cartons tiennent sur une palette Europe, EUR 2, US ou sur mesure, avec plan de couche optimisé (rangements mixtes), vue 3D, limite de poids et de hauteur, nombre de palettes par camion ou conteneur et plan PDF. Gratuit, sans inscription.",
     category: 'logistique',
     slug: 'visualiseur-palette',
     icon: '🏗️',
-    keywords: ['palette', 'logistique', 'cartons', 'chargement', 'transport', 'colis', 'europalette', 'palettisation'],
+    keywords: [
+      'calcul palettisation',
+      'plan de palettisation',
+      'combien de cartons sur une palette',
+      'nombre de cartons par palette',
+      'calcul palette europe',
+      'optimisation palettisation',
+      'logiciel palettisation gratuit',
+      'palettisation 3d',
+      'plan de chargement palette',
+      'nombre de palettes par camion',
+      'palettes dans un conteneur 20 pieds',
+      'palettes semi-remorque',
+      'europalette 1200x800',
+      'palette 1200x1000',
+      'colis par couche',
+    ],
   },
 ]
 

@@ -1,6 +1,7 @@
 // Types pour le calculateur maçonnerie
 
-export type ElementType = 'dalle' | 'mur' | 'semelle' | 'ouverture'
+export type ElementType = 'dalle' | 'mur' | 'semelle' | 'poteau' | 'ouverture'
+export type FormePoteau = 'rectangulaire' | 'rond'
 export type DosageType = 'maigre' | 'standard' | 'riche' | 'custom'
 
 // Élément de base
@@ -44,7 +45,17 @@ export interface OuvertureElement extends BaseElement {
   quantite: number    // nombre d'ouvertures identiques
 }
 
-export type MaconnerieElement = DalleElement | MurElement | SemelleElement | OuvertureElement
+// Poteau (rectangulaire ou rond)
+export interface PoteauElement extends BaseElement {
+  type: 'poteau'
+  forme: FormePoteau
+  cote1: number       // centimètres (diamètre si rond)
+  cote2: number       // centimètres (ignoré si rond)
+  hauteur: number     // mètres
+  quantite: number    // nombre de poteaux identiques
+}
+
+export type MaconnerieElement = DalleElement | MurElement | SemelleElement | PoteauElement | OuvertureElement
 
 // Configuration dosage
 export interface DosageConfig {
@@ -109,4 +120,7 @@ export interface ElementFormState {
   hauteur: string
   epaisseur: string
   quantite: string
+  forme: FormePoteau
+  cote1: string
+  cote2: string
 }

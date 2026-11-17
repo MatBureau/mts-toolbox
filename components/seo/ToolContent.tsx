@@ -196,11 +196,47 @@ const toolContents: Record<string, {
       "Résoudre des problèmes de mathématiques"
     ]
   },
+  'visualiseur-palette': {
+    description: "Calculateur de palettisation gratuit pour savoir combien de cartons tiennent sur une palette, couche par couche. L'outil cherche le meilleur plan de pose, y compris les plans mixtes où une partie des cartons est tournée à 90°, là où un calcul à la main range tout dans le même sens et laisse souvent une rangée vide. Il tient compte de la hauteur maximale, de la charge maximale, du débord autorisé et du sens du colis, affiche le résultat en 3D, donne le plan de couche numéroté et calcule combien de palettes entrent dans une semi-remorque, un porteur ou un conteneur. Pour les préparateurs de commandes, logisticiens, responsables d'expédition et e-commerçants.",
+    howTo: [
+      "Entrez les dimensions du carton en millimètres et son poids",
+      "Sélectionnez la palette (Europe 1200 × 800, EUR 2 1200 × 1000, demi-palette, US) ou saisissez des dimensions sur mesure",
+      "Réglez la hauteur maximale palette comprise, la charge maximale et le débord par côté",
+      "Autorisez le colis couché si le carton n'a pas de sens imposé",
+      "Lisez le nombre de colis par palette et le gain par rapport à un rangement simple",
+      "Consultez la vue 3D, le plan de couche et le chargement par véhicule",
+      "Exportez le plan en PDF ou partagez le lien"
+    ],
+    features: [
+      "Plan de couche optimisé : homogène, mixte ou en moulinet",
+      "Comparaison avec un rangement tous dans le même sens",
+      "Vue 3D interactive, à la souris ou au doigt",
+      "Affichage couche par couche",
+      "Palettes Europe, EUR 2, EUR 6, quart, US, Asie, Australie ou sur mesure",
+      "Limites de hauteur, de poids et de débord",
+      "Colis couché autorisé ou sens imposé",
+      "Palettes par semi-remorque, porteur, fourgon et conteneurs 20 et 40 pieds",
+      "Gerbage des palettes et contrôle de la charge utile",
+      "Plan de palettisation en PDF",
+      "Lien de partage qui conserve les paramètres",
+      "100 % gratuit, sans inscription, calcul dans le navigateur"
+    ],
+    useCases: [
+      "Préparer une expédition et réserver le bon nombre de palettes",
+      "Choisir un format de carton qui remplit mieux la palette",
+      "Donner un plan de pose clair aux préparateurs",
+      "Estimer le nombre de palettes et de camions d'une commande",
+      "Vérifier qu'une palette respecte la hauteur et le poids d'un transporteur",
+      "Préparer un empotage en conteneur 20 ou 40 pieds",
+      "Comparer palette Europe et palette 1200 × 1000 pour un même produit",
+      "Chiffrer un transport pour un devis client"
+    ]
+  },
   'maconnerie': {
     description: "Calculateur de béton professionnel et gratuit pour estimer avec précision le volume en m³, le dosage ciment/sable/gravier et les quantités de matériaux pour vos travaux de maçonnerie. Que vous couliez une dalle de terrasse, montiez un mur en béton, réalisiez des semelles de fondation ou planifiiez un chantier complet, notre outil calcule automatiquement les besoins en ciment (nombre de sacs de 25 ou 35 kg), sable et gravier (en m³ et tonnes), ainsi que l'eau nécessaire. Idéal pour les bricoleurs, artisans maçons et professionnels du BTP, ce calculateur intègre les normes de dosage standard (350 kg/m³), maigre (250 kg/m³) et riche (400 kg/m³), avec gestion des pertes et export PDF.",
     howTo: [
-      "Sélectionnez le type d'élément : dalle béton, mur, semelle de fondation ou ouverture à déduire",
-      "Entrez les dimensions précises : longueur et largeur en mètres, épaisseur ou hauteur en centimètres",
+      "Sélectionnez le type d'élément : dalle béton, mur, semelle de fondation, poteau ou ouverture à déduire",
+      "Entrez les dimensions : longueurs, largeurs et hauteurs en mètres, épaisseurs et sections de poteau en centimètres",
       "Choisissez le dosage adapté : standard 350 kg/m³ pour dalles et terrasses, maigre 250 kg/m³ pour fondations légères, riche 400 kg/m³ pour éléments porteurs",
       "Ajoutez l'élément et répétez pour chaque partie de votre chantier (murs, dalles, ouvertures)",
       "Configurez le pourcentage de pertes (5-10%) selon les conditions de chantier",
@@ -210,7 +246,7 @@ const toolContents: Record<string, {
     features: [
       "Calcul précis du volume de béton en m³",
       "Dosage automatique ciment, sable, gravier et eau",
-      "4 types d'éléments : dalle, mur, semelle, ouverture",
+      "5 types d'éléments : dalle, mur, semelle, poteau (carré ou rond), ouverture",
       "3 presets de dosage : maigre, standard, riche + personnalisé",
       "Conversion automatique m³ vers tonnes",
       "Nombre de sacs de ciment (25 kg ou 35 kg)",

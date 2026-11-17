@@ -15,6 +15,8 @@ import {
   MurElement,
   SemelleElement,
   OuvertureElement,
+  PoteauElement,
+  FormePoteau,
 } from '@/lib/maconnerie/types'
 import {
   calculateProjectTotals,
@@ -36,6 +38,7 @@ import {
   DEBOUNCE_MS,
   POIDS_SAC_OPTIONS,
   ARRONDI_TOUPIE_OPTIONS,
+  SECTION_POTEAU_PRESETS,
 } from '@/lib/maconnerie/constants'
 import { generateProjectPDF } from '@/lib/maconnerie/pdf-generator'
 
@@ -46,8 +49,11 @@ const initialFormState: ElementFormState = {
   longueur: '',
   largeur: '',
   hauteur: '',
-  epaisseur: '',
+  epaisseur: DEFAULT_EPAISSEURS.dalle.toString(),
   quantite: '1',
+  forme: 'rectangulaire',
+  cote1: '20',
+  cote2: '20',
 }
 
 export default function Maconnerie() {
@@ -106,14 +112,6 @@ export default function Maconnerie() {
     }
   }, [project])
 
-  // Mettre à jour l'épaisseur par défaut quand le type change
-  useEffect(() => {
-    setForm(prev => ({
-      ...prev,
-      epaisseur: DEFAULT_EPAISSEURS[prev.type].toString(),
-    }))
-  }, [form.type])
-
   // Créer un nouveau projet
   const createNewProject = useCallback(() => {
     const newProject: MaconnerieProject = {
@@ -140,12 +138,19 @@ export default function Maconnerie() {
       errors.nom = 'Nom requis'
     }
 
-    if (!validatePositive(form.longueur)) {
+    if (form.type !== 'ouverture' && form.type !== 'poteau' && !validatePositive(form.longueur)) {
       errors.longueur = 'Valeur positive requise'
     }
 
-    if (form.type !== 'mur' && !validatePositive(form.largeur)) {
+    if (form.type !== 'mur' && form.type !== 'poteau' && !validatePositive(form.largeur)) {
       errors.largeur = 'Valeur positive requise'
+    }
+
+    if (form.type === 'poteau') {
+      if (!validatePositive(form.hauteur)) errors.hauteur = 'Valeur positive requise'
+      if (!validatePositive(form.cote1)) errors.cote1 = 'Valeur positive requise'
+      if (form.forme === 'rectangulaire' && !validatePositive(form.cote2)) errors.cote2 = 'Valeur positive requise'
+      if (!validatePositive(form.quantite)) errors.quantite = 'Valeur positive requise'
     }
 
     if (form.type === 'mur' && !validatePositive(form.hauteur)) {
@@ -165,7 +170,7 @@ export default function Maconnerie() {
       }
     }
 
-    if (form.type !== 'semelle' && !validatePositive(form.epaisseur)) {
+    if (form.type !== 'semelle' && form.type !== 'poteau' && !validatePositive(form.epaisseur)) {
       errors.epaisseur = 'Valeur positive requise'
     }
 
@@ -215,6 +220,17 @@ export default function Maconnerie() {
           hauteur: parseDecimal(form.hauteur),
         } as SemelleElement
         break
+      case 'poteau':
+        newElement = {
+          ...baseElement,
+          type: 'poteau',
+          forme: form.forme,
+          cote1: parseDecimal(form.cote1),
+          cote2: form.forme === 'rond' ? parseDecimal(form.cote1) : parseDecimal(form.cote2),
+          hauteur: parseDecimal(form.hauteur),
+          quantite: Math.max(1, Math.floor(parseDecimal(form.quantite))),
+        } as PoteauElement
+        break
       case 'ouverture':
         newElement = {
           ...baseElement,
@@ -257,11 +273,14 @@ export default function Maconnerie() {
     setForm({
       type: element.type,
       nom: element.nom,
-      longueur: element.type !== 'ouverture' ? element.longueur.toString() : '',
+      longueur: 'longueur' in element ? element.longueur.toString() : '',
       largeur: 'largeur' in element ? element.largeur.toString() : '',
       hauteur: 'hauteur' in element ? element.hauteur.toString() : '',
       epaisseur: 'epaisseur' in element ? element.epaisseur.toString() : '',
-      quantite: element.type === 'ouverture' ? element.quantite.toString() : '1',
+      quantite: 'quantite' in element ? element.quantite.toString() : '1',
+      forme: element.type === 'poteau' ? element.forme : 'rectangulaire',
+      cote1: element.type === 'poteau' ? element.cote1.toString() : '20',
+      cote2: element.type === 'poteau' ? element.cote2.toString() : '20',
     })
     setFormErrors({})
   }
@@ -275,7 +294,7 @@ export default function Maconnerie() {
       })
       if (editingElement === id) {
         setEditingElement(null)
-        setForm({ ...initialFormState, type: form.type })
+        setForm({ ...initialFormState, type: form.type, epaisseur: DEFAULT_EPAISSEURS[form.type].toString() })
       }
     }
   }
@@ -485,11 +504,12 @@ export default function Maconnerie() {
 
       {/* Sélecteur de type d'élément (onglets) */}
       <div className="flex flex-wrap gap-2">
-        {(['dalle', 'mur', 'semelle', 'ouverture'] as ElementType[]).map((type) => (
+        {(['dalle', 'mur', 'semelle', 'poteau', 'ouverture'] as ElementType[]).map((type) => (
           <button
             key={type}
             onClick={() => {
-              setForm(prev => ({ ...prev, type }))
+              // Changer d'onglet remet l'épaisseur par défaut du type (pas en éditant un élément)
+              setForm(prev => ({ ...prev, type, epaisseur: DEFAULT_EPAISSEURS[type].toString() }))
               setEditingElement(null)
             }}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
@@ -514,11 +534,54 @@ export default function Maconnerie() {
             label="Nom de l'élément"
             value={form.nom}
             onChange={(e) => setForm(prev => ({ ...prev, nom: e.target.value }))}
-            placeholder={`Ex: ${form.type === 'dalle' ? 'Dalle garage' : form.type === 'mur' ? 'Mur façade' : form.type === 'semelle' ? 'Semelle périphérique' : 'Porte entrée'}`}
+            placeholder={`Ex: ${form.type === 'dalle' ? 'Dalle garage' : form.type === 'mur' ? 'Mur façade' : form.type === 'semelle' ? 'Semelle périphérique' : form.type === 'poteau' ? 'Poteaux préau' : 'Porte entrée'}`}
             error={formErrors.nom}
           />
 
-          {form.type !== 'ouverture' && (
+          {form.type === 'poteau' && (
+            <>
+              <Select
+                label="Forme"
+                value={form.forme}
+                onChange={(e) => setForm(prev => ({ ...prev, forme: e.target.value as FormePoteau }))}
+                options={[
+                  { value: 'rectangulaire', label: 'Carré / rectangulaire' },
+                  { value: 'rond', label: 'Rond' },
+                ]}
+              />
+              <div>
+                <Input
+                  label={form.forme === 'rond' ? 'Diamètre (cm)' : 'Côté 1 (cm)'}
+                  value={form.cote1}
+                  onChange={(e) => setForm(prev => ({ ...prev, cote1: e.target.value }))}
+                  placeholder="Ex: 20"
+                  error={formErrors.cote1}
+                />
+                <div className="flex gap-1 mt-1">
+                  {SECTION_POTEAU_PRESETS.map(c => (
+                    <button
+                      key={c}
+                      onClick={() => setForm(prev => ({ ...prev, cote1: c.toString(), cote2: c.toString() }))}
+                      className="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
+                    >
+                      {form.forme === 'rond' ? `Ø${c}` : `${c}×${c}`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {form.forme === 'rectangulaire' && (
+                <Input
+                  label="Côté 2 (cm)"
+                  value={form.cote2}
+                  onChange={(e) => setForm(prev => ({ ...prev, cote2: e.target.value }))}
+                  placeholder="Ex: 20"
+                  error={formErrors.cote2}
+                />
+              )}
+            </>
+          )}
+
+          {form.type !== 'ouverture' && form.type !== 'poteau' && (
             <Input
               label="Longueur (m)"
               value={form.longueur}
@@ -538,17 +601,17 @@ export default function Maconnerie() {
             />
           )}
 
-          {(form.type === 'mur' || form.type === 'semelle' || form.type === 'ouverture') && (
+          {(form.type === 'mur' || form.type === 'semelle' || form.type === 'poteau' || form.type === 'ouverture') && (
             <Input
               label="Hauteur (m)"
               value={form.hauteur}
               onChange={(e) => setForm(prev => ({ ...prev, hauteur: e.target.value }))}
-              placeholder={form.type === 'semelle' ? 'Ex: 0,30' : 'Ex: 2,50'}
+              placeholder={form.type === 'semelle' ? 'Ex: 0,30' : form.type === 'poteau' ? 'Ex: 2,70' : 'Ex: 2,50'}
               error={formErrors.hauteur}
             />
           )}
 
-          {form.type !== 'semelle' && (
+          {form.type !== 'semelle' && form.type !== 'poteau' && (
             <div>
               <Input
                 label="Épaisseur (cm)"
@@ -571,7 +634,7 @@ export default function Maconnerie() {
             </div>
           )}
 
-          {form.type === 'ouverture' && (
+          {(form.type === 'ouverture' || form.type === 'poteau') && (
             <Input
               label="Quantité"
               type="number"
@@ -622,6 +685,7 @@ export default function Maconnerie() {
                         {element.type === 'dalle' && `${formatNumber(element.longueur)} × ${formatNumber(element.largeur)} m, ép. ${element.epaisseur} cm`}
                         {element.type === 'mur' && `${formatNumber(element.longueur)} × ${formatNumber(element.hauteur)} m, ép. ${element.epaisseur} cm`}
                         {element.type === 'semelle' && `${formatNumber(element.longueur)} × ${formatNumber(element.largeur)} m, h. ${formatNumber(element.hauteur)} m`}
+                        {element.type === 'poteau' && `${element.forme === 'rond' ? `Ø ${element.cote1}` : `${element.cote1} × ${element.cote2}`} cm, h. ${formatNumber(element.hauteur)} m × ${element.quantite}`}
                         {element.type === 'ouverture' && `${formatNumber(element.largeur)} × ${formatNumber(element.hauteur)} m × ${element.quantite}`}
                         {result && (
                           <span className={`ml-2 font-medium ${result.volume < 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>

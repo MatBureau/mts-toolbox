@@ -196,10 +196,64 @@ export const toolSEOData: Record<string, ToolSEOData> = {
       }
     ]
   },
+  'visualiseur-palette': {
+    howToSteps: [
+      "Saisissez les dimensions du carton en millimètres (longueur, largeur, hauteur) et son poids",
+      "Choisissez le type de palette : Europe 1200 × 800, EUR 2 1200 × 1000, demi-palette, US ou dimensions sur mesure",
+      "Indiquez la hauteur maximale palette comprise, la charge maximale et le débord autorisé",
+      "Cochez « le colis peut être couché » si le carton n'a pas de sens imposé",
+      "Lisez le nombre de colis par palette, par couche et le gain par rapport à un rangement simple",
+      "Tournez la vue 3D et parcourez les couches, puis consultez le plan de couche numéroté",
+      "Vérifiez combien de palettes tiennent dans une semi-remorque, un porteur ou un conteneur",
+      "Téléchargez le plan de palettisation en PDF ou copiez le lien pour le partager"
+    ],
+    faqs: [
+      {
+        question: "Combien de cartons tiennent sur une palette Europe ?",
+        answer: "Cela dépend des dimensions du carton et de la hauteur autorisée. Exemple : des cartons de 400 × 300 × 250 mm donnent 8 colis par couche sur une palette Europe 1200 × 800, soit 48 colis sur 6 couches pour une hauteur totale de 1,64 m (limite à 1,80 m). Saisissez vos dimensions pour obtenir le chiffre exact et le plan de pose."
+      },
+      {
+        question: "Pourquoi le calculateur trouve-t-il plus de colis qu'un calcul à la main ?",
+        answer: "Un calcul à la main range tous les cartons dans le même sens. L'outil teste aussi les plans mixtes (une partie des cartons tournée à 90°) et les plans en moulinet. Exemple : des cartons de 500 × 300 mm donnent 4 colis par couche tous dans le même sens sur une palette Europe, mais 6 avec un plan mixte, soit 50 % de plus."
+      },
+      {
+        question: "Quelles sont les dimensions d'une palette Europe ?",
+        answer: "La palette Europe EUR / EPAL 1 mesure 1200 × 800 mm pour 144 mm de haut et pèse environ 25 kg. La palette industrielle EUR 2 mesure 1200 × 1000 mm, la demi-palette EUR 6 800 × 600 mm."
+      },
+      {
+        question: "Quelle hauteur maximale pour une palette ?",
+        answer: "La plupart des transporteurs et entrepôts acceptent 1,80 m palette comprise ; certains montent à 2,20 m ou 2,40 m pour des marchandises légères. Pour gerber deux palettes dans une semi-remorque de 2,70 m de hauteur utile, chaque palette doit rester sous 1,35 m."
+      },
+      {
+        question: "Combien de palettes dans une semi-remorque ?",
+        answer: "Une semi-remorque standard de 13,60 m accueille 33 palettes Europe 1200 × 800 ou 26 palettes 1200 × 1000 au sol. Si les palettes sont gerbables et assez basses, ce nombre double. L'outil calcule aussi le poids total pour le comparer à la charge utile."
+      },
+      {
+        question: "Combien de palettes dans un conteneur 20 ou 40 pieds ?",
+        answer: "Un conteneur 20 pieds accueille 11 palettes Europe ou 10 palettes 1200 × 1000 au sol. Un conteneur 40 pieds en accueille 25 en Europe. La hauteur de porte (environ 2,28 m, 2,58 m en High Cube) limite le gerbage."
+      },
+      {
+        question: "Qu'est-ce que le débord sur une palette ?",
+        answer: "Le débord est la marge dont les cartons peuvent dépasser du bord de la palette. Quelques millimètres à 2 cm par côté permettent parfois de gagner une rangée, mais un débord excessif fragilise les cartons du bas et gêne le filmage et le stockage en rack. Par défaut, l'outil n'autorise aucun débord."
+      },
+      {
+        question: "Faut-il autoriser le colis couché ?",
+        answer: "Seulement si le carton n'a pas de sens imposé (« ce côté vers le haut ») et supporte la charge sur ses autres faces. L'outil teste alors les trois orientations, garde la meilleure et signale quand le colis est posé couché."
+      },
+      {
+        question: "Comment partager ou imprimer le plan de palettisation ?",
+        answer: "Le bouton « Plan de palettisation (PDF) » génère une fiche A4 avec les chiffres clés, la vue 3D, le plan de couche numéroté et le chargement par véhicule. Le bouton « Copier le lien » copie une adresse qui rouvre l'outil avec exactement les mêmes paramètres."
+      },
+      {
+        question: "Mes données sont-elles envoyées sur un serveur ?",
+        answer: "Non. Les calculs, la vue 3D et le PDF sont produits dans votre navigateur. Les dimensions ne sont conservées que dans l'adresse de la page, pour le partage."
+      }
+    ]
+  },
   'maconnerie': {
     howToSteps: [
-      "Sélectionnez le type d'élément à calculer : dalle béton, mur, semelle de fondation ou ouverture à déduire",
-      "Entrez les dimensions précises : longueur et largeur en mètres, épaisseur en centimètres",
+      "Sélectionnez le type d'élément à calculer : dalle béton, mur, semelle de fondation, poteau ou ouverture à déduire",
+      "Entrez les dimensions : longueurs, largeurs et hauteurs en mètres, épaisseurs et sections de poteau en centimètres",
       "Choisissez le dosage adapté à votre ouvrage : standard 350 kg/m³, maigre 250 kg/m³ ou riche 400 kg/m³",
       "Ajoutez l'élément à votre projet et répétez pour chaque partie de votre chantier",
       "Ajustez le pourcentage de pertes (5-10%) et le poids des sacs de ciment (25 ou 35 kg)",
@@ -242,6 +296,10 @@ export const toolSEOData: Record<string, ToolSEOData> = {
       {
         question: "Comment calculer une semelle de fondation ?",
         answer: "La semelle se calcule : Longueur × Largeur × Hauteur. Pour une semelle filante de 10m de long, 50cm de large et 30cm de haut : 10 × 0,5 × 0,3 = 1,5 m³. Prévoyez un dosage standard à riche (350-400 kg/m³) pour les fondations."
+      },
+      {
+        question: "Comment calculer le béton d'un poteau ?",
+        answer: "Pour un poteau carré ou rectangulaire : côté × côté × hauteur, en mètres. Un poteau de 20 × 20 cm et 2,70 m de haut fait 0,20 × 0,20 × 2,70 = 0,108 m³. Pour un poteau rond : π × rayon² × hauteur ; un poteau de 20 cm de diamètre et 2,70 m de haut fait 3,1416 × 0,10² × 2,70 ≈ 0,085 m³. Indiquez la quantité pour calculer plusieurs poteaux identiques."
       },
       {
         question: "Comment déduire les ouvertures (portes, fenêtres) du calcul ?",

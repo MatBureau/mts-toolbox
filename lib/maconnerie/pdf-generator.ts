@@ -1,31 +1,7 @@
 import { MaconnerieProject, ProjectTotals } from './types'
 import { formatNumber, getDosageConfig } from './calculations'
 import { ELEMENT_LABELS, DOSAGE_LABELS, DENSITE_BETON_FRAIS } from './constants'
-
-/**
- * Nettoie le texte pour les fonts standard PDF (WinAnsi encoding)
- * Remplace les caractères Unicode non supportés par leurs équivalents ASCII
- */
-function sanitizeForPDF(text: string): string {
-  return text
-    .replace(/\u202F/g, ' ')  // Narrow no-break space → space
-    .replace(/\u00A0/g, ' ')  // No-break space → space
-    .replace(/\u2009/g, ' ')  // Thin space → space
-    .replace(/\u2013/g, '-')  // En dash → hyphen
-    .replace(/\u2014/g, '-')  // Em dash → hyphen
-    .replace(/\u2019/g, "'")  // Right single quote → apostrophe
-    .replace(/\u2018/g, "'")  // Left single quote → apostrophe
-    .replace(/\u201C/g, '"')  // Left double quote → quote
-    .replace(/\u201D/g, '"')  // Right double quote → quote
-    .replace(/\u2026/g, '...') // Ellipsis → three dots
-    .replace(/\u00B2/g, '2')  // Superscript 2 → 2
-    .replace(/\u00B3/g, '3')  // Superscript 3 → 3
-    .replace(/\u2248/g, '~')  // Approximately equal → tilde
-    .replace(/\u2264/g, '<=') // Less than or equal → <=
-    .replace(/\u2265/g, '>=') // Greater than or equal → >=
-    .replace(/\u00D7/g, 'x')  // Multiplication sign → x
-    .replace(/\u00F7/g, '/')  // Division sign → /
-}
+import { sanitizeForPDF } from '@/lib/pdf/sanitize'
 
 /**
  * Génère un PDF récapitulatif du projet (lazy import pdf-lib)
@@ -113,6 +89,9 @@ export async function generateProjectPDF(
         break
       case 'semelle':
         dimensions = `${formatNumber(element.longueur)} × ${formatNumber(element.largeur)} m, h. ${formatNumber(element.hauteur)} m`
+        break
+      case 'poteau':
+        dimensions = `${element.forme === 'rond' ? `Ø ${element.cote1}` : `${element.cote1} × ${element.cote2}`} cm, h. ${formatNumber(element.hauteur)} m × ${element.quantite}`
         break
       case 'ouverture':
         dimensions = `${formatNumber(element.largeur)} × ${formatNumber(element.hauteur)} m × ${element.quantite}`

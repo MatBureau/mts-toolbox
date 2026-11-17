@@ -1,412 +1,505 @@
 'use client'
 
-import { useState, useRef, useEffect, useMemo } from 'react'
-import { motion } from 'framer-motion'
-import { Box, Layers, RefreshCw, ZoomIn, ZoomOut } from 'lucide-react'
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
+import dynamic from 'next/dynamic'
+import { Box, Layers, Truck, Download, Link2, RotateCcw, Check, Scale, Ruler } from 'lucide-react'
+import {
+  computePalletization,
+  computeVehicleLoad,
+  validateInput,
+  type PalletizationInput,
+} from '@/lib/palette/packing'
+import { PALLET_PRESETS, CUSTOM_PALLET_ID, VEHICLE_PRESETS } from '@/lib/palette/presets'
+import { DEFAULT_FORM, formToQuery, queryToForm, parseNumber, type PaletteFormState } from '@/lib/palette/url-state'
+import LayerPlan from './palette/LayerPlan'
+import type { SceneApi } from './palette/PalletScene3D'
 
-// Pallet types
-const PALLETS = [
-  { id: 'eur', name: 'Palette Europe (EUR)', width: 800, length: 1200, height: 144 },
-  { id: 'iso', name: 'Palette ISO (Standard)', width: 1000, length: 1200, height: 144 },
-  { id: 'us', name: 'Palette US (GMA)', width: 1016, length: 1219, height: 140 },
+const PalletScene3D = dynamic(() => import('./palette/PalletScene3D'), {
+  ssr: false,
+  loading: () => (
+    <div className="absolute inset-0 flex items-center justify-center text-sm text-gray-500">Chargement de la vue 3D…</div>
+  ),
+})
+
+// Formats de cartons courants, pour démarrer en un clic
+const BOX_EXAMPLES = [
+  { label: '600 × 400 × 400', l: '600', w: '400', h: '400', kg: '12' },
+  { label: '400 × 300 × 250', l: '400', w: '300', h: '250', kg: '5' },
+  { label: '500 × 300 × 200', l: '500', w: '300', h: '200', kg: '6' },
+  { label: '300 × 200 × 150', l: '300', w: '200', h: '150', kg: '2' },
+  { label: '6 bouteilles 75 cl', l: '260', w: '175', h: '330', kg: '9' },
 ]
 
+const fmt = (n: number, d = 0) => n.toLocaleString('fr-FR', { minimumFractionDigits: d, maximumFractionDigits: d })
+
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void
+  }
+}
+const trackEvent = (name: string) => {
+  try {
+    window.gtag?.('event', name, { tool: 'visualiseur-palette' })
+  } catch {
+    // mesure facultative
+  }
+}
+
+function NumberField({
+  label, value, onChange, unit, hint, min = 0, step = 1,
+}: {
+  label: string; value: string; onChange: (v: string) => void; unit: string; hint?: string; min?: number; step?: number
+}) {
+  return (
+    <label className="block">
+      <span className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">{label}</span>
+      <span className="flex items-stretch rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus-within:ring-2 focus-within:ring-primary-500 overflow-hidden">
+        <input
+          type="number"
+          inputMode="decimal"
+          min={min}
+          step={step}
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          className="w-full min-w-0 px-3 py-2 bg-transparent text-gray-900 dark:text-gray-100 focus:outline-none tabular-nums"
+        />
+        <span className="px-2 flex items-center text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/60 border-l border-gray-200 dark:border-gray-700">
+          {unit}
+        </span>
+      </span>
+      {hint && <span className="block mt-1 text-[11px] text-gray-500 dark:text-gray-500">{hint}</span>}
+    </label>
+  )
+}
+
+function Toggle({ checked, onChange, label, hint }: { checked: boolean; onChange: (v: boolean) => void; label: string; hint?: string }) {
+  return (
+    <label className="flex items-start gap-3 cursor-pointer select-none">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={e => onChange(e.target.checked)}
+        className="mt-0.5 h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
+      />
+      <span>
+        <span className="block text-sm text-gray-800 dark:text-gray-200">{label}</span>
+        {hint && <span className="block text-[11px] text-gray-500">{hint}</span>}
+      </span>
+    </label>
+  )
+}
+
 export default function VisualiseurPalette() {
-  const [box, setBox] = useState({ length: 400, width: 300, height: 250, weight: 5 })
-  const [pallet, setPallet] = useState(PALLETS[0])
-  const [maxHeight, setMaxHeight] = useState(1800)
-  const [zoom, setZoom] = useState(0.8)
-  const [rotation, setRotation] = useState({ x: 60, z: 45 })
-  
-  // Interactive Rotation Logic
-  const [isDragging, setIsDragging] = useState(false)
-  const lastMousePos = useRef({ x: 0, y: 0 })
+  const [form, setForm] = useState<PaletteFormState>(DEFAULT_FORM)
+  const [hydrated, setHydrated] = useState(false)
+  const [visibleLayers, setVisibleLayers] = useState(99)
+  const [selectedVehicle, setSelectedVehicle] = useState(VEHICLE_PRESETS[0].id)
+  const [copied, setCopied] = useState(false)
+  const [generating, setGenerating] = useState(false)
+  const sceneApi = useRef<SceneApi | null>(null)
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault()
-    setIsDragging(true)
-    lastMousePos.current = { x: e.clientX, y: e.clientY }
-  }
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return
-    const deltaX = e.clientX - lastMousePos.current.x
-    const deltaY = e.clientY - lastMousePos.current.y
-    
-    setRotation(prev => ({
-      x: Math.max(0, Math.min(90, prev.x - deltaY * 0.5)), // Limit X rotation to avoid flipping
-      z: prev.z + deltaX * 0.5
-    }))
-    
-    lastMousePos.current = { x: e.clientX, y: e.clientY }
-  }
-
-  const handleMouseUp = () => setIsDragging(false)
-  
-  // Stats
-  const [stats, setStats] = useState({ totalBoxes: 0, totalWeight: 0, layers: 0, efficiency: 0, stackHeight: 0 })
-  const [layout, setLayout] = useState<{ x: number, y: number, z: number, rotated: boolean }[]>([])
-
-  // Calculation Logic (Simple Layer Stacking)
+  // Lien partagé : les paramètres de l'URL priment sur les valeurs par défaut
   useEffect(() => {
-    // Champ vidé ou valeur nulle : sans ce garde-fou, floor(x / 0) = Infinity et la boucle ne termine jamais
-    if (box.length <= 0 || box.width <= 0 || box.height <= 0 || maxHeight <= pallet.height) {
-      setLayout([])
-      setStats({ totalBoxes: 0, totalWeight: 0, layers: 0, efficiency: 0, stackHeight: pallet.height })
-      return
+    setForm(queryToForm(window.location.search))
+    setHydrated(true)
+  }, [])
+
+  useEffect(() => {
+    if (!hydrated) return
+    const q = formToQuery(form)
+    const url = window.location.pathname + (q ? `?${q}` : '')
+    window.history.replaceState(window.history.state, '', url)
+  }, [form, hydrated])
+
+  const set = useCallback(<K extends keyof PaletteFormState>(key: K, value: PaletteFormState[K]) => {
+    setForm(prev => ({ ...prev, [key]: value }))
+  }, [])
+
+  const selectPallet = (id: string) => {
+    const preset = PALLET_PRESETS.find(p => p.id === id)
+    setForm(prev => ({
+      ...prev,
+      palletId: id,
+      ...(preset && {
+        palletLength: String(preset.length),
+        palletWidth: String(preset.width),
+        palletHeight: String(preset.height),
+        palletTare: String(preset.tare),
+      }),
+    }))
+  }
+
+  const deferredForm = useDeferredValue(form)
+  const input: PalletizationInput = useMemo(() => ({
+    box: {
+      length: parseNumber(deferredForm.boxLength),
+      width: parseNumber(deferredForm.boxWidth),
+      height: parseNumber(deferredForm.boxHeight),
+      weight: parseNumber(deferredForm.boxWeight),
+    },
+    pallet: {
+      length: parseNumber(deferredForm.palletLength),
+      width: parseNumber(deferredForm.palletWidth),
+      height: parseNumber(deferredForm.palletHeight),
+      tare: parseNumber(deferredForm.palletTare),
+    },
+    maxHeight: parseNumber(deferredForm.maxHeight),
+    maxLoad: parseNumber(deferredForm.maxLoad),
+    overhang: parseNumber(deferredForm.overhang),
+    allowTipping: deferredForm.allowTipping,
+  }), [deferredForm])
+
+  const error = validateInput(input)
+  const result = useMemo(() => computePalletization(input), [input])
+  const layersTotal = result.fullLayers + (result.lastLayerCount > 0 ? 1 : 0)
+  const shownLayers = Math.min(visibleLayers, layersTotal)
+
+  const vehicles = useMemo(() => {
+    if (!result.valid) return []
+    const footprint = input.overhang > 0
+      ? { length: result.zone.length, width: result.zone.width }
+      : { length: input.pallet.length, width: input.pallet.width }
+    return VEHICLE_PRESETS.map(v =>
+      computeVehicleLoad(v, footprint, result.totalHeight, result.grossWeight, result.totalBoxes, deferredForm.stackable)
+    )
+  }, [result, input, deferredForm.stackable])
+  const vehicle = vehicles.find(v => v.vehicle.id === selectedVehicle) ?? vehicles[0]
+
+  const palletName = PALLET_PRESETS.find(p => p.id === form.palletId)?.name ?? 'Palette personnalisée'
+  const gain = result.totalBoxes - result.naiveTotal
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href)
+      setCopied(true)
+      trackEvent('palette_share')
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // presse-papiers refusé : l'URL reste dans la barre d'adresse
     }
+  }
 
-    // Try two orientations for the base layer
-    // 1. Normal: Box Length aligned with Pallet Length
-    // 2. Rotated: Box Length aligned with Pallet Width (if possible)
-    
-    // Simplification: We test a homogenous layer pattern (all rotated or all normal)
-    // A robust algorithm uses "Column generation" or "Dancing Links" but that's too heavy for client-side simple tool.
-    
-    const calculateLayer = (pL: number, pW: number, bL: number, bW: number) => {
-      const cols = Math.floor(pL / bL)
-      const rows = Math.floor(pW / bW)
-      return { count: cols * rows, cols, rows, rotated: false }
+  const downloadPdf = async () => {
+    if (!result.valid) return
+    setGenerating(true)
+    try {
+      const { generatePalletPlanPDF } = await import('@/lib/palette/pdf')
+      const blob = await generatePalletPlanPDF({
+        input,
+        palletName,
+        result,
+        vehicles,
+        snapshotPng: sceneApi.current?.snapshot() ?? null,
+        shareUrl: window.location.href,
+      })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `plan-palettisation-${input.box.length}x${input.box.width}x${input.box.height}.pdf`
+      a.click()
+      URL.revokeObjectURL(url)
+      trackEvent('palette_pdf')
+    } catch (e) {
+      console.error('Erreur génération PDF :', e)
+    } finally {
+      setGenerating(false)
     }
+  }
 
-    // Option A: Normal
-    const layoutA = calculateLayer(pallet.length, pallet.width, box.length, box.width)
-    // Option B: Rotated box
-    const layoutB = calculateLayer(pallet.length, pallet.width, box.width, box.length)
-
-    // Option C: Mixed is hard. Let's pick best of A or B.
-    const bestLayer = layoutA.count > layoutB.count ? 
-      { ...layoutA, bL: box.length, bW: box.width } : 
-      { count: layoutB.count, cols: layoutB.cols, rows: layoutB.rows, rotated: true, bL: box.width, bW: box.length }
-
-    // Calculate max layers
-    const maxStackHeight = maxHeight - pallet.height
-    const numLayers = Math.floor(maxStackHeight / box.height)
-    
-    const totalBoxes = bestLayer.count * numLayers
-    
-    // Generate simple coordinates for visualization
-    const boxes = []
-    for (let l = 0; l < numLayers; l++) {
-      for (let r = 0; r < bestLayer.rows; r++) {
-         for (let c = 0; c < bestLayer.cols; c++) {
-           boxes.push({
-             x: c * bestLayer.bL,
-             y: r * bestLayer.bW,
-             z: l * box.height,
-             rotated: bestLayer.rotated
-           })
-         }
-      }
-    }
-
-    setLayout(boxes)
-    setStats({
-      totalBoxes,
-      totalWeight: totalBoxes * box.weight,
-      layers: numLayers,
-      efficiency: (bestLayer.count * bestLayer.bL * bestLayer.bW) / (pallet.length * pallet.width) * 100,
-      stackHeight: numLayers * box.height + pallet.height
-    })
-
-  }, [box, pallet, maxHeight])
-
-  // Sort boxes by depth (Painter's Algorithm) to fix CSS 3D z-fighting
-  const sortedLayout = useMemo(() => {
-    // Convert degrees to radians
-    const radZ = rotation.z * (Math.PI / 180)
-    const radX = rotation.x * (Math.PI / 180)
-    
-    return layout.map((item, index) => {
-      // Dimensions of this specific item in its current orientation
-      // NOTE: We access the global 'box' state for dimensions, but use 'item' (from layout) for position/rotation
-      const w = item.rotated ? box.width : box.length
-      const l = item.rotated ? box.length : box.width
-      const h = box.height
-
-      // Calculate center of box relative to pallet center
-      // Box coordinates (item.x, item.y) are from top-left of pallet (0,0)
-      // Pallet center is (pallet.length/2, pallet.width/2)
-      
-      const cx = item.x - pallet.length / 2 + w / 2
-      const cy = item.y - pallet.width / 2 + l / 2
-      const cz = item.z + h / 2
-      
-      // Apply Rotate Z
-      // Standard rotation matrix around Z axis
-      const nx = cx * Math.cos(radZ) - cy * Math.sin(radZ)
-      const ny = cx * Math.sin(radZ) + cy * Math.cos(radZ)
-      
-      // Apply Rotate X (affects Z depth relative to camera)
-      // To determine draw order, we need the transformed Y or Z value depending on the coordinate system convention.
-      // In CSS 3D:
-      // Z is depth (positive towards viewer).
-      // We want to draw items with smaller Z (further away) first.
-      
-      // Simplification: We calculate a "depth score".
-      // When rotated X, the Y coordinate contributes to depth.
-      const depth = ny * Math.sin(radX) + cz * Math.cos(radX)
-      
-      return { ...item, originalIndex: index, depth }
-    }).sort((a, b) => a.depth - b.depth) // Draw furthest (lowest Z) first
-  }, [layout, rotation, pallet, box])
+  const isCustom = form.palletId === CUSTOM_PALLET_ID
+  const card = 'bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-700 p-4'
 
   return (
-    <div className="flex flex-col xl:flex-row gap-8 min-h-[600px]">
-      
-      {/* Controls */}
-      <div className="w-full xl:w-1/3 space-y-6">
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
-           <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-             <Box className="text-primary-500"/> Dimensions Colis (mm)
-           </h3>
-           <div className="grid grid-cols-2 gap-4">
-             <div>
-               <label className="text-xs text-gray-500 block mb-1">Longueur</label>
-               <input 
-                 type="number" value={box.length} 
-                 onChange={e=>setBox({...box, length: parseInt(e.target.value) || 0})}
-                 className="w-full p-2 rounded border bg-gray-50 dark:bg-gray-700 dark:border-gray-600"
-               />
-             </div>
-             <div>
-               <label className="text-xs text-gray-500 block mb-1">Largeur</label>
-               <input 
-                 type="number" value={box.width} 
-                 onChange={e=>setBox({...box, width: parseInt(e.target.value) || 0})}
-                 className="w-full p-2 rounded border bg-gray-50 dark:bg-gray-700 dark:border-gray-600"
-               />
-             </div>
-             <div>
-               <label className="text-xs text-gray-500 block mb-1">Hauteur</label>
-               <input 
-                 type="number" value={box.height} 
-                 onChange={e=>setBox({...box, height: parseInt(e.target.value) || 0})}
-                 className="w-full p-2 rounded border bg-gray-50 dark:bg-gray-700 dark:border-gray-600"
-               />
-             </div>
-             <div>
-               <label className="text-xs text-gray-500 block mb-1">Poids (kg)</label>
-               <input 
-                 type="number" value={box.weight} 
-                 onChange={e=>setBox({...box, weight: parseFloat(e.target.value) || 0})}
-                 className="w-full p-2 rounded border bg-gray-50 dark:bg-gray-700 dark:border-gray-600"
-               />
-             </div>
-           </div>
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-[290px_minmax(0,1fr)] gap-6">
+        {/* Saisie */}
+        <div className="space-y-4">
+          <section className={card}>
+            <h2 className="text-sm font-semibold mb-3 flex items-center gap-2 text-gray-900 dark:text-gray-100">
+              <Box size={16} className="text-primary-500" /> Colis
+            </h2>
+            <div className="grid grid-cols-2 gap-3">
+              <NumberField label="Longueur" unit="mm" value={form.boxLength} onChange={v => set('boxLength', v)} />
+              <NumberField label="Largeur" unit="mm" value={form.boxWidth} onChange={v => set('boxWidth', v)} />
+              <NumberField label="Hauteur" unit="mm" value={form.boxHeight} onChange={v => set('boxHeight', v)} />
+              <NumberField label="Poids" unit="kg" step={0.1} value={form.boxWeight} onChange={v => set('boxWeight', v)} />
+            </div>
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {BOX_EXAMPLES.map(ex => (
+                <button
+                  key={ex.label}
+                  type="button"
+                  onClick={() => setForm(prev => ({ ...prev, boxLength: ex.l, boxWidth: ex.w, boxHeight: ex.h, boxWeight: ex.kg }))}
+                  className="text-[11px] px-2 py-1 rounded-full border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-primary-500 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                >
+                  {ex.label}
+                </button>
+              ))}
+            </div>
+            <div className="mt-4">
+              <Toggle
+                checked={form.allowTipping}
+                onChange={v => set('allowTipping', v)}
+                label="Le colis peut être couché"
+                hint="Décoché : « ce côté vers le haut » respecté"
+              />
+            </div>
+          </section>
+
+          <section className={card}>
+            <h2 className="text-sm font-semibold mb-3 flex items-center gap-2 text-gray-900 dark:text-gray-100">
+              <Layers size={16} className="text-primary-500" /> Palette
+            </h2>
+            <label className="block mb-3">
+              <span className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Type</span>
+              <select
+                value={form.palletId}
+                onChange={e => selectPallet(e.target.value)}
+                className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+              >
+                {PALLET_PRESETS.map(p => (
+                  <option key={p.id} value={p.id}>{p.name} — {p.length} × {p.width}</option>
+                ))}
+                <option value={CUSTOM_PALLET_ID}>Personnalisée…</option>
+              </select>
+            </label>
+            {isCustom && (
+              <div className="grid grid-cols-2 gap-3 mb-3">
+                <NumberField label="Longueur" unit="mm" value={form.palletLength} onChange={v => set('palletLength', v)} />
+                <NumberField label="Largeur" unit="mm" value={form.palletWidth} onChange={v => set('palletWidth', v)} />
+                <NumberField label="Hauteur" unit="mm" value={form.palletHeight} onChange={v => set('palletHeight', v)} />
+                <NumberField label="Tare" unit="kg" value={form.palletTare} onChange={v => set('palletTare', v)} />
+              </div>
+            )}
+            <div className="grid grid-cols-2 gap-3">
+              <NumberField label="Hauteur max" unit="mm" value={form.maxHeight} onChange={v => set('maxHeight', v)} hint="palette comprise" />
+              <NumberField label="Charge max" unit="kg" value={form.maxLoad} onChange={v => set('maxLoad', v)} hint="0 = sans limite" />
+              <NumberField label="Débord" unit="mm" value={form.overhang} onChange={v => set('overhang', v)} hint="par côté" />
+            </div>
+          </section>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
-           <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-             <Layers className="text-primary-500"/> Palette
-           </h3>
-           <div className="space-y-4">
-             <select 
-               value={pallet.id}
-               onChange={(e) => setPallet(PALLETS.find(p => p.id === e.target.value) || PALLETS[0])}
-               className="w-full p-2 rounded border bg-gray-50 dark:bg-gray-700 dark:border-gray-600"
-             >
-               {PALLETS.map(p => (
-                 <option key={p.id} value={p.id}>{p.name} - {p.length}x{p.width}</option>
-               ))}
-             </select>
-             
-             <div>
-               <label className="text-xs text-gray-500 block mb-1">Hauteur Max (mm)</label>
-               <input 
-                 type="number" value={maxHeight} 
-                 onChange={e=>setMaxHeight(parseInt(e.target.value) || 0)}
-                 className="w-full p-2 rounded border bg-gray-50 dark:bg-gray-700 dark:border-gray-600"
-               />
-             </div>
-
-             {/* Recap Stats */}
-             <div className="pt-4 mt-4 border-t border-gray-100 dark:border-gray-700 grid grid-cols-2 gap-4 text-center">
-                <div className="bg-primary-50 dark:bg-primary-900/20 p-2 rounded">
-                  <div className="text-2xl font-bold text-primary-600">{stats.totalBoxes}</div>
-                  <div className="text-xs text-gray-500">Colis total</div>
-                </div>
-                <div className="bg-primary-50 dark:bg-primary-900/20 p-2 rounded">
-                  <div className="text-2xl font-bold text-primary-600">{stats.layers}</div>
-                  <div className="text-xs text-gray-500">Couches</div>
-                </div>
-                <div className="bg-gray-50 dark:bg-gray-800 p-2 rounded">
-                  <div className="text-lg font-bold text-gray-700 dark:text-gray-300">{stats.totalWeight} kg</div>
-                  <div className="text-xs text-gray-500">Poids Total</div>
-                </div>
-                <div className="bg-gray-50 dark:bg-gray-800 p-2 rounded">
-                  <div className="text-lg font-bold text-gray-700 dark:text-gray-300">{stats.stackHeight/1000} m</div>
-                  <div className="text-xs text-gray-500">Hauteur Totale</div>
-                </div>
-             </div>
-           </div>
-        </div>
-      </div>
-
-      {/* 3D Visualization */}
-      <div 
-        className={`flex-1 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-950 rounded-xl overflow-hidden relative border border-gray-200 dark:border-gray-800 flex items-center justify-center min-h-[500px] perspective-1000 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-      >
-         
-         <div className="absolute top-4 right-4 flex flex-col gap-2 z-10 w-10">
-            <button onClick={(e) => { e.stopPropagation(); setZoom(z => Math.min(z + 0.1, 2)) }} className="p-2 bg-white dark:bg-gray-800 rounded-lg shadow hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition-colors tooltip-left" title="Zoom In"><ZoomIn size={20}/></button>
-            <button onClick={(e) => { e.stopPropagation(); setZoom(z => Math.max(z - 0.1, 0.3)) }} className="p-2 bg-white dark:bg-gray-800 rounded-lg shadow hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition-colors" title="Zoom Out"><ZoomOut size={20}/></button>
-            <button onClick={(e) => { e.stopPropagation(); setRotation({ x: 60, z: 45 }) }} className="p-2 bg-white dark:bg-gray-800 rounded-lg shadow hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition-colors" title="Réinitialiser vue"><RefreshCw size={20}/></button>
-         </div>
-
-         {/* 3D Scene Root */}
-         <div 
-           className="relative transition-transform duration-300 ease-out"
-           style={{
-             transform: `scale(${zoom}) rotateX(${rotation.x}deg) rotateZ(${rotation.z}deg)`,
-             transformStyle: 'preserve-3d'
-           }}
-         >
-            {/* Pallet Base - Centered */}
-            <div 
-              className="absolute"
-              style={{
-                width: pallet.length,
-                height: pallet.width,
-                transform: `translate(-50%, -50%)`,
-                transformStyle: 'preserve-3d'
-              }}
-            >
-               {/* Pallet Top Face (Wood Texture) */}
-               <div 
-                  className="absolute inset-0 border border-[#8b5a2b]" 
-                  style={{ 
-                    transform: 'translateZ(0px)',
-                    backgroundColor: '#deb887',
-                    backgroundImage: `
-                      linear-gradient(90deg, rgba(139,69,19,0.1) 0%, rgba(139,69,19,0.1) 5%, transparent 5%, transparent 100%),
-                      repeating-linear-gradient(45deg, rgba(139,69,19,0.05) 0px, rgba(139,69,19,0.05) 2px, transparent 2px, transparent 8px)
-                    `,
-                    backgroundSize: '100% 100%, 20px 20px'
-                  }} 
-               >
-                 {/* Planks visual separation */}
-                 <div className="w-full h-full flex justify-between px-1">
-                    {[...Array(5)].map((_, i) => (
-                      <div key={i} className="h-full w-[18%] bg-black/5 border-l border-r border-[#8b5a2b]/20"></div>
-                    ))}
-                 </div>
-                 
-                 {/* Pallet Side Faces (Fake thickness) */}
-                 <div className="absolute -bottom-3 left-0 right-0 h-6 bg-[#8b5a2b] origin-top transform rotate-x-90 translate-y-full flex items-center justify-center gap-8 overflow-hidden" style={{ transform: 'rotateX(-90deg)' }}>
-                    {/* Pallet Blocks (Euro pallet style) */}
-                    <div className="w-12 h-full bg-[#5c3a1b]"></div>
-                    <div className="w-12 h-full bg-[#5c3a1b]"></div>
-                    <div className="w-12 h-full bg-[#5c3a1b]"></div>
-                 </div>
-                 <div className="absolute top-0 bottom-0 -right-3 w-6 bg-[#a06b3a] origin-left transform rotate-y-90 translate-x-full" style={{ transform: 'rotateY(90deg)' }}></div>
-               </div>
-
-               {/* Shadow (Ambient Occlusion) */}
-               <div className="absolute inset-0 bg-black/60 blur-2xl transform translate-z-[-40px]" style={{ transform: 'translateZ(-40px)' }}></div>
-            
-               {/* Boxes Container */}
-               {sortedLayout.map((b, i) => {
-                  const w = b.rotated ? box.width : box.length
-                  const l = b.rotated ? box.length : box.width
-                  const h = box.height
-                  
-                  // Kraft Cardboard Texture Data
-                  const cardboardPattern = 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.8\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\' opacity=\'0.15\'/%3E%3C/svg%3E")'
-                  
-                  return (
-                    <div
-                      key={b.originalIndex}
-                      className="absolute group transition-transform"
-                      style={{
-                        width: w,
-                        height: l,
-                        transform: `translate3d(${b.x}px, ${b.y}px, ${b.z + 1}px)`, // +1px to avoid z-fighting with pallet
-                        transformStyle: 'preserve-3d'
-                      }}
-                    >
-                      {/* Top Face (Tape & Cardboard) */}
-                      <div 
-                        className="absolute inset-0 border border-[#b08d55] flex items-center justify-center text-[10px] font-bold text-[#8a6b48]/50 group-hover:bg-blue-400 group-hover:text-white transition-colors backface-hidden"
-                        style={{ 
-                          backgroundColor: '#d4a373',
-                          backgroundImage: cardboardPattern,
-                          transform: `translateZ(${h}px)`,
-                          backfaceVisibility: 'hidden' 
-                        }}
-                      >
-                        {/* Tape Simulation */}
-                        <div className="absolute w-full h-[60%] border-t border-b border-[#c2966b] bg-[#e6c29a]/30"></div>
-                        <div className="absolute h-full w-[10%] bg-[#d9b38c]/50 border-l border-r border-[#c2966b]/50"></div>
-                        
-                        <span className="relative z-10">{stats.totalBoxes < 100 && b.originalIndex+1}</span>
-                      </div>
-
-                      {/* Front Face (South) */}
-                      <div 
-                        className="absolute top-full left-0 w-full origin-top backface-hidden"
-                        style={{ 
-                          height: h, 
-                          backgroundColor: '#bc8a5f',
-                          backgroundImage: cardboardPattern,
-                          transform: 'rotateX(-90deg)',
-                          border: '1px solid rgba(0,0,0,0.1)',
-                          backfaceVisibility: 'hidden'
-                        }}
-                      ></div>
-                      
-                      {/* Right Face (East) */}
-                      <div 
-                        className="absolute top-0 left-full h-full origin-left backface-hidden"
-                        style={{ 
-                          width: h, 
-                          backgroundColor: '#cca57b',
-                          backgroundImage: cardboardPattern,
-                          transform: 'rotateY(90deg)',
-                          border: '1px solid rgba(0,0,0,0.1)',
-                          backfaceVisibility: 'hidden'
-                        }}
-                      ></div>
-
-                      {/* Back Face (North) */}
-                      <div 
-                        className="absolute bottom-full left-0 w-full origin-bottom backface-hidden"
-                        style={{ 
-                          height: h, 
-                          backgroundColor: '#bc8a5f',
-                          backgroundImage: cardboardPattern,
-                          transform: 'rotateX(90deg)',
-                          border: '1px solid rgba(0,0,0,0.1)',
-                          backfaceVisibility: 'hidden'
-                        }}
-                      ></div>
-
-                      {/* Left Face (West) */}
-                      <div 
-                        className="absolute top-0 right-full h-full origin-right backface-hidden"
-                        style={{ 
-                          width: h, 
-                          backgroundColor: '#cca57b',
-                          backgroundImage: cardboardPattern,
-                          transform: 'rotateY(-90deg)',
-                          border: '1px solid rgba(0,0,0,0.1)',
-                          backfaceVisibility: 'hidden'
-                        }}
-                      ></div>
+        {/* Résultats */}
+        <div className="space-y-4 min-w-0">
+          {error ? (
+            <div className="rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 p-4 text-sm text-amber-900 dark:text-amber-200">
+              {error}
+            </div>
+          ) : !result.valid ? (
+            <div className="rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 p-4 text-sm text-amber-900 dark:text-amber-200">
+              Aucun colis ne tient : le colis est plus grand que la palette ou plus haut que la hauteur disponible.
+            </div>
+          ) : (
+            <>
+              <div className="rounded-xl bg-gradient-to-br from-primary-600 to-primary-800 text-white p-5">
+                <div className="flex flex-wrap items-end justify-between gap-3">
+                  <div>
+                    <div className="text-5xl font-bold tabular-nums leading-none" aria-live="polite">{fmt(result.totalBoxes)}</div>
+                    <div className="mt-1 text-primary-100 text-sm">colis par palette</div>
+                  </div>
+                  {gain > 0 && (
+                    <div className="rounded-lg bg-white/15 px-3 py-2 text-sm">
+                      <span className="font-semibold">+{fmt(gain)} colis</span>{' '}
+                      <span className="text-primary-100">
+                        (+{fmt((gain / Math.max(1, result.naiveTotal)) * 100)} %) par rapport à un rangement tous dans le même sens
+                      </span>
                     </div>
-                  )
-               })}
-             </div>
-         </div>
+                  )}
+                </div>
+                <dl className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+                  <div><dt className="text-primary-100 text-xs">Par couche</dt><dd className="font-semibold text-lg tabular-nums">{result.perLayer}</dd></div>
+                  <div>
+                    <dt className="text-primary-100 text-xs">Couches</dt>
+                    <dd className="font-semibold text-lg tabular-nums">
+                      {result.fullLayers}{result.lastLayerCount > 0 && <span className="text-sm font-normal"> + 1 de {result.lastLayerCount}</span>}
+                    </dd>
+                  </div>
+                  <div><dt className="text-primary-100 text-xs">Poids brut</dt><dd className="font-semibold text-lg tabular-nums">{fmt(result.grossWeight)} kg</dd></div>
+                  <div><dt className="text-primary-100 text-xs">Hauteur totale</dt><dd className="font-semibold text-lg tabular-nums">{fmt(result.totalHeight)} mm</dd></div>
+                </dl>
+              </div>
 
-         <div className="absolute bottom-4 left-4 text-xs font-mono text-gray-400 pointer-events-none select-none">
-            CSS 3D Engine • Rot: {Math.round(rotation.x)}°/{Math.round(rotation.z)}°
-         </div>
+              <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-gray-600 dark:text-gray-400">
+                <span className="inline-flex items-center gap-1"><Ruler size={13} /> Surface couverte : {fmt(result.areaUsage, 1)} %</span>
+                <span>Volume occupé : {fmt(result.volumeUsage, 1)} %</span>
+                <span className="inline-flex items-center gap-1">
+                  <Scale size={13} /> Limité par {result.limitedBy === 'poids' ? 'la charge max' : 'la hauteur max'}
+                </span>
+                {result.orientation.tipped && (
+                  <span className="text-amber-600 dark:text-amber-400">Colis couché ({result.orientation.footA} × {result.orientation.footB}, h {result.orientation.height})</span>
+                )}
+              </div>
+
+              <div className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden bg-gradient-to-b from-slate-100 to-slate-300 dark:from-gray-800 dark:to-gray-950">
+                <div className="relative h-[340px] sm:h-[420px]">
+                  <PalletScene3D
+                    result={result}
+                    pallet={input.pallet}
+                    visibleLayers={shownLayers}
+                    onReady={api => { sceneApi.current = api }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => sceneApi.current?.resetView()}
+                    className="absolute top-3 right-3 p-2 rounded-lg bg-white/90 dark:bg-gray-800/90 shadow text-gray-700 dark:text-gray-200 hover:bg-white dark:hover:bg-gray-700"
+                    title="Recadrer la vue"
+                    aria-label="Recadrer la vue"
+                  >
+                    <RotateCcw size={18} />
+                  </button>
+                  <div className="absolute bottom-2 left-3 text-[11px] text-gray-500 pointer-events-none select-none">
+                    Glissez pour tourner · molette ou pincement pour zoomer
+                  </div>
+                </div>
+                {layersTotal > 1 && (
+                  <div className="flex items-center gap-3 px-4 py-3 border-t border-gray-200 dark:border-gray-700 bg-white/70 dark:bg-gray-900/70">
+                    <label htmlFor="layers" className="text-xs text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                      Couches affichées
+                    </label>
+                    <input
+                      id="layers"
+                      type="range"
+                      min={1}
+                      max={layersTotal}
+                      value={shownLayers}
+                      onChange={e => setVisibleLayers(Number(e.target.value))}
+                      className="flex-1 accent-primary-600"
+                    />
+                    <span className="text-xs tabular-nums w-12 text-right text-gray-700 dark:text-gray-300">{shownLayers}/{layersTotal}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={downloadPdf}
+                  disabled={generating}
+                  className="inline-flex items-center gap-2 h-10 px-4 rounded-md bg-primary-600 text-white font-medium hover:bg-primary-700 disabled:opacity-50"
+                >
+                  <Download size={16} /> {generating ? 'Génération…' : 'Plan de palettisation (PDF)'}
+                </button>
+                <button
+                  type="button"
+                  onClick={copyLink}
+                  className="inline-flex items-center gap-2 h-10 px-4 rounded-md border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
+                  {copied ? <Check size={16} className="text-green-500" /> : <Link2 size={16} />}
+                  {copied ? 'Lien copié' : 'Copier le lien'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setForm(DEFAULT_FORM); setVisibleLayers(99) }}
+                  className="inline-flex items-center gap-2 h-10 px-4 rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
+                  Réinitialiser
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
+
+      {result.valid && !error && (
+        <>
+          <section className={card}>
+            <h2 className="text-base font-semibold mb-1 text-gray-900 dark:text-gray-100">Plan de couche</h2>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+              Vue de dessus d’une couche pleine, numérotée dans l’ordre de pose.
+              {result.lastLayerCount > 0 && ` Dernière couche : colis 1 à ${result.lastLayerCount}.`}
+            </p>
+            <div className="max-w-2xl mx-auto">
+              <LayerPlan
+                zone={{ length: result.zone.length, width: result.zone.width }}
+                inner={{ length: input.pallet.length, width: input.pallet.width, offset: result.zone.offset }}
+                rects={result.layer.rects}
+                footprint={{ a: result.orientation.footA, b: result.orientation.footB }}
+                title={`${result.perLayer} colis par couche`}
+              />
+            </div>
+          </section>
+
+          <section className={card}>
+            <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
+              <div>
+                <h2 className="text-base font-semibold flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                  <Truck size={18} className="text-primary-500" /> Combien de palettes dans un camion ?
+                </h2>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Palettes de {fmt(result.totalHeight)} mm et {fmt(result.grossWeight)} kg. Charges utiles indicatives.
+                </p>
+              </div>
+              <Toggle
+                checked={form.stackable}
+                onChange={v => set('stackable', v)}
+                label="Palettes gerbables"
+                hint="Empilables les unes sur les autres"
+              />
+            </div>
+
+            <div className="overflow-x-auto -mx-4 px-4">
+              <table className="w-full text-sm min-w-[520px]">
+                <thead>
+                  <tr className="text-left text-xs text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+                    <th className="py-2 font-medium">Véhicule</th>
+                    <th className="py-2 font-medium text-right">Palettes</th>
+                    <th className="py-2 font-medium text-right">Colis</th>
+                    <th className="py-2 font-medium text-right">Poids</th>
+                    <th className="py-2 pl-3 font-medium">Remarque</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {vehicles.map(v => {
+                    const active = v.vehicle.id === vehicle?.vehicle.id
+                    return (
+                      <tr
+                        key={v.vehicle.id}
+                        onClick={() => setSelectedVehicle(v.vehicle.id)}
+                        className={`border-b border-gray-100 dark:border-gray-800 cursor-pointer ${active ? 'bg-primary-50 dark:bg-primary-900/20' : 'hover:bg-gray-100 dark:hover:bg-gray-800/60'}`}
+                      >
+                        <td className="py-2">
+                          <button type="button" className="text-left text-gray-900 dark:text-gray-100" aria-pressed={active}>
+                            {v.vehicle.name}
+                          </button>
+                        </td>
+                        <td className="py-2 text-right tabular-nums font-semibold text-gray-900 dark:text-gray-100">
+                          {fmt(v.pallets)}
+                          {v.stackLevels > 1 && <span className="font-normal text-xs text-gray-500"> ({v.floorPallets} × {v.stackLevels})</span>}
+                        </td>
+                        <td className="py-2 text-right tabular-nums">{fmt(v.boxes)}</td>
+                        <td className="py-2 text-right tabular-nums">{fmt(v.weight / 1000, 1)} t</td>
+                        <td className="py-2 pl-3 text-xs">
+                          {v.stackLevels === 0 ? (
+                            <span className="text-red-600 dark:text-red-400">Palette trop haute</span>
+                          ) : v.overweight ? (
+                            <span className="text-amber-600 dark:text-amber-400">Dépasse {fmt(v.vehicle.payload / 1000, 1)} t de charge utile</span>
+                          ) : (
+                            <span className="text-gray-400">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {vehicle && vehicle.floorPallets > 0 && (
+              <div className="mt-5">
+                <LayerPlan
+                  zone={{ length: vehicle.vehicle.length, width: vehicle.vehicle.width }}
+                  rects={vehicle.layer.rects}
+                  footprint={{
+                    a: input.overhang > 0 ? result.zone.length : input.pallet.length,
+                    b: input.overhang > 0 ? result.zone.width : input.pallet.width,
+                  }}
+                  title={`${vehicle.vehicle.name} : ${vehicle.floorPallets} palettes au sol (vue de dessus)`}
+                />
+              </div>
+            )}
+          </section>
+        </>
+      )}
     </div>
   )
 }

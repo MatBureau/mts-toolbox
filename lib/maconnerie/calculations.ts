@@ -51,6 +51,14 @@ export function calculateElementVolume(element: MaconnerieElement): number {
       // Longueur × Largeur × Hauteur (toutes en mètres)
       return element.longueur * element.largeur * element.hauteur
 
+    case 'poteau': {
+      // Section (cm → m) × Hauteur × quantité
+      const section = element.forme === 'rond'
+        ? Math.PI * (element.cote1 / 200) ** 2
+        : (element.cote1 / 100) * (element.cote2 / 100)
+      return section * element.hauteur * element.quantite
+    }
+
     case 'ouverture':
       // Volume négatif (à soustraire) × quantité
       return -(element.largeur * element.hauteur * (element.epaisseur / 100) * element.quantite)

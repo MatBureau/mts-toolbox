@@ -35,6 +35,7 @@ export const ELEMENT_LABELS: Record<ElementType, string> = {
   dalle: 'Dalle / Radier',
   mur: 'Mur',
   semelle: 'Semelle filante',
+  poteau: 'Poteau',
   ouverture: 'Ouverture (à déduire)',
 }
 
@@ -43,6 +44,7 @@ export const ELEMENT_ICONS: Record<ElementType, string> = {
   dalle: '⬜',
   mur: '🧱',
   semelle: '➖',
+  poteau: '🏛️',
   ouverture: '🚪',
 }
 
@@ -51,6 +53,7 @@ export const DEFAULT_EPAISSEURS: Record<ElementType, number> = {
   dalle: 10,
   mur: 20,
   semelle: 30,
+  poteau: 20,
   ouverture: 20,
 }
 
@@ -59,8 +62,12 @@ export const EPAISSEUR_PRESETS = {
   dalle: [10, 12, 15, 20],
   mur: [15, 20, 25, 30],
   semelle: [20, 25, 30, 40],
+  poteau: [] as number[],
   ouverture: [15, 20, 25],
 }
+
+// Sections de poteaux courantes (cm)
+export const SECTION_POTEAU_PRESETS = [15, 20, 25, 30]
 
 // Densités par défaut (kg/m³)
 export const DEFAULT_DENSITES = {
