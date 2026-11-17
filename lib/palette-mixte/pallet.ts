@@ -1,7 +1,7 @@
 import type { BoxItem, OrderSettings } from './types'
 import { massOf } from './geometry'
 import { layerPhase } from './layers'
-import { CAP_ORDERS, capPhase, heaviness } from './cap'
+import { CAP_ORDERS, capPhase, heaviness, sortForCap } from './cap'
 import { cloneState, newState, type PalletState } from './state'
 
 // Dernier client d'abord (en bas), non fragiles avant fragiles, lourds avant légers
@@ -41,7 +41,12 @@ export function buildPallet(items: BoxItem[], settings: OrderSettings): PalletSt
   if (rest.length === 0) return base
 
   let best: PalletState | null = null
+  const tried = new Set<string>()
   for (const order of CAP_ORDERS) {
+    // Deux critères qui donnent la même suite de colis donnent le même chapeau
+    const sequence = JSON.stringify(sortForCap(rest, order).map(i => i.uid))
+    if (tried.has(sequence)) continue
+    tried.add(sequence)
     const trial = cloneState(base)
     capPhase(trial, rest, order)
     if (

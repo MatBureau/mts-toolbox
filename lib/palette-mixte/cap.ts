@@ -1,6 +1,7 @@
 import type { BoxItem, Placement } from './types'
-import { EPS } from './types'
-import { massOf, orientations, type Box3 } from './geometry'
+import { EPS, SUPPORT_RATIO } from './types'
+import { footprintOverlap, massOf, orientations, type Box3 } from './geometry'
+import { Grid } from './grid'
 import { checkPlacement, commit, type PalletState } from './state'
 
 export type CapOrder = 'volume' | 'base' | 'height' | 'weight'
@@ -36,12 +37,16 @@ interface Point {
   x: number
   y: number
   z: number
+  born: number // numéro de création, pour savoir si un colis précédent l'a déjà essayé
 }
 
-const cmp = (a: Point, b: Point) => a.z - b.z || a.y - b.y || a.x - b.x
-const keyOf = (p: Point) => `${p.x}|${p.y}|${p.z}`
+type Corner = Omit<Point, 'born'>
 
-function inside(p: Point, b: Box3): boolean {
+const cmp = (a: Corner, b: Corner) => a.z - b.z || a.y - b.y || a.x - b.x
+// Clé arrondie au demi-millimètre : deux points quasi confondus n'en font qu'un
+const keyOf = (p: Corner) => `${Math.round(p.x * 2)}|${Math.round(p.y * 2)}|${Math.round(p.z * 2)}`
+
+function inside(p: Corner, b: Box3): boolean {
   return (
     p.x >= b.x - EPS && p.x < b.x + b.l - EPS &&
     p.y >= b.y - EPS && p.y < b.y + b.w - EPS &&
@@ -49,7 +54,7 @@ function inside(p: Point, b: Box3): boolean {
   )
 }
 
-function pointsOf(p: Box3): Point[] {
+function pointsOf(p: Box3): Corner[] {
   return [
     { x: p.x + p.l, y: p.y, z: p.z },
     { x: p.x, y: p.y + p.w, z: p.z },
@@ -57,20 +62,74 @@ function pointsOf(p: Box3): Point[] {
   ]
 }
 
-// Ajoute des points candidats : hors zone et déjà occupés écartés, sans doublon, triés
-function addPoints(pts: Point[], fresh: Point[], state: PalletState): Point[] {
-  const { zone } = state
-  const keys = new Set(pts.map(keyOf))
-  const out = [...pts]
-  for (const p of fresh) {
-    if (p.x >= zone.length - EPS || p.y >= zone.width - EPS || p.z >= zone.usableHeight - EPS) continue
-    const key = keyOf(p)
-    if (keys.has(key) || state.placements.some(b => inside(p, b))) continue
-    keys.add(key)
-    out.push(p)
-  }
-  return out.sort(cmp)
+// Appui maximal possible à la cote du candidat, d'après les seuls dessus de colis voisins.
+// Majore l'appui retenu par checkPlacement : un refus ici est toujours un refus là-bas.
+function mayBeSupported(c: Box3, near: readonly Placement[]): boolean {
+  let support = 0
+  for (const p of near) if (Math.abs(p.z + p.h - c.z) <= EPS) support += footprintOverlap(p, c)
+  return support >= SUPPORT_RATIO * c.l * c.w - 1e-6
 }
+
+/**
+ * Points candidats (méthode des points extrêmes), triés par cote, puis y, puis x.
+ * Un nouveau point est projeté vers le bas sur le plus haut dessus de colis (ou le plancher)
+ * situé sous lui : aucun point ne flotte dans le vide.
+ */
+class Points {
+  list: Point[] = []
+  private keys = new Set<string>()
+  private count = 0
+
+  constructor(private state: PalletState, private grid: Grid<Placement>) {}
+
+  get clock(): number {
+    return this.count
+  }
+
+  private drop(p: Corner): Corner {
+    if (p.z <= EPS) return p
+    let floor = 0
+    for (const b of this.grid.query({ x: p.x - EPS, y: p.y - EPS, l: 2 * EPS, w: 2 * EPS })) {
+      const top = b.z + b.h
+      if (top > p.z + EPS || top <= floor) continue
+      if (p.x >= b.x - EPS && p.x < b.x + b.l - EPS && p.y >= b.y - EPS && p.y < b.y + b.w - EPS) floor = top
+    }
+    return floor < p.z - EPS ? { x: p.x, y: p.y, z: floor } : p
+  }
+
+  add(fresh: Corner[]): void {
+    const { zone } = this.state
+    for (const raw of fresh) {
+      if (raw.x >= zone.length - EPS || raw.y >= zone.width - EPS || raw.z >= zone.usableHeight - EPS) continue
+      const p = this.drop(raw)
+      const key = keyOf(p)
+      if (this.keys.has(key)) continue
+      if (this.grid.query({ x: p.x - EPS, y: p.y - EPS, l: 2 * EPS, w: 2 * EPS }).some(b => inside(p, b))) continue
+      this.keys.add(key)
+      const point = { ...p, born: ++this.count }
+      // Insertion à sa place dans la liste triée
+      let lo = 0
+      let hi = this.list.length
+      while (lo < hi) {
+        const mid = (lo + hi) >> 1
+        if (cmp(this.list[mid], point) <= 0) lo = mid + 1
+        else hi = mid
+      }
+      this.list.splice(lo, 0, point)
+    }
+  }
+
+  // Retire les points recouverts par un colis qui vient d'être posé
+  cover(b: Box3): void {
+    this.list = this.list.filter(p => {
+      if (!inside(p, b)) return true
+      this.keys.delete(keyOf(p))
+      return false
+    })
+  }
+}
+
+const NEVER: Corner = { x: Infinity, y: Infinity, z: Infinity }
 
 /**
  * Pose les colis un à un au point candidat le plus bas, puis le plus au fond, puis le plus
@@ -78,11 +137,19 @@ function addPoints(pts: Point[], fresh: Point[], state: PalletState): Point[] {
  * pour cette palette : l'état ne fait que se remplir, ses colis suivants échoueraient aussi.
  */
 export function capPhase(state: PalletState, items: BoxItem[], order: CapOrder): void {
+  const grid = new Grid<Placement>(state.zone.length, state.zone.width)
+  for (const p of state.placements) grid.add(p)
+  const pts = new Points(state, grid)
   // Le coin de la zone et celui de la palette (distincts avec un débord)
   const { offset } = state.zone
-  const start = [{ x: 0, y: 0, z: 0 }, { x: offset, y: offset, z: 0 }]
-  let pts = addPoints([], [...start, ...state.placements.flatMap(pointsOf)], state)
+  pts.add([{ x: 0, y: 0, z: 0 }, { x: offset, y: offset, z: 0 }, ...state.placements.flatMap(pointsOf)])
   const failed = new Set<string>()
+
+  // Mémoire des échecs du colis précédent de la même référence (mêmes dimensions, même poids).
+  // Pour chaque orientation, les points créés avant `clock` et situés avant `frontier` ont été
+  // refusés. Un refus reste un refus : l'état ne fait que se remplir, et un colis posé ensuite
+  // ne crée d'appui qu'à la cote de son dessus (voir la mise à jour après chaque pose).
+  let memo: { refId: string; clock: number; frontier: Corner[] } | null = null
 
   for (const item of sortForCap(items, order)) {
     if (failed.has(item.refId)) continue
@@ -91,25 +158,47 @@ export function capPhase(state: PalletState, items: BoxItem[], order: CapOrder):
       continue
     }
 
+    const known = memo && memo.refId === item.refId ? memo : null
+    const clock = pts.clock
+    const frontier: Corner[] = []
     let best: { pt: Point; c: Box3; below: Placement[] } | null = null
-    for (const o of orientations(item)) {
-      for (const pt of pts) {
-        if (best && cmp(pt, best.pt) >= 0) break
-        if (pt.z + o.h > state.zone.usableHeight + EPS) break
+    orientations(item).forEach((o, k) => {
+      const skipBefore = known ? known.frontier[k] : null
+      let stop: Corner = NEVER
+      for (const pt of pts.list) {
+        if (best && cmp(pt, best.pt) >= 0) {
+          stop = pt
+          break
+        }
+        if (pt.z + o.h > state.zone.usableHeight + EPS) {
+          stop = pt
+          break
+        }
+        if (skipBefore && pt.born <= known!.clock && cmp(pt, skipBefore) < 0) continue
         const c = { x: pt.x, y: pt.y, z: pt.z, l: o.l, w: o.w, h: o.h }
-        const below = checkPlacement(state, item, c)
+        const near = grid.query(c)
+        if (c.z > EPS && !mayBeSupported(c, near)) continue
+        const below = checkPlacement(state, item, c, near)
         if (below) {
           best = { pt, c, below }
+          stop = pt
           break
         }
       }
-    }
+      frontier.push(stop)
+    })
 
     if (!best) {
       failed.add(item.refId)
       continue
     }
-    const placed = commit(state, item, best.c, best.below, null)
-    pts = addPoints(pts.filter(p => !inside(p, placed)), pointsOf(placed), state)
+    const { c, below } = best as { pt: Point; c: Box3; below: Placement[] }
+    const placed = commit(state, item, c, below, null)
+    grid.add(placed)
+    pts.cover(placed)
+    pts.add(pointsOf(placed))
+    // Le nouveau dessus peut porter les points de sa cote et au-delà : ils seront réessayés
+    const top: Corner = { x: -Infinity, y: -Infinity, z: placed.z + placed.h - EPS }
+    memo = { refId: item.refId, clock, frontier: frontier.map(f => (cmp(f, top) < 0 ? f : top)) }
   }
 }

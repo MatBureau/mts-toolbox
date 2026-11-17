@@ -26,8 +26,15 @@ export function topOf(s: PalletState): number {
  * ou null si une règle est violée : zone, hauteur, charge de palette, chevauchement,
  * pose sous un colis existant, fragile dessous, charge supportée, appui insuffisant
  * (au plancher : centre de la base hors de la palette ; au-dessus : moins de 75 % sur des dessus).
+ * `near` restreint la recherche aux colis voisins (index spatial) : il doit contenir au moins
+ * tous les colis dont l'emprise recouvre celle du candidat.
  */
-export function checkPlacement(state: PalletState, item: BoxItem, c: Box3): Placement[] | null {
+export function checkPlacement(
+  state: PalletState,
+  item: BoxItem,
+  c: Box3,
+  near: readonly Placement[] = state.placements
+): Placement[] | null {
   const { zone } = state
   if (c.x < -EPS || c.y < -EPS || c.x + c.l > zone.length + EPS || c.y + c.w > zone.width + EPS) return null
   if (c.z < -EPS || c.z + c.h > zone.usableHeight + EPS) return null
@@ -36,7 +43,7 @@ export function checkPlacement(state: PalletState, item: BoxItem, c: Box3): Plac
 
   let support = 0
   const below: Placement[] = []
-  for (const p of state.placements) {
+  for (const p of near) {
     const overlap = footprintOverlap(p, c)
     if (overlap <= 0) continue
     if (boxesIntersect(p, c)) return null

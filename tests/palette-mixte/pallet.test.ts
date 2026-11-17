@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import { computePalletization } from '@/lib/palette/packing'
 import { buildPallet, sortItems } from '@/lib/palette-mixte/pallet'
+import { checkPlacement, commit, newState } from '@/lib/palette-mixte/state'
+import type { BoxItem, OrderSettings } from '@/lib/palette-mixte/types'
 import { EUR, items, settings } from './fixtures'
 
 const simple = (weight: number, maxLoad: number, box = { length: 400, width: 300, height: 250 }, overhang = 0) =>
@@ -60,5 +62,32 @@ describe('construction d’une palette', () => {
       expect(expected).toBeGreaterThan(0)
       expect(s.placements).toHaveLength(expected)
     })
+  })
+
+  // Rejoue chaque pose dans l'ordre sur un état neuf, sans index spatial : toutes doivent être valides
+  const replay = (list: BoxItem[], conf: OrderSettings) => {
+    const built = buildPallet(list, conf)
+    const byUid = new Map(list.map(i => [i.uid, i]))
+    const s = newState(conf)
+    for (const p of built.placements) {
+      const item = byUid.get(p.uid)!
+      const c = { x: p.x, y: p.y, z: p.z, l: p.l, w: p.w, h: p.h }
+      const below = checkPlacement(s, item, c)
+      expect(below, p.uid).not.toBeNull()
+      commit(s, item, c, below!, p.layer)
+    }
+    return built.placements.length
+  }
+
+  it.each([
+    ['sans débord', 0],
+    ['avec débord', 40],
+  ])('commande variée %s : chaque pose respecte les règles', (_, overhang) => {
+    const list: BoxItem[] = []
+    const dims = [[90, 60, 70], [120, 80, 50], [200, 150, 120], [55, 45, 90], [300, 200, 160], [75, 75, 75]]
+    dims.forEach(([length, width, height], k) =>
+      list.push(...items(`r${k}`, 60, { length, width, height, weight: 1 + k, upright: k % 2 === 0, maxLoadOnTop: k === 2 ? 40 : null, fragile: k === 5 }))
+    )
+    expect(replay(list, settings({ overhang, maxHeight: 1200 }))).toBeGreaterThan(0)
   })
 })
