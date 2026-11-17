@@ -256,7 +256,7 @@ export interface PalletizationResult {
 const EMPTY_LAYER: LayerPattern = { count: 0, rects: [] }
 
 // Centre la couche dans la zone : le jeu restant se répartit des deux côtés, comme sur le quai
-function centerLayer(layer: LayerPattern, L: number, W: number): LayerPattern {
+export function centerLayer(layer: LayerPattern, L: number, W: number): LayerPattern {
   if (layer.count === 0) return layer
   const maxX = Math.max(...layer.rects.map(r => r.x + r.l))
   const maxY = Math.max(...layer.rects.map(r => r.y + r.w))
