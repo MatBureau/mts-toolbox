@@ -78,7 +78,10 @@ function addPoints(pts: Point[], fresh: Point[], state: PalletState): Point[] {
  * pour cette palette : l'état ne fait que se remplir, ses colis suivants échoueraient aussi.
  */
 export function capPhase(state: PalletState, items: BoxItem[], order: CapOrder): void {
-  let pts = addPoints([], [{ x: 0, y: 0, z: 0 }, ...state.placements.flatMap(pointsOf)], state)
+  // Le coin de la zone et celui de la palette (distincts avec un débord)
+  const { offset } = state.zone
+  const start = [{ x: 0, y: 0, z: 0 }, { x: offset, y: offset, z: 0 }]
+  let pts = addPoints([], [...start, ...state.placements.flatMap(pointsOf)], state)
   const failed = new Set<string>()
 
   for (const item of sortForCap(items, order)) {

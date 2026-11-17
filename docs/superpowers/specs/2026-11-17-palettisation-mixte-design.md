@@ -55,7 +55,8 @@ Le calcul tourne dans un **Web Worker** ; l'interface reste fluide.
 3. **Chapeau.** Les colis restants sont posés un à un au point candidat (méthode des points extrêmes) le plus bas, puis le plus au fond (y min), puis le plus à gauche (x min). Un placement n'est valide que si :
    - le colis est dans la zone utile (débord compris) et sous la hauteur maximale ;
    - il ne chevauche aucun colis ;
-   - sa base repose sur **au moins 75 %** de sa surface, sur le plancher ou sur des dessus de colis situés exactement à sa cote ;
+   - **au plancher**, le centre de sa base est au-dessus de la palette (bornes comprises) : le débord ne porte rien, mais un colis peut déborder sur deux côtés à la fois ; sans débord, cette règle est toujours vraie pour un colis dans la zone ;
+   - **au-dessus du plancher**, sa base repose sur **au moins 75 %** de sa surface sur des dessus de colis situés exactement à sa cote ;
    - aucune des surfaces qui le portent n'est le dessus d'un fragile ;
    - la charge maximale de la palette et la charge supportée de chaque colis situé en dessous restent respectées.
 
@@ -80,7 +81,7 @@ Chaque étape :
 
 Par palette : poids, hauteur, remplissage volumique, arrêts présents, alerte si le centre de gravité horizontal s'écarte de plus de 10 % de la longueur ou de la largeur par rapport au centre de la palette. Pour la commande : nombre de palettes, colis placés, poids total, colis non palettisables.
 
-**Invariant d'honnêteté** : une commande d'une seule référence, sans options, donne sur la première palette exactement le nombre de colis de l'outil actuel (`computePalletization`).
+**Invariant d'honnêteté** : une commande d'une seule référence, sans options, donne sur la première palette exactement le nombre de colis de l'outil actuel (`computePalletization`). Avec un débord autorisé, l'équivalence tient tant que chaque côté du colis mesure au moins deux fois le débord : la couche centrée de l'outil actuel garde alors le centre de chaque colis de bord au-dessus de la palette (règle du plancher ci-dessus).
 
 ## 3. Interface
 

@@ -3,13 +3,13 @@ import { computePalletization } from '@/lib/palette/packing'
 import { buildPallet, sortItems } from '@/lib/palette-mixte/pallet'
 import { EUR, items, settings } from './fixtures'
 
-const simple = (weight: number, maxLoad: number) =>
+const simple = (weight: number, maxLoad: number, box = { length: 400, width: 300, height: 250 }, overhang = 0) =>
   computePalletization({
-    box: { length: 400, width: 300, height: 250, weight },
+    box: { ...box, weight },
     pallet: EUR,
     maxHeight: 1800,
     maxLoad,
-    overhang: 0,
+    overhang,
     allowTipping: false,
   }).totalBoxes
 
@@ -43,5 +43,22 @@ describe('construction d’une palette', () => {
     const b = s.placements.filter(p => p.refId === 'b')
     expect(b).toHaveLength(3)
     expect(b.every(p => p.z === 800 && p.layer === null)).toBe(true)
+  })
+
+  // Équivalence avec débord : vraie tant que chaque côté du colis vaut au moins deux fois le débord
+  describe.each([20, 50])('égale la palettisation simple avec %i mm de débord', overhang => {
+    it.each([
+      [400, 300, 250],
+      [300, 200, 150],
+      [300, 200, 200],
+      [250, 150, 100],
+      [350, 250, 180],
+    ])('colis %i × %i × %i', (length, width, height) => {
+      const box = { length, width, height }
+      const expected = simple(5, 0, box, overhang)
+      const s = buildPallet(items('a', expected + 50, box), settings({ overhang }))
+      expect(expected).toBeGreaterThan(0)
+      expect(s.placements).toHaveLength(expected)
+    })
   })
 })

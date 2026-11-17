@@ -84,16 +84,20 @@ describe('appui sur la palette avec débord', () => {
   const check = (c: { x: number; y: number; z: number; l: number; w: number; h: number }) =>
     checkPlacement(newState(withOverhang), item(), c)
 
-  it('87,5 % sur le plateau : accepté', () => {
+  it('centre sur le plateau : accepté', () => {
     expect(check({ x: 0, y: 50, z: 0, l: 400, w: 300, h: 200 })).toEqual([])
   })
 
-  it('75 % sur le plateau : accepté', () => {
-    expect(check({ x: 0, y: 50, z: 0, l: 200, w: 300, h: 200 })).toEqual([])
+  it('moins de 75 % sur le plateau mais centre sur le plateau : accepté', () => {
+    expect(check({ x: 0, y: 50, z: 0, l: 180, w: 300, h: 200 })).toEqual([]) // centre x = 90 ≥ 50
   })
 
-  it('environ 72 % sur le plateau : refusé', () => {
-    expect(check({ x: 0, y: 50, z: 0, l: 180, w: 300, h: 200 })).toBeNull()
+  it('centre sur le débord : refusé', () => {
+    expect(check({ x: 0, y: 50, z: 0, l: 90, w: 300, h: 200 })).toBeNull() // centre x = 45 < 50
+  })
+
+  it('colis d’angle débordant sur deux côtés : accepté', () => {
+    expect(check({ x: 0, y: 0, z: 0, l: 300, w: 200, h: 200 })).toEqual([])
   })
 
   it('entièrement sur le débord : refusé', () => {

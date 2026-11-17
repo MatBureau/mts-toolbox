@@ -47,4 +47,16 @@ describe('chapeau', () => {
     ]
     expect(sortForCap(list, 'volume').map(i => i.refId)).toEqual(['client2', 'grand', 'petit', 'fragile'])
   })
+
+  it('avec débord : pose les colis dont le centre est sur la palette', () => {
+    const s = newState(settings({ overhang: 50 }))
+    capPhase(s, items('a', 5, { length: 300, width: 200, height: 200 }), 'volume')
+    expect(s.placements).toHaveLength(5)
+  })
+
+  it('avec débord : un petit colis part du coin de la palette', () => {
+    const s = newState(settings({ overhang: 50 }))
+    capPhase(s, items('a', 1, { length: 80, width: 80, height: 100 }), 'volume')
+    expect(s.placements[0]).toMatchObject({ x: 50, y: 50, z: 0 })
+  })
 })

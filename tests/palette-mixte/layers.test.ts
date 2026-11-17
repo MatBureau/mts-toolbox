@@ -36,4 +36,10 @@ describe('couches pleines', () => {
     expect(b).toHaveLength(8)
     expect(b.every(p => p.z === 800)).toBe(true)
   })
+
+  it('pose des couches avec débord', () => {
+    const s = newState(settings({ overhang: 50 }))
+    layerPhase(s, items('a', 100, { length: 300, width: 200, height: 200 }))
+    expect(s.placements).toHaveLength(95) // 19 par couche, 5 couches
+  })
 })

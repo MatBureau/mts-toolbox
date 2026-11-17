@@ -24,7 +24,8 @@ export function topOf(s: PalletState): number {
 /**
  * Contrôle un placement. Renvoie les colis situés dessous (qui porteront son poids),
  * ou null si une règle est violée : zone, hauteur, charge de palette, chevauchement,
- * pose sous un colis existant, fragile dessous, charge supportée, appui < 75 %.
+ * pose sous un colis existant, fragile dessous, charge supportée, appui insuffisant
+ * (au plancher : centre de la base hors de la palette ; au-dessus : moins de 75 % sur des dessus).
  */
 export function checkPlacement(state: PalletState, item: BoxItem, c: Box3): Placement[] | null {
   const { zone } = state
@@ -48,9 +49,16 @@ export function checkPlacement(state: PalletState, item: BoxItem, c: Box3): Plac
     if (Math.abs(p.z + p.h - c.z) <= EPS) support += overlap
   }
   if (c.z <= EPS) {
-    // Sur le plancher : seule la palette porte, pas le débord
-    support = footprintOverlap({ x: zone.offset, y: zone.offset, l: zone.palletLength, w: zone.palletWidth }, c)
+    // Sur le plancher : le centre de la base doit être au-dessus de la palette (le débord ne porte pas).
+    // Avec débord, un colis d'angle déborde sur deux côtés : la règle des 75 % le refuserait à tort.
+    const cx = c.x + c.l / 2
+    const cy = c.y + c.w / 2
+    const onDeck =
+      cx >= zone.offset - EPS && cx <= zone.offset + zone.palletLength + EPS &&
+      cy >= zone.offset - EPS && cy <= zone.offset + zone.palletWidth + EPS
+    return onDeck ? below : null
   }
+  // Au-dessus : au moins 75 % de la base sur des dessus de colis situés exactement à sa cote
   if (support < SUPPORT_RATIO * c.l * c.w - 1e-6) return null
   return below
 }
