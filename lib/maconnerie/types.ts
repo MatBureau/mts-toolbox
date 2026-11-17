@@ -31,8 +31,8 @@ export interface MurElement extends BaseElement {
 export interface SemelleElement extends BaseElement {
   type: 'semelle'
   longueur: number    // mètres
-  largeur: number     // mètres (ou centimètres selon usage)
-  hauteur: number     // centimètres
+  largeur: number     // mètres
+  hauteur: number     // mètres (v1 : centimètres, voir migrateProject)
 }
 
 // Ouverture (à déduire)
@@ -81,6 +81,7 @@ export interface ProjectTotals {
 
 // Projet complet
 export interface MaconnerieProject {
+  schemaVersion?: number  // absent = v1
   id: string
   nom: string
   elements: MaconnerieElement[]

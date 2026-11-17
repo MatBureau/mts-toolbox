@@ -22,6 +22,7 @@ import {
   formatNumber,
   parseDecimal,
   validatePositive,
+  migrateProject,
 } from '@/lib/maconnerie/calculations'
 import {
   ELEMENT_LABELS,
@@ -73,7 +74,7 @@ export default function Maconnerie() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved) as MaconnerieProject
-        setProject(parsed)
+        setProject(migrateProject(parsed))
       } catch {
         // Créer un nouveau projet si le parsing échoue
         createNewProject()
@@ -164,7 +165,7 @@ export default function Maconnerie() {
       }
     }
 
-    if (!validatePositive(form.epaisseur)) {
+    if (form.type !== 'semelle' && !validatePositive(form.epaisseur)) {
       errors.epaisseur = 'Valeur positive requise'
     }
 
@@ -334,7 +335,7 @@ export default function Maconnerie() {
         const imported = JSON.parse(event.target?.result as string) as MaconnerieProject
         if (imported.elements && imported.nom) {
           setProject({
-            ...imported,
+            ...migrateProject(imported),
             updatedAt: new Date().toISOString(),
           })
           setForm(initialFormState)
@@ -620,7 +621,7 @@ export default function Maconnerie() {
                       <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                         {element.type === 'dalle' && `${formatNumber(element.longueur)} × ${formatNumber(element.largeur)} m, ép. ${element.epaisseur} cm`}
                         {element.type === 'mur' && `${formatNumber(element.longueur)} × ${formatNumber(element.hauteur)} m, ép. ${element.epaisseur} cm`}
-                        {element.type === 'semelle' && `${formatNumber(element.longueur)} × ${formatNumber(element.largeur)} m, h. ${element.hauteur} cm`}
+                        {element.type === 'semelle' && `${formatNumber(element.longueur)} × ${formatNumber(element.largeur)} m, h. ${formatNumber(element.hauteur)} m`}
                         {element.type === 'ouverture' && `${formatNumber(element.largeur)} × ${formatNumber(element.hauteur)} m × ${element.quantite}`}
                         {result && (
                           <span className={`ml-2 font-medium ${result.volume < 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>

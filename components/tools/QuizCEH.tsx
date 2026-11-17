@@ -269,20 +269,6 @@ export default function QuizCEH() {
 
     return (
       <div className="space-y-6">
-        {/* Hidden SEO content */}
-        <div className="sr-only" aria-hidden="true">
-          <h1>Quiz CEH Gratuit - Entraînement Certification Certified Ethical Hacker</h1>
-          <p>
-            Préparez-vous gratuitement à l'examen CEH (Certified Ethical Hacker) avec notre quiz d'entraînement en ligne.
-            Test gratuit CEH, questions d'examen CEH gratuites, préparation CEH sans frais, quiz ethical hacker gratuit.
-            Entraînement CEH v8, v9, v10, v11, v12 100% gratuit. Test blanc CEH, examen blanc CEH gratuit en ligne.
-            Questions CEH officielles gratuites, pratique CEH sans inscription, quiz cybersécurité gratuit.
-            Formation CEH gratuite, entraînement ethical hacking gratuit, test CEH en français gratuit.
-            Préparation examen CEH gratuitement, quiz piratage éthique gratuit, certification CEH préparation gratuite.
-            Questions type examen CEH gratuites, simulation CEH gratuite, exercices CEH sans abonnement.
-          </p>
-        </div>
-
         <Card>
           <CardHeader>
             <CardTitle>Quiz CEH Gratuit - Certified Ethical Hacker</CardTitle>
@@ -290,7 +276,7 @@ export default function QuizCEH() {
           <CardContent className="space-y-6">
             <p className="text-gray-700 dark:text-gray-300">
               Entraînez-vous <strong>gratuitement</strong> pour l'examen de certification CEH avec {allQuestions.length} questions
-              officielles. Sélectionnez la version et le nombre de questions :
+              d'entraînement de type examen. Sélectionnez la version et le nombre de questions :
             </p>
 
             {/* Version Selector */}
@@ -355,7 +341,7 @@ export default function QuizCEH() {
             <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
               <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">📌 À propos de ce quiz gratuit</h3>
               <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
-                <li>• <strong>100% gratuit</strong> - Questions tirées des examens CEH v8 à v12</li>
+                <li>• <strong>100% gratuit</strong> - Questions d'entraînement couvrant les programmes CEH v8 à v12</li>
                 <li>• Questions à choix unique et multiple gérées automatiquement</li>
                 <li>• Les questions sont présentées de manière aléatoire</li>
                 <li>• Des explications et images sont fournies pour certaines questions</li>

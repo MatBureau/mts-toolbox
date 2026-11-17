@@ -790,7 +790,7 @@ export const tools: Tool[] = [
   {
     id: 'quiz-ceh',
     name: 'Quiz CEH Gratuit - Entraînement Certification',
-    description: 'Quiz CEH 100% gratuit avec questions officielles v8-v12. Entraînement CEH gratuit sans inscription. Test blanc CEH, examen blanc gratuit, préparation certification ethical hacker gratuitement',
+    description: "Quiz CEH 100% gratuit : questions d'entraînement type examen, programmes v8 à v12. Entraînement CEH gratuit sans inscription. Test blanc CEH, examen blanc gratuit, préparation certification ethical hacker gratuitement",
     category: 'examen',
     slug: 'quiz-ceh',
     icon: '🎓',

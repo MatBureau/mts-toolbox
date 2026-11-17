@@ -5,7 +5,7 @@ import {
   ProjectTotals,
   DosageConfig,
 } from './types'
-import { DOSAGE_PRESETS } from './constants'
+import { DOSAGE_PRESETS, DENSITE_BETON_FRAIS, SCHEMA_VERSION } from './constants'
 
 /**
  * Parse une valeur décimale (gère les virgules françaises)
@@ -48,8 +48,8 @@ export function calculateElementVolume(element: MaconnerieElement): number {
       return element.longueur * element.hauteur * (element.epaisseur / 100)
 
     case 'semelle':
-      // Longueur × Largeur × Hauteur (cm → m)
-      return element.longueur * element.largeur * (element.hauteur / 100)
+      // Longueur × Largeur × Hauteur (toutes en mètres)
+      return element.longueur * element.largeur * element.hauteur
 
     case 'ouverture':
       // Volume négatif (à soustraire) × quantité
@@ -84,29 +84,35 @@ export function getDosageConfig(project: MaconnerieProject): DosageConfig {
 }
 
 /**
- * Calcule les matériaux pour un volume donné
+ * Calcule les matériaux pour un volume donné.
+ * Le volume est signé : une ouverture (volume négatif) déduit aussi ses matériaux.
+ *
+ * Granulats par bilan de masse : 1 m³ de béton frais pèse ~DENSITE_BETON_FRAIS kg,
+ * dont le ciment et l'eau ; le reste est du sable et du gravier, répartis selon
+ * les parts en volume (converties en masse via les densités apparentes).
  */
 export function calculateMaterials(
   volume: number,
   dosage: DosageConfig,
-  pertes: number
+  pertes: number,
+  densiteSable: number,
+  densiteGravier: number
 ): { cimentKg: number; sableM3: number; gravierM3: number; eauLitres: number } {
-  const absVolume = Math.abs(volume)
-  const facteurPertes = 1 + pertes / 100
+  const volumeMisEnOeuvre = volume * (1 + pertes / 100)
 
-  // Ciment
-  const cimentKg = absVolume * dosage.cimentKgM3 * facteurPertes
+  const cimentKg = volumeMisEnOeuvre * dosage.cimentKgM3
+  const eauLitres = volumeMisEnOeuvre * dosage.eauLitresM3
 
-  // Granulats calculés par "parts"
-  // Environ 70% du volume de béton est composé de granulats
-  const totalParts = dosage.sableParts + dosage.gravierParts
-  const volumeGranulats = absVolume * 0.7 * facteurPertes
+  // Masse de granulats par m³ (eau : 1 L = 1 kg)
+  const granulatsKgM3 = Math.max(0, DENSITE_BETON_FRAIS - dosage.cimentKgM3 - dosage.eauLitresM3)
+  const masseSableRel = dosage.sableParts * densiteSable
+  const masseGravierRel = dosage.gravierParts * densiteGravier
+  const totalRel = masseSableRel + masseGravierRel
+  const sableKgM3 = totalRel > 0 ? granulatsKgM3 * masseSableRel / totalRel : 0
+  const gravierKgM3 = granulatsKgM3 - sableKgM3
 
-  const sableM3 = (dosage.sableParts / totalParts) * volumeGranulats
-  const gravierM3 = (dosage.gravierParts / totalParts) * volumeGranulats
-
-  // Eau
-  const eauLitres = absVolume * dosage.eauLitresM3 * facteurPertes
+  const sableM3 = volumeMisEnOeuvre * sableKgM3 / densiteSable
+  const gravierM3 = volumeMisEnOeuvre * gravierKgM3 / densiteGravier
 
   return { cimentKg, sableM3, gravierM3, eauLitres }
 }
@@ -117,11 +123,11 @@ export function calculateMaterials(
 export function calculateElementResult(
   element: MaconnerieElement,
   dosage: DosageConfig,
-  pertes: number
+  project: Pick<MaconnerieProject, 'pertes' | 'densiteSable' | 'densiteGravier'>
 ): ElementResult {
   const volume = calculateElementVolume(element)
   const surface = calculateElementSurface(element)
-  const materials = calculateMaterials(volume, dosage, pertes)
+  const materials = calculateMaterials(volume, dosage, project.pertes, project.densiteSable, project.densiteGravier)
 
   return {
     id: element.id,
@@ -154,7 +160,7 @@ export function calculateProjectTotals(project: MaconnerieProject): ProjectTotal
 
   // Calculer chaque élément
   for (const element of project.elements) {
-    const result = calculateElementResult(element, dosage, project.pertes)
+    const result = calculateElementResult(element, dosage, project)
     elementsResults[element.id] = result
 
     volumeTotal += result.volume
@@ -163,6 +169,13 @@ export function calculateProjectTotals(project: MaconnerieProject): ProjectTotal
     gravierM3 += result.gravierM3
     eauTotal += result.eauLitres
   }
+
+  // Les ouvertures ne peuvent pas rendre un total négatif
+  volumeTotal = Math.max(0, volumeTotal)
+  cimentTotal = Math.max(0, cimentTotal)
+  sableM3 = Math.max(0, sableM3)
+  gravierM3 = Math.max(0, gravierM3)
+  eauTotal = Math.max(0, eauTotal)
 
   // Arrondi toupie si activé
   const volumeTotalArrondi = project.arrondiToupie > 0
@@ -204,4 +217,20 @@ export function validatePositive(value: string): boolean {
 export function validateNonNegative(value: string): boolean {
   const num = parseDecimal(value)
   return num >= 0
+}
+
+/**
+ * Migre un projet sauvegardé ou importé vers le schéma courant.
+ * v1 → v2 : la hauteur de semelle était calculée en cm alors que le formulaire
+ * la demandait en mètres. Une valeur > 3 est forcément saisie en cm.
+ */
+export function migrateProject(project: MaconnerieProject): MaconnerieProject {
+  if ((project.schemaVersion ?? 1) >= SCHEMA_VERSION) return project
+  return {
+    ...project,
+    schemaVersion: SCHEMA_VERSION,
+    elements: project.elements.map(e =>
+      e.type === 'semelle' && e.hauteur > 3 ? { ...e, hauteur: e.hauteur / 100 } : e
+    ),
+  }
 }

@@ -1,6 +1,6 @@
 import { MaconnerieProject, ProjectTotals } from './types'
 import { formatNumber, getDosageConfig } from './calculations'
-import { ELEMENT_LABELS, DOSAGE_LABELS } from './constants'
+import { ELEMENT_LABELS, DOSAGE_LABELS, DENSITE_BETON_FRAIS } from './constants'
 
 /**
  * Nettoie le texte pour les fonts standard PDF (WinAnsi encoding)
@@ -112,7 +112,7 @@ export async function generateProjectPDF(
         dimensions = `${formatNumber(element.longueur)} × ${formatNumber(element.hauteur)} m, ép. ${element.epaisseur} cm`
         break
       case 'semelle':
-        dimensions = `${formatNumber(element.longueur)} × ${formatNumber(element.largeur)} m, h. ${element.hauteur} cm`
+        dimensions = `${formatNumber(element.longueur)} × ${formatNumber(element.largeur)} m, h. ${formatNumber(element.hauteur)} m`
         break
       case 'ouverture':
         dimensions = `${formatNumber(element.largeur)} × ${formatNumber(element.hauteur)} m × ${element.quantite}`
@@ -194,6 +194,7 @@ export async function generateProjectPDF(
     `Ratio granulats : ciment 1 / sable ${dosage.sableParts} / gravier ${dosage.gravierParts}`,
     `Pertes estimées : ${project.pertes}%`,
     `Densité sable : ${project.densiteSable} kg/m³ — Densité gravier : ${project.densiteGravier} kg/m³`,
+    `Granulats déduits d'un béton frais de ${DENSITE_BETON_FRAIS} kg/m³ (bilan de masse)`,
   ]
 
   for (const param of params) {

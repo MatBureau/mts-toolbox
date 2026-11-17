@@ -221,7 +221,7 @@ export const toolSEOData: Record<string, ToolSEOData> = {
       },
       {
         question: "Quelle quantité de sable et gravier pour 1 m³ de béton ?",
-        answer: "Pour 1 m³ de béton standard, comptez environ 0,4 m³ de sable (soit ~600 kg) et 0,8 m³ de gravier (soit ~1280 kg). Le ratio classique est 1 volume de ciment pour 2 de sable et 3 de gravier."
+        answer: "Pour 1 m³ de béton standard dosé à 350 kg/m³, comptez environ 0,47 m³ de sable (~700 kg) et 0,70 m³ de gravier (~1 120 kg). Le béton frais pèse environ 2 350 kg/m³ : une fois le ciment (350 kg) et l'eau (175 L) retirés, il reste ~1 825 kg de granulats, répartis selon le ratio classique 2 volumes de sable pour 3 de gravier."
       },
       {
         question: "Comment calculer le béton pour un mur ?",

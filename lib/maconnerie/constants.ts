@@ -82,7 +82,13 @@ export const ARRONDI_TOUPIE_OPTIONS = [
   { value: 0.5, label: 'Arrondi au 0,5 m³' },
 ]
 
-// Clé localStorage
+// Masse volumique du béton frais ordinaire (kg/m³), base du bilan de masse des granulats
+export const DENSITE_BETON_FRAIS = 2350
+
+// Version du schéma de projet (v2 : hauteur de semelle en mètres)
+export const SCHEMA_VERSION = 2
+
+// Clé localStorage (inchangée : les projets v1 sont migrés au chargement)
 export const STORAGE_KEY = 'mts-toolbox:metiers:maconnerie:v1'
 
 // Délai debounce auto-save (ms)
@@ -90,6 +96,7 @@ export const DEBOUNCE_MS = 1000
 
 // Projet par défaut
 export const DEFAULT_PROJECT = {
+  schemaVersion: SCHEMA_VERSION,
   nom: 'Nouveau projet',
   elements: [],
   dosageType: 'standard' as DosageType,

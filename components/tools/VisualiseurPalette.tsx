@@ -49,6 +49,13 @@ export default function VisualiseurPalette() {
 
   // Calculation Logic (Simple Layer Stacking)
   useEffect(() => {
+    // Champ vidé ou valeur nulle : sans ce garde-fou, floor(x / 0) = Infinity et la boucle ne termine jamais
+    if (box.length <= 0 || box.width <= 0 || box.height <= 0 || maxHeight <= pallet.height) {
+      setLayout([])
+      setStats({ totalBoxes: 0, totalWeight: 0, layers: 0, efficiency: 0, stackHeight: pallet.height })
+      return
+    }
+
     // Try two orientations for the base layer
     // 1. Normal: Box Length aligned with Pallet Length
     // 2. Rotated: Box Length aligned with Pallet Width (if possible)
