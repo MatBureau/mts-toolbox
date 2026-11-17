@@ -1374,11 +1374,15 @@ export function palletViolations(plan: PalletPlan, settings: OrderSettings): str
     if (p.z + p.h > zone.usableHeight + EPS) errors.push(`${p.uid} trop haut`)
     for (let j = i + 1; j < ps.length; j++) if (boxesIntersect(p, ps[j])) errors.push(`${p.uid} chevauche ${ps[j].uid}`)
 
-    const support =
-      p.z <= EPS
-        ? footprintOverlap(deck, p)
-        : ps.filter(q => Math.abs(q.z + q.h - p.z) <= EPS).reduce((sum, q) => sum + footprintOverlap(q, p), 0)
-    if (support < SUPPORT_RATIO * p.l * p.w - 1e-6) errors.push(`${p.uid} appui ${Math.round((support / (p.l * p.w)) * 100)} %`)
+    if (p.z <= EPS) {
+      // Plancher : le centre de la base doit être au-dessus de la palette (le débord autorisé est accepté)
+      const cx = p.x + p.l / 2
+      const cy = p.y + p.w / 2
+      if (cx < deck.x - EPS || cx > deck.x + deck.l + EPS || cy < deck.y - EPS || cy > deck.y + deck.w + EPS) errors.push(`${p.uid} centre hors palette`)
+    } else {
+      const support = ps.filter(q => Math.abs(q.z + q.h - p.z) <= EPS).reduce((sum, q) => sum + footprintOverlap(q, p), 0)
+      if (support < SUPPORT_RATIO * p.l * p.w - 1e-6) errors.push(`${p.uid} appui ${Math.round((support / (p.l * p.w)) * 100)} %`)
+    }
 
     const above = ps.filter(q => q !== p && q.z >= p.z + p.h - EPS && footprintOverlap(q, p) > 0)
     if (p.fragile && above.length > 0) errors.push(`${p.uid} fragile recouvert`)
