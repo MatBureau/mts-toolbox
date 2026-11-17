@@ -115,7 +115,7 @@ const NEVER: Corner = { x: Infinity, y: Infinity, z: Infinity }
 
 /**
  * Pose les colis un à un au point candidat le plus bas, puis le plus au fond, puis le plus
- * à gauche, dans l'ordre de tri demandé.
+ * à gauche, dans l'ordre de tri demandé ; à point égal, l'orientation la plus basse.
  * Quand un colis ne trouve aucune place, le reste de sa référence est abandonné pour cette
  * palette. C'est exact : dans l'ordre de `sortForCap`, les colis d'une référence sont
  * consécutifs (clés identiques), donc aucune pose n'a lieu entre deux d'entre eux, et le
@@ -151,7 +151,8 @@ export function capPhase(state: PalletState, items: BoxItem[], order: CapOrder):
       const skipBefore = known ? known.frontier[k] : null
       let stop: Corner = NEVER
       for (const pt of pts.list) {
-        if (best && cmp(pt, best.pt) >= 0) {
+        // Au-delà du meilleur point, ou au même point sans gagner en hauteur : inutile de chercher
+        if (best && (cmp(pt, best.pt) > 0 || (cmp(pt, best.pt) === 0 && o.h >= best.c.h))) {
           stop = pt
           break
         }

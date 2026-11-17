@@ -60,6 +60,12 @@ describe('chapeau', () => {
     expect(s.placements[0]).toMatchObject({ x: 50, y: 50, z: 0 })
   })
 
+  it('à point égal, préfère l’orientation la plus basse (colis couchable)', () => {
+    const s = newState(settings())
+    capPhase(s, items('a', 1, { length: 400, width: 300, height: 500, upright: false }), 'volume')
+    expect(s.placements[0]).toMatchObject({ x: 0, y: 0, z: 0, h: 300 })
+  })
+
   it('couche le colis seulement s’il est couchable', () => {
     const conf = settings({ maxHeight: 944 }) // 800 mm disponibles
     const upright = newState(conf)
