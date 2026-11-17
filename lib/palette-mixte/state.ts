@@ -30,7 +30,8 @@ export function checkPlacement(state: PalletState, item: BoxItem, c: Box3): Plac
   const { zone } = state
   if (c.x < -EPS || c.y < -EPS || c.x + c.l > zone.length + EPS || c.y + c.w > zone.width + EPS) return null
   if (c.z < -EPS || c.z + c.h > zone.usableHeight + EPS) return null
-  if (state.maxLoad > 0 && state.loadWeight + item.weight > state.maxLoad + 1e-9) return null
+  // Un poids inconnu compte pour 0 : il n'entre pas dans les contrôles de charge (choix de la spec).
+  if (state.maxLoad > 0 &&state.loadWeight + item.weight > state.maxLoad + 1e-9) return null
 
   let support = 0
   const below: Placement[] = []
@@ -40,6 +41,7 @@ export function checkPlacement(state: PalletState, item: BoxItem, c: Box3): Plac
     if (boxesIntersect(p, c)) return null
     // Même emprise sans chevauchement : p est entièrement au-dessus ou au-dessous
     if (p.z >= c.z + c.h - EPS) return null
+    if (p.z + p.h > c.z + EPS) continue // voisin latéral (recouvrement sous la tolérance) : ni dessus ni dessous
     if (p.fragile) return null
     if (p.maxLoadOnTop !== null && p.loadAbove + item.weight > p.maxLoadOnTop + 1e-9) return null
     below.push(p)
@@ -53,6 +55,7 @@ export function checkPlacement(state: PalletState, item: BoxItem, c: Box3): Plac
   return below
 }
 
+// Les colis de `below` doivent provenir de ce même état (pas d'une copie) : leur charge supportée est mise à jour ici.
 export function commit(state: PalletState, item: BoxItem, c: Box3, below: Placement[], layer: number | null): Placement {
   for (const p of below) p.loadAbove += item.weight
   const placement: Placement = {

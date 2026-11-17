@@ -60,4 +60,43 @@ describe('contraintes de pose', () => {
     s.loadWeight = 995
     expect(checkPlacement(s, item(), { x: 0, y: 0, z: 0, l: 400, w: 300, h: 200 })).toBeNull()
   })
+
+  it('un voisin latéral au recouvrement sous la tolérance n’est ni dessus ni dessous (fragile)', () => {
+    const s = newState(settings)
+    place(s, item({ fragile: true }), { x: 0, y: 0, z: 0, l: 400, w: 300, h: 200 })
+    expect(checkPlacement(s, item({ uid: 'b#1', refId: 'b' }), { x: 399.9999, y: 0, z: 0, l: 400, w: 300, h: 200 })).toEqual([])
+  })
+
+  it('un voisin latéral sous la tolérance ne reçoit pas de charge', () => {
+    const s = newState(settings)
+    const first = place(s, item({ maxLoadOnTop: 0 }), { x: 0, y: 0, z: 0, l: 400, w: 300, h: 200 })
+    const next = item({ uid: 'b#1', refId: 'b', weight: 10 })
+    const c = { x: 399.9999, y: 0, z: 0, l: 400, w: 300, h: 200 }
+    const below = checkPlacement(s, next, c)
+    expect(below).toEqual([])
+    commit(s, next, c, below!, null)
+    expect(first.loadAbove).toBe(0)
+  })
+})
+
+describe('appui sur la palette avec débord', () => {
+  const withOverhang: OrderSettings = { ...settings, overhang: 50 }
+  const check = (c: { x: number; y: number; z: number; l: number; w: number; h: number }) =>
+    checkPlacement(newState(withOverhang), item(), c)
+
+  it('87,5 % sur le plateau : accepté', () => {
+    expect(check({ x: 0, y: 50, z: 0, l: 400, w: 300, h: 200 })).toEqual([])
+  })
+
+  it('75 % sur le plateau : accepté', () => {
+    expect(check({ x: 0, y: 50, z: 0, l: 200, w: 300, h: 200 })).toEqual([])
+  })
+
+  it('environ 72 % sur le plateau : refusé', () => {
+    expect(check({ x: 0, y: 50, z: 0, l: 180, w: 300, h: 200 })).toBeNull()
+  })
+
+  it('entièrement sur le débord : refusé', () => {
+    expect(check({ x: 0, y: 0, z: 0, l: 40, w: 40, h: 100 })).toBeNull()
+  })
 })
