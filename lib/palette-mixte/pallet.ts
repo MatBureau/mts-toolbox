@@ -22,18 +22,10 @@ function centerOfMassZ(s: PalletState): number {
 }
 
 /**
- * Une palette : couches pleines, puis chapeau. Quatre ordres de chapeau sont essayés ;
+ * Chapeau d'un arrêt sur l'état courant. Quatre ordres sont essayés, chacun sur une copie ;
  * on garde celui qui pose le plus de colis, puis le centre de gravité le plus bas.
  */
-export function buildPallet(items: BoxItem[], settings: OrderSettings): PalletState {
-  const base = newState(settings)
-  const sorted = sortItems(items)
-  layerPhase(base, sorted)
-
-  const placed = new Set(base.placements.map(p => p.uid))
-  const rest = sorted.filter(i => !placed.has(i.uid))
-  if (rest.length === 0) return base
-
+function bestCap(base: PalletState, rest: BoxItem[]): PalletState {
   let best: PalletState | null = null
   const tried = new Set<string>()
   for (const order of CAP_ORDERS) {
@@ -52,4 +44,23 @@ export function buildPallet(items: BoxItem[], settings: OrderSettings): PalletSt
     }
   }
   return best ?? base
+}
+
+/**
+ * Une palette, arrêt par arrêt du dernier livré au premier : couches pleines, puis chapeau.
+ * Un colis n'est jamais posé sous un colis déjà en place : rien d'un arrêt livré plus tard
+ * ne peut donc recouvrir un colis d'un arrêt livré plus tôt.
+ */
+export function buildPallet(items: BoxItem[], settings: OrderSettings): PalletState {
+  const sorted = sortItems(items)
+  let state = newState(settings)
+  // Le tri range les arrêts par numéro décroissant
+  for (const stop of new Set(sorted.map(i => i.stop))) {
+    const group = sorted.filter(i => i.stop === stop)
+    layerPhase(state, group)
+    const placed = new Set(state.placements.map(p => p.uid))
+    const rest = group.filter(i => !placed.has(i.uid))
+    if (rest.length > 0) state = bestCap(state, rest)
+  }
+  return state
 }

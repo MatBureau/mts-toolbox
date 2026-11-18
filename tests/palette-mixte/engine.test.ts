@@ -57,6 +57,24 @@ describe('palettisation d’une commande', () => {
     expect(Math.max(...zB)).toBeLessThan(Math.min(...zA))
   })
 
+  it('fusionne deux fins de client sans poser le dernier livré sur le premier', () => {
+    const r = palletizeOrder([ref({ id: 'a', ...big, quantity: 6, stop: 1 }), ref({ id: 'b', ...big, quantity: 6, stop: 2 })], settings())
+    expect(r.pallets).toHaveLength(1)
+    expect(r.pallets[0].placements).toHaveLength(12)
+    expect(palletViolations(r.pallets[0], settings())).toEqual([])
+  })
+
+  it('monte la couche du premier livré sur le chapeau du suivant, dans l’ordre', () => {
+    const r = palletizeOrder(
+      [ref({ id: 'a', ...big, quantity: 4, stop: 1 }), ref({ id: 'b', ...big, quantity: 2, stop: 2 }), ref({ id: 'c', ...big, quantity: 2, stop: 2 })],
+      settings()
+    )
+    expect(r.pallets).toHaveLength(1)
+    const p = r.pallets[0]
+    expect(p.placements.filter(q => q.refId === 'a').every(q => q.z === 400 && q.layer !== null)).toBe(true)
+    expect(palletViolations(p, settings())).toEqual([])
+  })
+
   it('garde une référence ensemble quand elle tient sur une palette', () => {
     const order = (keepTogether: boolean) =>
       palletizeOrder(

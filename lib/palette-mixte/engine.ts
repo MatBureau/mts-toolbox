@@ -160,7 +160,7 @@ export function palletizeOrder(refs: Reference[], settings: OrderSettings): Mixe
     })
   }
 
-  // Fusion gloutonne des fins de client, dans l'ordre des arrêts (le tri met le dernier livré en bas)
+  // Fusion gloutonne des fins de client, dans l'ordre des arrêts (buildPallet met le dernier livré en bas)
   const merged: PalletState[] = []
   let current: PalletState | null = null
   for (const p of partial) {

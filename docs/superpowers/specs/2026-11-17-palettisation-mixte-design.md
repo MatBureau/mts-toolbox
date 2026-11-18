@@ -61,17 +61,18 @@ Le calcul tourne dans un **Web Worker** ; l'interface reste fluide.
    - la charge maximale de la palette et la charge supportée de chaque colis situé en dessous restent respectées.
 
    Quatre ordres de tri sont essayés pour le chapeau (volume, surface de base, hauteur, poids, toujours après les clés arrêt et fragile) ; on garde celui qui place le plus de colis, puis, à égalité, celui dont le centre de gravité est le plus bas.
-4. Les colis non posés passent sur la **palette suivante**.
+4. **Plusieurs arrêts sur une palette** : les étapes 2 et 3 sont menées arrêt par arrêt, du dernier livré au premier, sur la même palette. Un colis n'étant jamais posé sous un colis déjà en place, aucun colis d'un arrêt livré plus tard ne recouvre un colis d'un arrêt livré plus tôt.
+5. Les colis non posés passent sur la **palette suivante**.
 
 ### Plusieurs palettes
 
-- **Clients** : chaque arrêt est palettisé séparément. Ensuite, les dernières palettes de chaque arrêt remplies à moins de 50 % du volume utile sont fusionnées par recalcul de leur union quand elle tient sur une palette ; le tri place alors le dernier livré en bas.
+- **Clients** : chaque arrêt est palettisé séparément. Ensuite, les dernières palettes de chaque arrêt remplies à moins de 50 % du volume utile sont fusionnées par recalcul de leur union quand elle tient sur une palette ; la construction arrêt par arrêt place alors le dernier livré en bas.
 - **Garder ensemble** : si une référence marquée ne tient pas entière dans la place restante de la palette en cours mais tiendrait entière sur une palette vide, elle est reportée à la palette suivante.
 - Sans arrêt renseigné, toutes les références sont dans l'arrêt 1.
 
 ### Étapes
 
-L'ordre de montage est l'ordre de construction : couches de bas en haut, puis chapeau trié par cote, puis y, puis x. Un colis n'est jamais posé avant ce qui le porte.
+L'ordre de montage est l'ordre de construction, arrêt par arrêt : couches de bas en haut, puis chapeau trié par cote, puis y, puis x. Un colis n'est jamais posé avant ce qui le porte (une couche peut reposer sur le chapeau d'un arrêt livré plus tard).
 
 Chaque étape :
 - couche : « Couche k : n × Nom » avec son plan numéroté ;

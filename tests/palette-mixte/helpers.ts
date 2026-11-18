@@ -64,6 +64,8 @@ export function palletViolations(plan: PalletPlan, settings: OrderSettings): str
 
     const above = ps.filter(q => q !== p && q.z >= p.z + p.h - EPS && footprintOverlap(q, p) > 0)
     if (p.fragile && above.length > 0) errors.push(`${p.uid} fragile recouvert`)
+    // Le premier livré (arrêt le plus petit) doit pouvoir être déchargé sans rien déplacer
+    for (const q of above) if (q.stop > p.stop) errors.push(`${q.uid} (arrêt ${q.stop}) au-dessus de ${p.uid} (arrêt ${p.stop})`)
     if (p.maxLoadOnTop !== null) {
       const load = above.reduce((sum, q) => sum + q.weight, 0)
       if (load > p.maxLoadOnTop + 1e-6) errors.push(`${p.uid} écrasé (${load} kg)`)
