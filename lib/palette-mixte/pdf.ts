@@ -22,6 +22,24 @@ export interface OrderPdfOptions {
 const fmt = (n: number, d = 0) => n.toLocaleString('fr-FR', { minimumFractionDigits: d, maximumFractionDigits: d })
 const PAGE: [number, number] = [595, 842]
 const MARGIN = 40
+const FOOTER_FLOOR = 60 // le contenu reste au-dessus du pied de page
+// QR code du lien de partage, en bas à droite de la page 1 : la synthèse s'arrête plus haut sur cette page
+const QR_SIZE = 90
+const QR_Y = 52
+const FIRST_PAGE_FLOOR = QR_Y + QR_SIZE + 8
+
+// PNG du QR code (null si le lien dépasse la capacité d'un QR code ou si le rendu échoue). Correction L : le papier est
+// propre et le symbole reste moins dense, donc lisible à 90 pt ; au moins 4 px par module.
+async function qrPng(url: string): Promise<string | null> {
+  try {
+    const QRCode = await import('qrcode')
+    const options = { margin: 1, errorCorrectionLevel: 'L' as const }
+    const size = QRCode.create(url, options).modules.size
+    return await QRCode.toDataURL(url, { ...options, width: Math.max(240, (size + 2) * 4) })
+  } catch {
+    return null
+  }
+}
 
 // Couches consécutives d'une même référence : un seul plan « Couches 1 à 4 »
 function layerGroups(p: PalletPlan) {
@@ -97,7 +115,9 @@ export async function generateOrderPDF(o: OrderPdfOptions): Promise<Blob> {
   const r = o.result
 
   let page = pdf.addPage(PAGE)
+  const firstPage = page
   let y = PAGE[1] - MARGIN
+  const floor = () => (page === firstPage ? FIRST_PAGE_FLOOR : FOOTER_FLOOR)
   const text = (s: string, x: number, yy: number, size = 9, f = font, color = ink) =>
     page.drawText(sanitizeForPDF(s), { x, y: yy, size, font: f, color })
   const fit = (s: string, size: number, maxWidth: number, f = font) => {
@@ -107,7 +127,7 @@ export async function generateOrderPDF(o: OrderPdfOptions): Promise<Blob> {
     return t === full ? t : `${t}...`
   }
   const ensure = (space: number, header?: string) => {
-    if (y - space >= 60) return
+    if (y - space >= floor()) return
     page = pdf.addPage(PAGE)
     y = PAGE[1] - MARGIN
     if (header) {
@@ -269,8 +289,15 @@ export async function generateOrderPDF(o: OrderPdfOptions): Promise<Blob> {
       x: MARGIN, y: 30, size: 7.5, font, color: muted,
     })
   })
-  const url = o.shareUrl.length > 110 ? `${o.shareUrl.slice(0, 107)}...` : o.shareUrl
-  pages[0].drawText(sanitizeForPDF(`Recalculer en ligne : ${url}`), { x: MARGIN, y: 42, size: 7.5, font, color: muted })
+  // Lien complet en QR code (une URL imprimée serait tronquée et inutilisable)
+  const qr = await qrPng(o.shareUrl)
+  const caption = qr ? 'Scannez pour recalculer en ligne' : 'Lien trop long pour un QR code : utilisez « Copier le lien » dans l’outil'
+  if (qr) {
+    const image = await pdf.embedPng(qr)
+    firstPage.drawImage(image, { x: width - MARGIN - QR_SIZE, y: QR_Y, width: QR_SIZE, height: QR_SIZE })
+  }
+  const captionText = sanitizeForPDF(caption)
+  firstPage.drawText(captionText, { x: width - MARGIN - font.widthOfTextAtSize(captionText, 7), y: 42, size: 7, font, color: muted })
 
   const bytes = await pdf.save()
   return new Blob([new Uint8Array(bytes)], { type: 'application/pdf' })
