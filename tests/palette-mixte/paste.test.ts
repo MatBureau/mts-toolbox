@@ -29,4 +29,8 @@ describe('collage Excel', () => {
     expect(r.rows).toHaveLength(2)
     expect(r.errors).toEqual([{ line: 2, message: 'trois dimensions numériques attendues (L, l, H en mm)' }])
   })
+
+  it('remplace les caractères de contrôle des noms', () => {
+    expect(parsePastedReferences('Carton\u0085A\t600\t400\t400').rows[0].name).toBe('Carton A')
+  })
 })

@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { PDFDocument, StandardFonts } from 'pdf-lib'
 import { refColor } from '@/lib/palette-mixte/colors'
 import { isoOrder } from '@/lib/palette-mixte/iso'
 import { sanitizeForPDF } from '@/lib/pdf/sanitize'
@@ -26,5 +27,19 @@ describe('ordre de dessin isométrique', () => {
 describe('texte PDF', () => {
   it('remplace les caractères hors WinAnsi', () => {
     expect(sanitizeForPDF('Carton 📦 n° 1 — œuf')).toBe('Carton ? n° 1 - œuf')
+  })
+
+  it('remplace les caractères de contrôle, sinon pdf-lib plante', async () => {
+    const font = await (await PDFDocument.create()).embedFont(StandardFonts.Helvetica)
+    const out = sanitizeForPDF('Carton\nA\tB\u0085')
+    expect(out).toBe('Carton A B ')
+    expect(() => font.widthOfTextAtSize(out, 10)).not.toThrow()
+  })
+
+  it('conserve les caractères WinAnsi courants', async () => {
+    const font = await (await PDFDocument.create()).embedFont(StandardFonts.Helvetica)
+    const txt = '« é à ç » ° œ € ™ • ‚ „ † ‡ ‰ ‹ › Š ž Ÿ ƒ ˆ ˜'
+    expect(sanitizeForPDF(txt)).toBe(txt)
+    expect(() => font.widthOfTextAtSize(txt, 10)).not.toThrow()
   })
 })

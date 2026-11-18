@@ -46,3 +46,32 @@ describe('lien partageable', () => {
     expect(o!.refs[0].height).toBe('')
   })
 })
+
+describe('lien partagé : limites et nettoyage', () => {
+  const b64url = (b: Uint8Array) => {
+    let bin = ''
+    for (const x of b) bin += String.fromCharCode(x)
+    return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+  }
+
+  it('refuse un code trop long', async () => {
+    expect(await decodeOrder('j' + 'A'.repeat(20_001))).toBeNull()
+  })
+
+  it('refuse une bombe de décompression', async () => {
+    const stream = new Blob([new Uint8Array(2_000_000)]).stream().pipeThrough(new CompressionStream('deflate-raw'))
+    const code = 'z' + b64url(new Uint8Array(await new Response(stream).arrayBuffer()))
+    expect(code.length).toBeLessThan(20_000)
+    expect(await decodeOrder(code)).toBeNull()
+  })
+
+  it('refuse un JSON brut trop gros', async () => {
+    const big = new TextEncoder().encode('"' + 'a'.repeat(110_000) + '"')
+    expect(await decodeOrder('j' + b64url(big))).toBeNull()
+  })
+
+  it('remplace les caractères de contrôle des noms', () => {
+    const o = unpackOrder({ v: 1, p: [], r: [['Carton\nA\tB\u0085', '1', '1', '1', '1', '', 1, 0, '', 0, '1']] })
+    expect(o?.refs[0].name).toBe('Carton A B')
+  })
+})
