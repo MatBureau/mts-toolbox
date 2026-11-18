@@ -88,6 +88,20 @@ describe('palettisation d’une commande', () => {
     expect(split.pallets[0].placements.filter(p => p.refId === 'k')).toHaveLength(4)
   })
 
+  it('reporte une seule des références « ensemble » coupées à la fois', () => {
+    const r = palletizeOrder(
+      [
+        ref({ id: 'A', ...big, quantity: 10, keepTogether: true }),
+        ref({ id: 'B', length: 500, width: 400, height: 300, weight: 10, quantity: 10, keepTogether: true }),
+      ],
+      settings()
+    )
+    const spread = (refId: string) => r.pallets.filter(p => p.placements.some(q => q.refId === refId)).length
+    expect(spread('A')).toBe(1)
+    expect(spread('B')).toBe(1)
+    expect(r.placedBoxes).toBe(20)
+  })
+
   it('signale les poids manquants', () => {
     expect(palletizeOrder([ref({ id: 'a', weight: null })], settings()).missingWeight).toBe(true)
     expect(palletizeOrder([ref({ id: 'a' })], settings()).missingWeight).toBe(false)

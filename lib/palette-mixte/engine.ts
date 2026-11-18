@@ -77,18 +77,20 @@ function buildSeries(items: BoxItem[], settings: OrderSettings): { pallets: Pall
     const excluded = new Set<string>()
     let state = buildPallet(remaining, settings)
 
-    // Une référence « ensemble » coupée en deux, qui tiendrait entière sur une palette neuve, est reportée
+    // Une référence « ensemble » coupée en deux, qui tiendrait entière sur une palette neuve, est reportée.
+    // Une seule à la fois (la moins entamée, puis par identifiant) : reporter les autres libère de la place.
     for (;;) {
       const placed = new Set(state.placements.map(p => p.uid))
-      const split: string[] = []
+      let split: { refId: string; onPallet: number } | null = null
       for (const refId of new Set(remaining.filter(i => i.keepTogether).map(i => i.refId))) {
         if (excluded.has(refId)) continue
         const refItems = remaining.filter(i => i.refId === refId)
         const onPallet = refItems.filter(i => placed.has(i.uid)).length
-        if (onPallet > 0 && onPallet < refItems.length && fitsAlone(refId, refItems)) split.push(refId)
+        if (onPallet === 0 || onPallet === refItems.length || !fitsAlone(refId, refItems)) continue
+        if (!split || onPallet < split.onPallet || (onPallet === split.onPallet && refId < split.refId)) split = { refId, onPallet }
       }
-      if (split.length === 0) break
-      split.forEach(refId => excluded.add(refId))
+      if (!split) break
+      excluded.add(split.refId)
       const candidates = remaining.filter(i => !excluded.has(i.refId))
       if (candidates.length === 0) break
       const next = buildPallet(candidates, settings)
