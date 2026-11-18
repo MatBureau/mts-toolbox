@@ -158,16 +158,21 @@ export default function PalettisationMixte() {
       return { ...f, refs }
     })
   const removeRef = (id: string) => setForm(f => ({ ...f, refs: f.refs.filter(r => r.id !== id) }))
-  const importRows = (rows: PastedRow[]) =>
-    setForm(f => {
-      const room = LIMITS.maxReferences - f.refs.length
-      const added = rows.slice(0, room).map((row, k) => ({
-        ...emptyRef(f.refs.length + k + 1),
-        ...row,
-        name: row.name || `Colis ${f.refs.length + k + 1}`,
-      }))
-      return { ...f, refs: [...f.refs, ...added] }
-    })
+  // Renvoie le nombre de lignes refusées faute de place (limite de références), signalées dans le panneau
+  const importRows = (rows: PastedRow[]): number => {
+    const accepted = rows.slice(0, Math.max(0, LIMITS.maxReferences - form.refs.length))
+    if (accepted.length > 0) {
+      setForm(f => {
+        const added = accepted.slice(0, LIMITS.maxReferences - f.refs.length).map((row, k) => ({
+          ...emptyRef(f.refs.length + k + 1),
+          ...row,
+          name: row.name || `Colis ${f.refs.length + k + 1}`,
+        }))
+        return { ...f, refs: [...f.refs, ...added] }
+      })
+    }
+    return rows.length - accepted.length
+  }
 
   const togglePlay = () => {
     if (playing) {

@@ -1,22 +1,29 @@
 'use client'
 
 import { useState } from 'react'
-import { parsePastedReferences, type PastedRow } from '@/lib/palette-mixte/paste'
+import { leftoverPaste, parsePastedReferences, type PastedRow } from '@/lib/palette-mixte/paste'
+import { LIMITS } from '@/lib/palette-mixte/types'
 
-export default function PasteImport({ onImport, onClose, room }: { onImport: (rows: PastedRow[]) => void; onClose: () => void; room: number }) {
+/** onImport renvoie le nombre de lignes refusées faute de place (limite de références). */
+export default function PasteImport({ onImport, onClose, room }: { onImport: (rows: PastedRow[]) => number; onClose: () => void; room: number }) {
   const [text, setText] = useState('')
   const [errors, setErrors] = useState<{ line: number; message: string }[]>([])
+  const [ignored, setIgnored] = useState(0)
 
   const run = () => {
     const res = parsePastedReferences(text)
-    setErrors(res.errors)
-    if (res.rows.length > 0) {
-      onImport(res.rows)
-      if (res.errors.length === 0) {
-        setText('')
-        onClose()
-      }
+    const refused = res.rows.length > 0 ? onImport(res.rows) : 0
+    const imported = res.rows.length - refused
+    setIgnored(refused)
+    if (imported === 0) {
+      setErrors(res.errors)
+      return
     }
+    // Les lignes importées quittent la zone de collage : un second clic ne crée pas de doublon
+    const left = leftoverPaste(text, res, imported)
+    setText(left.text)
+    setErrors(left.errors)
+    if (!left.text) onClose()
   }
 
   return (
@@ -39,6 +46,11 @@ export default function PasteImport({ onImport, onClose, room }: { onImport: (ro
           ))}
           {errors.length > 5 && <li>… et {errors.length - 5} autre(s)</li>}
         </ul>
+      )}
+      {ignored > 0 && (
+        <p className="text-xs text-red-600 dark:text-red-400">
+          {ignored} ligne(s) ignorée(s) : limite de {LIMITS.maxReferences} références
+        </p>
       )}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="text-[11px] text-gray-500">{room} référence(s) peuvent encore être ajoutées</span>
