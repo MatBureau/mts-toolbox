@@ -74,7 +74,10 @@ export default function PalettisationMixte() {
   }, [form, hydrated])
 
   const engine = useMemo(() => formToEngine(form), [form])
-  const { result, computing } = usePalletization(hydrated ? engine.refs : null, engine.settings)
+  const { result, input, computing } = usePalletization(hydrated ? engine.refs : null, engine.settings)
+  // Tout ce qui illustre le résultat vient de la saisie qui l'a produit, pas du formulaire en cours de frappe
+  const shownRefs = input?.refs ?? engine.refs
+  const shownSettings = input?.settings ?? engine.settings
 
   const pallets = useMemo(() => result?.pallets ?? [], [result])
   const current = pallets.length > 0 ? pallets[Math.min(palletIdx, pallets.length - 1)] : undefined
@@ -105,11 +108,11 @@ export default function PalettisationMixte() {
 
   const formIndex = useMemo(() => new Map(form.refs.map((r, i) => [r.id, i])), [form.refs])
   const colors = useMemo(() => new Map(form.refs.map((r, i) => [r.id, refColor(i)])), [form.refs])
-  const names = useMemo(() => new Map(engine.refs.map(r => [r.id, r.name])), [engine.refs])
-  const hasStops = engine.refs.some(r => r.stop > 1)
+  const names = useMemo(() => new Map(shownRefs.map(r => [r.id, r.name])), [shownRefs])
+  const hasStops = shownRefs.some(r => r.stop > 1)
 
-  const { pallet } = engine.settings
-  const zoneOffset = Math.max(0, engine.settings.overhang)
+  const { pallet } = shownSettings
+  const zoneOffset = Math.max(0, shownSettings.overhang)
   const zoneLength = pallet.length + 2 * zoneOffset
   const zoneWidth = pallet.width + 2 * zoneOffset
 
@@ -198,8 +201,8 @@ export default function PalettisationMixte() {
     try {
       const { generateOrderPDF } = await import('@/lib/palette-mixte/pdf')
       const blob = await generateOrderPDF({
-        refs: engine.refs,
-        settings: engine.settings,
+        refs: shownRefs,
+        settings: shownSettings,
         palletName,
         result,
         vehicles: vehicleLoads,
@@ -305,7 +308,7 @@ export default function PalettisationMixte() {
                 <dl className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
                   <div><dt className="text-primary-100 text-xs">Colis placés</dt><dd className="font-semibold text-lg tabular-nums">{fmt(result.placedBoxes)} / {fmt(result.totalBoxes)}</dd></div>
                   <div><dt className="text-primary-100 text-xs">Poids total</dt><dd className="font-semibold text-lg tabular-nums">{fmt(result.totalWeight)} kg</dd></div>
-                  <div><dt className="text-primary-100 text-xs">Références</dt><dd className="font-semibold text-lg tabular-nums">{engine.refs.length}</dd></div>
+                  <div><dt className="text-primary-100 text-xs">Références</dt><dd className="font-semibold text-lg tabular-nums">{shownRefs.length}</dd></div>
                 </dl>
               </div>
 
@@ -403,7 +406,7 @@ export default function PalettisationMixte() {
                     <button
                       type="button"
                       onClick={downloadPdf}
-                      disabled={generating}
+                      disabled={generating || computing}
                       className="inline-flex items-center gap-2 h-10 px-4 rounded-md bg-primary-600 text-white font-medium hover:bg-primary-700 disabled:opacity-50"
                     >
                       <Download size={16} /> {generating ? 'Génération…' : 'Plan de palettisation (PDF)'}
