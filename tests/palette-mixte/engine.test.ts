@@ -102,6 +102,19 @@ describe('palettisation d’une commande', () => {
     expect(r.placedBoxes).toBe(20)
   })
 
+  it('regarde de nouveau si le reste d’une référence « ensemble » tient sur une palette', () => {
+    const r = palletizeOrder(
+      [
+        ref({ id: 'F', ...big, weight: 20, quantity: 15 }),
+        ref({ id: 'K', ...big, quantity: 18, keepTogether: true }),
+      ],
+      settings()
+    )
+    const spread = r.pallets.filter(p => p.placements.some(q => q.refId === 'K')).length
+    expect(spread).toBeLessThanOrEqual(2)
+    expect(r.placedBoxes).toBe(33)
+  })
+
   it('signale les poids manquants', () => {
     expect(palletizeOrder([ref({ id: 'a', weight: null })], settings()).missingWeight).toBe(true)
     expect(palletizeOrder([ref({ id: 'a' })], settings()).missingWeight).toBe(false)

@@ -67,7 +67,7 @@ Le calcul tourne dans un **Web Worker** ; l'interface reste fluide.
 ### Plusieurs palettes
 
 - **Clients** : chaque arrêt est palettisé séparément. Ensuite, les dernières palettes de chaque arrêt remplies à moins de 50 % du volume utile sont fusionnées par recalcul de leur union quand elle tient sur une palette ; la construction arrêt par arrêt place alors le dernier livré en bas.
-- **Garder ensemble** : si une référence marquée ne tient pas entière dans la place restante de la palette en cours mais tiendrait entière sur une palette vide, elle est reportée à la palette suivante.
+- **Garder ensemble** : si une référence marquée ne tient pas entière dans la place restante de la palette en cours mais tiendrait entière sur une palette vide, elle est reportée à la palette suivante. Une référence marquée plus grande qu'une palette n'est pas reportée : elle complète la palette en cours puis les suivantes, et son reste est de nouveau gardé ensemble dès qu'il tient sur une palette.
 - Sans arrêt renseigné, toutes les références sont dans l'arrêt 1.
 
 ### Étapes

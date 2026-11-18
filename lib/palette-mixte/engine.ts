@@ -62,12 +62,15 @@ export function prepare(refs: Reference[], settings: OrderSettings): { items: Bo
 // Palettes successives d'un même client, avec la règle « garder ensemble »
 function buildSeries(items: BoxItem[], settings: OrderSettings): { pallets: PalletState[]; leftover: BoxItem[] } {
   const pallets: PalletState[] = []
+  // Clé : référence et nombre de colis restants. Une référence plus grande qu'une palette n'est pas
+  // reportée ; une fois entamée, son reste peut tenir sur une seule palette : le test est refait.
   const fitsAloneCache = new Map<string, boolean>()
   const fitsAlone = (refId: string, refItems: BoxItem[]) => {
-    let fits = fitsAloneCache.get(refId)
+    const key = `${refId}:${refItems.length}`
+    let fits = fitsAloneCache.get(key)
     if (fits === undefined) {
       fits = buildPallet(refItems, settings).placements.length === refItems.length
-      fitsAloneCache.set(refId, fits)
+      fitsAloneCache.set(key, fits)
     }
     return fits
   }
