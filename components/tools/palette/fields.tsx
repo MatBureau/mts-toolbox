@@ -9,7 +9,10 @@ export function NumberField({
 }) {
   return (
     <label className="block">
-      <span className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">{label}</span>
+      <span className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+        {label}
+        {compact && <span className="font-normal text-gray-400"> ({unit})</span>}
+      </span>
       <span className="flex items-stretch rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus-within:ring-2 focus-within:ring-primary-500 overflow-hidden">
         <input
           type="number"
@@ -20,9 +23,12 @@ export function NumberField({
           onChange={e => onChange(e.target.value)}
           className={`w-full min-w-0 bg-transparent text-gray-900 dark:text-gray-100 focus:outline-none tabular-nums ${compact ? 'px-2 py-1.5 text-sm [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none' : 'px-3 py-2'}`}
         />
-        <span className={`${compact ? 'px-1.5 text-[10px]' : 'px-2 text-xs'} flex items-center text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/60 border-l border-gray-200 dark:border-gray-700`}>
-          {unit}
-        </span>
+        {/* En mode compact, l'unité passe dans le libellé pour laisser toute la largeur au chiffre */}
+        {!compact && (
+          <span className="px-2 flex items-center text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/60 border-l border-gray-200 dark:border-gray-700">
+            {unit}
+          </span>
+        )}
       </span>
       {hint && <span className="block mt-1 text-[11px] text-gray-500 dark:text-gray-500">{hint}</span>}
     </label>
