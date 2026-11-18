@@ -2,16 +2,19 @@
 
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
-import { Box, Layers, Truck, Download, Link2, RotateCcw, Check, Scale, Ruler } from 'lucide-react'
+import { Box, Truck, Download, Link2, RotateCcw, Check, Scale, Ruler } from 'lucide-react'
 import {
   computePalletization,
   computeVehicleLoad,
   validateInput,
   type PalletizationInput,
 } from '@/lib/palette/packing'
-import { PALLET_PRESETS, CUSTOM_PALLET_ID, VEHICLE_PRESETS } from '@/lib/palette/presets'
+import { PALLET_PRESETS, VEHICLE_PRESETS } from '@/lib/palette/presets'
 import { DEFAULT_FORM, formToQuery, queryToForm, parseNumber, type PaletteFormState } from '@/lib/palette/url-state'
 import LayerPlan from './palette/LayerPlan'
+import { NumberField, Toggle } from './palette/fields'
+import PalletSettingsFields from './palette/PalletSettingsFields'
+import CrossLink from './palette/CrossLink'
 import type { SceneApi } from './palette/PalletScene3D'
 
 const PalletScene3D = dynamic(() => import('./palette/PalletScene3D'), {
@@ -45,50 +48,6 @@ const trackEvent = (name: string) => {
   }
 }
 
-function NumberField({
-  label, value, onChange, unit, hint, min = 0, step = 1,
-}: {
-  label: string; value: string; onChange: (v: string) => void; unit: string; hint?: string; min?: number; step?: number
-}) {
-  return (
-    <label className="block">
-      <span className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">{label}</span>
-      <span className="flex items-stretch rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus-within:ring-2 focus-within:ring-primary-500 overflow-hidden">
-        <input
-          type="number"
-          inputMode="decimal"
-          min={min}
-          step={step}
-          value={value}
-          onChange={e => onChange(e.target.value)}
-          className="w-full min-w-0 px-3 py-2 bg-transparent text-gray-900 dark:text-gray-100 focus:outline-none tabular-nums"
-        />
-        <span className="px-2 flex items-center text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/60 border-l border-gray-200 dark:border-gray-700">
-          {unit}
-        </span>
-      </span>
-      {hint && <span className="block mt-1 text-[11px] text-gray-500 dark:text-gray-500">{hint}</span>}
-    </label>
-  )
-}
-
-function Toggle({ checked, onChange, label, hint }: { checked: boolean; onChange: (v: boolean) => void; label: string; hint?: string }) {
-  return (
-    <label className="flex items-start gap-3 cursor-pointer select-none">
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={e => onChange(e.target.checked)}
-        className="mt-0.5 h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
-      />
-      <span>
-        <span className="block text-sm text-gray-800 dark:text-gray-200">{label}</span>
-        {hint && <span className="block text-[11px] text-gray-500">{hint}</span>}
-      </span>
-    </label>
-  )
-}
-
 export default function VisualiseurPalette() {
   const [form, setForm] = useState<PaletteFormState>(DEFAULT_FORM)
   const [hydrated, setHydrated] = useState(false)
@@ -114,20 +73,6 @@ export default function VisualiseurPalette() {
   const set = useCallback(<K extends keyof PaletteFormState>(key: K, value: PaletteFormState[K]) => {
     setForm(prev => ({ ...prev, [key]: value }))
   }, [])
-
-  const selectPallet = (id: string) => {
-    const preset = PALLET_PRESETS.find(p => p.id === id)
-    setForm(prev => ({
-      ...prev,
-      palletId: id,
-      ...(preset && {
-        palletLength: String(preset.length),
-        palletWidth: String(preset.width),
-        palletHeight: String(preset.height),
-        palletTare: String(preset.tare),
-      }),
-    }))
-  }
 
   const deferredForm = useDeferredValue(form)
   const input: PalletizationInput = useMemo(() => ({
@@ -206,11 +151,11 @@ export default function VisualiseurPalette() {
     }
   }
 
-  const isCustom = form.palletId === CUSTOM_PALLET_ID
   const card = 'bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-700 p-4'
 
   return (
     <div className="space-y-6">
+      <CrossLink href="/logistique/palettisation-mixte" question="Vos colis ont des tailles différentes ?" action="Palettisation mixte" />
       <div className="grid grid-cols-1 lg:grid-cols-[290px_minmax(0,1fr)] gap-6">
         {/* Saisie */}
         <div className="space-y-4">
@@ -246,37 +191,7 @@ export default function VisualiseurPalette() {
             </div>
           </section>
 
-          <section className={card}>
-            <h2 className="text-sm font-semibold mb-3 flex items-center gap-2 text-gray-900 dark:text-gray-100">
-              <Layers size={16} className="text-primary-500" /> Palette
-            </h2>
-            <label className="block mb-3">
-              <span className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Type</span>
-              <select
-                value={form.palletId}
-                onChange={e => selectPallet(e.target.value)}
-                className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
-              >
-                {PALLET_PRESETS.map(p => (
-                  <option key={p.id} value={p.id}>{p.name} — {p.length} × {p.width}</option>
-                ))}
-                <option value={CUSTOM_PALLET_ID}>Personnalisée…</option>
-              </select>
-            </label>
-            {isCustom && (
-              <div className="grid grid-cols-2 gap-3 mb-3">
-                <NumberField label="Longueur" unit="mm" value={form.palletLength} onChange={v => set('palletLength', v)} />
-                <NumberField label="Largeur" unit="mm" value={form.palletWidth} onChange={v => set('palletWidth', v)} />
-                <NumberField label="Hauteur" unit="mm" value={form.palletHeight} onChange={v => set('palletHeight', v)} />
-                <NumberField label="Tare" unit="kg" value={form.palletTare} onChange={v => set('palletTare', v)} />
-              </div>
-            )}
-            <div className="grid grid-cols-2 gap-3">
-              <NumberField label="Hauteur max" unit="mm" value={form.maxHeight} onChange={v => set('maxHeight', v)} hint="palette comprise" />
-              <NumberField label="Charge max" unit="kg" value={form.maxLoad} onChange={v => set('maxLoad', v)} hint="0 = sans limite" />
-              <NumberField label="Débord" unit="mm" value={form.overhang} onChange={v => set('overhang', v)} hint="par côté" />
-            </div>
-          </section>
+          <PalletSettingsFields className={card} value={form} onChange={patch => setForm(prev => ({ ...prev, ...patch }))} />
         </div>
 
         {/* Résultats */}
