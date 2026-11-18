@@ -92,7 +92,15 @@ export interface MixedResult {
   missingWeight: boolean
 }
 
-export const LIMITS = { maxReferences: 30, maxBoxes: 3000 }
+// Bornes de saisie (mm pour les dimensions) : au-delà, le calcul n'a plus de sens et deviendrait démesuré
+export const LIMITS = {
+  maxReferences: 30,
+  maxBoxes: 3000,
+  maxPalletSide: 20_000,
+  maxOverhang: 500,
+  maxPalletHeight: 2_000,
+  maxHeight: 10_000,
+}
 
 // Part minimale de la base d'un colis qui doit reposer sur un support
 export const SUPPORT_RATIO = 0.75

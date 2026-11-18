@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import { palletizeOrder } from '@/lib/palette-mixte/engine'
+import type { OrderSettings } from '@/lib/palette-mixte/types'
 import { palletViolations, randomOrder, rejectedCount } from './helpers'
-import { ref, settings } from './fixtures'
+import { EUR, ref, settings } from './fixtures'
 
 const big = { length: 600, width: 400, height: 400, weight: 15 }
 
@@ -42,6 +43,22 @@ describe('palettisation d’une commande', () => {
   it('applique les limites de saisie', () => {
     expect(palletizeOrder(Array.from({ length: 31 }, (_, i) => ref({ id: `r${i}` })), settings()).error).toMatch(/30 références/)
     expect(palletizeOrder([ref({ id: 'a', quantity: 3001 })], settings()).error).toMatch(/colis au maximum/)
+  })
+
+  it('refuse les dimensions démesurées (lien piégé) sans calculer', () => {
+    const a = [ref({ id: 'a' })]
+    const huge = (over: Partial<OrderSettings>) => palletizeOrder(a, settings(over))
+    // \s : le séparateur de milliers fr-FR est une espace insécable fine
+    expect(huge({ pallet: { ...EUR, length: 20_001 } }).error).toMatch(/palette ne peuvent dépasser 20\s000 mm/)
+    expect(huge({ pallet: { ...EUR, width: 999_999 } }).error).toMatch(/palette ne peuvent dépasser 20\s000 mm/)
+    expect(huge({ overhang: 80_000 }).error).toMatch(/débord ne peut dépasser 500 mm/)
+    expect(huge({ maxHeight: 10_001 }).error).toMatch(/hauteur maximale ne peut dépasser 10\s000 mm/)
+    expect(huge({ pallet: { ...EUR, height: 2_001 }, maxHeight: 5_000 }).error).toMatch(/hauteur de la palette ne peut dépasser 2\s000 mm/)
+    const r = huge({ pallet: { length: 999_999, width: 999_999, height: 0, tare: 0 }, maxHeight: 999_999, overhang: 999_999 })
+    expect(r.error).not.toBeNull()
+    expect(r.pallets).toEqual([])
+    // Aux bornes : accepté
+    expect(huge({ pallet: { ...EUR, length: 20_000, width: 20_000, height: 2_000 }, maxHeight: 10_000, overhang: 500 }).error).toBeNull()
   })
 
   it('sépare les clients et regroupe les fins de commande, dernier livré en bas', () => {

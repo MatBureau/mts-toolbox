@@ -27,6 +27,14 @@ export function prepare(refs: Reference[], settings: OrderSettings): { items: Bo
     return fail(`${LIMITS.maxBoxes.toLocaleString('fr-FR')} colis au maximum (${total.toLocaleString('fr-FR')} saisis).`)
   }
   if (!(settings.pallet.length >= 100 && settings.pallet.width >= 100)) return fail('Les dimensions de la palette doivent être d’au moins 100 mm.')
+  // Bornes hautes : un lien partagé peut porter n'importe quelle valeur, le calcul doit rester borné
+  const fr = (n: number) => n.toLocaleString('fr-FR')
+  if (!(settings.pallet.length <= LIMITS.maxPalletSide && settings.pallet.width <= LIMITS.maxPalletSide)) {
+    return fail(`Les dimensions de la palette ne peuvent dépasser ${fr(LIMITS.maxPalletSide)} mm.`)
+  }
+  if (!((settings.overhang || 0) <= LIMITS.maxOverhang)) return fail(`Le débord ne peut dépasser ${fr(LIMITS.maxOverhang)} mm par côté.`)
+  if (!(settings.pallet.height <= LIMITS.maxPalletHeight)) return fail(`La hauteur de la palette ne peut dépasser ${fr(LIMITS.maxPalletHeight)} mm.`)
+  if (!(settings.maxHeight <= LIMITS.maxHeight)) return fail(`La hauteur maximale ne peut dépasser ${fr(LIMITS.maxHeight)} mm.`)
   if (!(settings.maxHeight > settings.pallet.height)) return fail('La hauteur maximale doit dépasser la hauteur de la palette.')
 
   const zone = zoneOf(settings)
