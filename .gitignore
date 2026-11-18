@@ -38,3 +38,7 @@ next-env.d.ts
 /data
 
 .claudetmpclaude-*
+
+
+# Playwright MCP (captures locales)
+.playwright-mcp/
