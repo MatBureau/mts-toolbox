@@ -214,3 +214,13 @@ export function palletizeOrder(refs: Reference[], settings: OrderSettings): Mixe
     missingWeight: prep.items.some(i => i.weight === 0),
   }
 }
+
+/** Variante qui ne lève jamais : une exception devient un message affichable (Web Worker, repli). */
+export function safePalletizeOrder(refs: Reference[], settings: OrderSettings): MixedResult {
+  try {
+    return palletizeOrder(refs, settings)
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    return { error: `Calcul impossible : ${message}`, pallets: [], rejected: [], totalBoxes: 0, placedBoxes: 0, totalWeight: 0, missingWeight: false }
+  }
+}

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { palletizeOrder } from '@/lib/palette-mixte/engine'
-import type { OrderSettings } from '@/lib/palette-mixte/types'
+import { palletizeOrder, safePalletizeOrder } from '@/lib/palette-mixte/engine'
+import type { OrderSettings, Reference } from '@/lib/palette-mixte/types'
 import { palletViolations, randomOrder, rejectedCount } from './helpers'
 import { EUR, ref, settings } from './fixtures'
 
@@ -157,4 +157,17 @@ describe('palettisation d’une commande', () => {
     expect(r.placedBoxes).toBe(3000)
     expect(Date.now() - start).toBeLessThan(8000)
   }, 30_000)
+})
+
+describe('calcul protégé', () => {
+  it('transforme une exception en message d’erreur affichable', () => {
+    const r = safePalletizeOrder(null as unknown as Reference[], settings())
+    expect(r.error).toMatch(/^Calcul impossible : /)
+    expect(r.pallets).toEqual([])
+    expect(r.placedBoxes).toBe(0)
+  })
+
+  it('renvoie le résultat normal sinon', () => {
+    expect(safePalletizeOrder([ref({ id: 'a', quantity: 3 })], settings()).placedBoxes).toBe(3)
+  })
 })

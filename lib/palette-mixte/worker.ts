@@ -1,4 +1,4 @@
-import { palletizeOrder } from './engine'
+import { safePalletizeOrder } from './engine'
 import type { MixedResult, OrderSettings, Reference } from './types'
 
 interface Request {
@@ -13,9 +13,11 @@ const ctx = self as unknown as {
   postMessage: (message: { id: number; result: MixedResult }) => void
 }
 
+// Toujours répondre, même sur exception (try/catch dans safePalletizeOrder) :
+// sans réponse, l'interface resterait sur « Calcul en cours… »
 ctx.onmessage = e => {
   const { id, refs, settings } = e.data
-  ctx.postMessage({ id, result: palletizeOrder(refs, settings) })
+  ctx.postMessage({ id, result: safePalletizeOrder(refs, settings) })
 }
 
 export {}
