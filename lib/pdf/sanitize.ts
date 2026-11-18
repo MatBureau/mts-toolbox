@@ -21,4 +21,6 @@ export function sanitizeForPDF(text: string): string {
     .replace(/≥/g, '>=') // Greater than or equal → >=
     .replace(/×/g, 'x')  // Multiplication sign → x
     .replace(/÷/g, '/')  // Division sign → /
+    // Tout autre caractère hors WinAnsi (emoji, autres alphabets) ferait échouer pdf-lib
+    .replace(/[^\u0000-ÿŒœŠšŸŽžƒˆ˜†-•‰‹›€™]/gu, '?')
 }
