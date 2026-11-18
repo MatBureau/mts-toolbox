@@ -81,6 +81,8 @@ function disposeObject(obj: THREE.Object3D) {
     const mat = (mesh as THREE.Mesh).material
     if (Array.isArray(mat)) mat.forEach(m => m.dispose())
     else if (mat) (mat as THREE.Material).dispose()
+    // Libère aussi les attributs d'instance (matrices, couleurs) côté GPU
+    if ((child as THREE.InstancedMesh).isInstancedMesh) (child as THREE.InstancedMesh).dispose()
   })
 }
 
@@ -185,6 +187,8 @@ export default function BoxScene3D({ boxes, pallet, zoneOffset, geometryKey, onR
       controls.dispose()
       if (ctx.current?.content) disposeObject(ctx.current.content)
       disposeObject(scene)
+      // Rend le contexte WebGL tout de suite : le navigateur en limite le nombre (remontages, navigation)
+      renderer.forceContextLoss()
       renderer.dispose()
       renderer.domElement.remove()
       ctx.current = null
