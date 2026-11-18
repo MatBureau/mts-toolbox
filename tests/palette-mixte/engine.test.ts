@@ -61,6 +61,17 @@ describe('palettisation d’une commande', () => {
     expect(huge({ pallet: { ...EUR, length: 20_000, width: 20_000, height: 2_000 }, maxHeight: 10_000, overhang: 500 }).error).toBeNull()
   })
 
+  it('reste borné en mémoire et en temps aux limites de saisie (petits colis sur palette géante)', () => {
+    const refs = Array.from({ length: 30 }, (_, i) =>
+      ref({ id: `r${i}`, length: 10 + i, width: 11 + i, height: 12 + i, quantity: 100, weight: null, upright: false })
+    )
+    const start = Date.now()
+    const r = palletizeOrder(refs, settings({ pallet: { length: 20_000, width: 20_000, height: 2_000, tare: 0 }, maxHeight: 10_000, overhang: 500 }))
+    expect(r.error).toBeNull()
+    expect(r.placedBoxes).toBe(3000)
+    expect(Date.now() - start).toBeLessThan(15_000)
+  }, 60_000)
+
   it('sépare les clients et regroupe les fins de commande, dernier livré en bas', () => {
     const r = palletizeOrder(
       [ref({ id: 'a', ...big, quantity: 40, stop: 1 }), ref({ id: 'b', ...big, quantity: 40, stop: 2 })],

@@ -1,4 +1,4 @@
-import { bestLayer, centerLayer, type LayerPattern } from '@/lib/palette/packing'
+import { bestLayer, centerLayer, naiveLayerCount, type LayerPattern } from '@/lib/palette/packing'
 import type { BoxItem } from './types'
 import { orientations } from './geometry'
 import { checkPlacement, cloneState, commit, topOf, type PalletState } from './state'
@@ -45,6 +45,10 @@ export function layerPhase(state: PalletState, items: BoxItem[]): void {
       const key = `${Math.min(o.l, o.w)}x${Math.max(o.l, o.w)}x${o.h}`
       if (seen.has(key)) continue
       seen.add(key)
+      // La couche optimale compte au moins autant de colis que le rangement simple : s'il dépasse déjà
+      // le groupe, aucune couche pleine n'est possible. On évite de calculer (et garder en cache)
+      // des millions de rectangles pour de petits colis sur une très grande palette.
+      if (naiveLayerCount(zone.length, zone.width, o.l, o.w) > group.length) continue
       const pattern = layerPattern(zone.length, zone.width, o.l, o.w)
       if (pattern.count === 0) continue
       const layers = Math.min(Math.floor(Math.min(group.length, byWeight) / pattern.count), Math.floor(available / o.h))
