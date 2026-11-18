@@ -49,11 +49,11 @@ export default function ReferenceCard({ value, color, onChange, onDuplicate, onR
       </div>
 
       <div className="grid grid-cols-3 gap-2">
-        <NumberField label="Longueur" unit="mm" value={value.length} onChange={v => onChange({ length: v })} />
-        <NumberField label="Largeur" unit="mm" value={value.width} onChange={v => onChange({ width: v })} />
-        <NumberField label="Hauteur" unit="mm" value={value.height} onChange={v => onChange({ height: v })} />
-        <NumberField label="Quantité" unit="u." min={1} value={value.quantity} onChange={v => onChange({ quantity: v })} />
-        <NumberField label="Poids" unit="kg" step={0.1} value={value.weight} onChange={v => onChange({ weight: v })} hint="facultatif" />
+        <NumberField compact label="Longueur" unit="mm" value={value.length} onChange={v => onChange({ length: v })} />
+        <NumberField compact label="Largeur" unit="mm" value={value.width} onChange={v => onChange({ width: v })} />
+        <NumberField compact label="Hauteur" unit="mm" value={value.height} onChange={v => onChange({ height: v })} />
+        <NumberField compact label="Quantité" unit="u." min={1} value={value.quantity} onChange={v => onChange({ quantity: v })} />
+        <NumberField compact label="Poids" unit="kg" step={0.1} value={value.weight} onChange={v => onChange({ weight: v })} hint="facultatif" />
       </div>
 
       <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -66,8 +66,8 @@ export default function ReferenceCard({ value, color, onChange, onDuplicate, onR
           <ChevronDown size={14} className="transition-transform group-open:rotate-180" /> Options avancées
         </summary>
         <div className="mt-2 grid grid-cols-2 gap-2">
-          <NumberField label="Charge max dessus" unit="kg" value={value.maxLoadOnTop} onChange={v => onChange({ maxLoadOnTop: v })} hint="vide = sans limite" />
-          <NumberField label="Client / arrêt" unit="n°" min={1} value={value.stop} onChange={v => onChange({ stop: v })} hint="1 = livré en premier" />
+          <NumberField compact label="Charge max dessus" unit="kg" value={value.maxLoadOnTop} onChange={v => onChange({ maxLoadOnTop: v })} hint="vide = sans limite" />
+          <NumberField compact label="Client / arrêt" unit="n°" min={1} value={value.stop} onChange={v => onChange({ stop: v })} hint="1 = livré en premier" />
           <div className="col-span-2">
             <Toggle
               checked={value.keepTogether}

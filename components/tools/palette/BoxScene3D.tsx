@@ -149,7 +149,7 @@ export default function BoxScene3D({ boxes, pallet, zoneOffset, geometryKey, onR
       const radius = size.length() / 2
       const vFov = (camera.fov * Math.PI) / 180
       const hFov = 2 * Math.atan(Math.tan(vFov / 2) * camera.aspect)
-      const dist = (radius / Math.sin(Math.min(vFov, hFov) / 2)) * 0.92
+      const dist = (radius / Math.sin(Math.min(vFov, hFov) / 2)) * 1.05
       controls.target.copy(center)
       camera.position.copy(center).addScaledVector(new THREE.Vector3(0.75, 0.6, 0.85).normalize(), dist)
       controls.minDistance = radius * 0.6

@@ -1,9 +1,11 @@
 'use client'
 
 export function NumberField({
-  label, value, onChange, unit, hint, min = 0, step = 1,
+  label, value, onChange, unit, hint, min = 0, step = 1, compact = false,
 }: {
   label: string; value: string; onChange: (v: string) => void; unit: string; hint?: string; min?: number; step?: number
+  /** Champs serrés (cartes de colis) : marges réduites, sans flèches */
+  compact?: boolean
 }) {
   return (
     <label className="block">
@@ -16,9 +18,9 @@ export function NumberField({
           step={step}
           value={value}
           onChange={e => onChange(e.target.value)}
-          className="w-full min-w-0 px-3 py-2 bg-transparent text-gray-900 dark:text-gray-100 focus:outline-none tabular-nums"
+          className={`w-full min-w-0 bg-transparent text-gray-900 dark:text-gray-100 focus:outline-none tabular-nums ${compact ? 'px-2 py-1.5 text-sm [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none' : 'px-3 py-2'}`}
         />
-        <span className="px-2 flex items-center text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/60 border-l border-gray-200 dark:border-gray-700">
+        <span className={`${compact ? 'px-1.5 text-[10px]' : 'px-2 text-xs'} flex items-center text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/60 border-l border-gray-200 dark:border-gray-700`}>
           {unit}
         </span>
       </span>

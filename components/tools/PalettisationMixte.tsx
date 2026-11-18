@@ -227,7 +227,7 @@ export default function PalettisationMixte() {
     <div className="space-y-6">
       <CrossLink href="/logistique/visualiseur-palette" question="Tous vos colis sont identiques ?" action="Calcul de palettisation" />
 
-      <div className="grid grid-cols-1 lg:grid-cols-[320px_minmax(0,1fr)] gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)] gap-6">
         {/* Saisie */}
         <div className="space-y-4">
           <section className={card}>
