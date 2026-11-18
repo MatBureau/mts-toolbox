@@ -18,7 +18,7 @@ export function positionLabel(p: Rect2, zone: Zone): string {
  * qui le porte : une couche peut reposer sur le chapeau d'un arrêt livré plus tard.
  */
 export function buildSteps(placements: Placement[], names: Map<string, string>, zone: Zone): Step[] {
-  const name = (refId: string) => names.get(refId) ?? 'Colis'
+  const name = (refId: string) => names.get(refId) || 'Colis'
   // Suites consécutives de colis en couches ou de chapeau, dans l'ordre des poses
   const runs: Placement[][] = []
   for (const p of placements) {

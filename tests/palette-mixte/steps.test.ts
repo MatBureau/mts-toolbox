@@ -18,6 +18,11 @@ describe('étapes', () => {
     expect(steps[1]).toMatchObject({ kind: 'box', number: 2, refId: 'b', label: 'Carton B n° 1 — posé sur Carton A, au fond, à gauche' })
   })
 
+  it('nomme « Colis » une référence sans nom', () => {
+    const s = buildPallet(items('a', 1), settings())
+    expect(buildSteps(s.placements, new Map([['a', '']]), s.zone)[0].label).toBe('Colis n° 1 — posé sur la palette, au fond, à gauche')
+  })
+
   it('positions par tiers de palette', () => {
     expect(positionLabel({ x: 500, y: 300, l: 200, w: 200 }, zone)).toBe('au centre')
     expect(positionLabel({ x: 500, y: 700, l: 200, w: 100 }, zone)).toBe('devant')
