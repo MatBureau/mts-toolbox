@@ -196,6 +196,52 @@ export const toolSEOData: Record<string, ToolSEOData> = {
       }
     ]
   },
+  'palettisation-mixte': {
+    howToSteps: [
+      "Saisissez chaque référence de colis : nom, dimensions en millimètres, quantité et poids",
+      "Ou collez vos lignes de commande depuis Excel (nom, longueur, largeur, hauteur, quantité, poids)",
+      "Précisez les contraintes : sens imposé, colis fragile, charge maximale supportée, client de livraison",
+      "Choisissez la palette, la hauteur maximale, la charge maximale et le débord autorisé",
+      "Lisez le nombre de palettes nécessaires et parcourez chaque palette",
+      "Suivez le montage étape par étape en 3D : couches complètes, puis colis un par un",
+      "Vérifiez le nombre de camions ou de conteneurs nécessaires",
+      "Téléchargez le plan de palettisation PDF pour le préparateur ou partagez le lien"
+    ],
+    faqs: [
+      {
+        question: "Comment ranger des colis de tailles différentes sur une palette ?",
+        answer: "Commencez par les colis les plus lourds et les plus nombreux, en couches complètes et planes. Posez ensuite les autres colis par-dessus en vérifiant que chacun repose sur au moins les trois quarts de sa base, et terminez par les colis fragiles. C'est la méthode qu'applique l'outil, qui affiche ensuite chaque étape de montage."
+      },
+      {
+        question: "Combien de palettes faut-il pour ma commande ?",
+        answer: "Saisissez vos références et leurs quantités : l'outil remplit les palettes l'une après l'autre en respectant la hauteur et la charge maximales, puis indique le nombre de palettes, le poids et la hauteur de chacune."
+      },
+      {
+        question: "Le rangement proposé est-il le meilleur possible ?",
+        answer: "C'est un rangement optimisé, pas une optimisation exacte : pour des colis de tailles différentes, aucun calcul rapide ne garantit le meilleur rangement possible. L'outil compare plusieurs ordres de pose et garde le plus compact, avec des palettes stables et faciles à monter."
+      },
+      {
+        question: "Comment sont gérés les colis fragiles ?",
+        answer: "Un colis marqué fragile ne reçoit rien sur son dessus. Il est posé en fin de montage, au sommet de la palette. Une palette dont le dessus porte un fragile ne reçoit pas d'autre palette dans le camion."
+      },
+      {
+        question: "À quoi sert la charge maximale supportée ?",
+        answer: "Elle indique le poids que le carton accepte au-dessus de lui. Le calcul est prudent : tout colis posé plus haut et qui chevauche le carton est compté entièrement sur lui."
+      },
+      {
+        question: "Comment préparer une palette par client ?",
+        answer: "Indiquez le numéro d'arrêt de chaque référence dans les options avancées (1 = livré en premier). Chaque client a ses propres palettes ; les fins de commande peu remplies sont regroupées, avec le dernier livré en bas et le premier livré en haut."
+      },
+      {
+        question: "Puis-je importer ma commande depuis Excel ?",
+        answer: "Oui. Copiez les lignes dans Excel (nom, longueur, largeur, hauteur en mm, quantité, poids en kg) puis cliquez sur « Coller depuis Excel ». Les séparateurs tabulation, point-virgule et virgule sont reconnus."
+      },
+      {
+        question: "Mes données sont-elles envoyées sur un serveur ?",
+        answer: "Non. Le calcul, la vue 3D et le PDF sont produits dans votre navigateur. La commande n'est conservée que dans l'adresse de la page, pour le partage."
+      }
+    ]
+  },
   'visualiseur-palette': {
     howToSteps: [
       "Saisissez les dimensions du carton en millimètres (longueur, largeur, hauteur) et son poids",

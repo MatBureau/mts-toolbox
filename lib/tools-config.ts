@@ -933,6 +933,26 @@ export const tools: Tool[] = [
       'colis par couche',
     ],
   },
+  {
+    id: 'palettisation-mixte',
+    name: 'Palettisation mixte – colis de tailles différentes',
+    description: "Rangez sur palette des colis de tailles différentes : saisissez vos références, l'outil calcule le nombre de palettes, propose un rangement optimisé (couches pleines puis chapeau stable) et montre chaque étape de montage en 3D. Poids, fragiles, clients, PDF. Gratuit.",
+    category: 'logistique',
+    slug: 'palettisation-mixte',
+    icon: '📦',
+    keywords: [
+      'palettisation mixte',
+      'palette mixte',
+      'palettisation colis de tailles différentes',
+      'logiciel palettisation multi références',
+      'plan de palettisation multi colis',
+      'préparation de commande palette',
+      'montage palette étape par étape',
+      'calcul nombre de palettes commande',
+      'palette multi-références',
+      'optimisation chargement palette',
+    ],
+  },
 ]
 
 export function getToolsByCategory(categorySlug: string): Tool[] {

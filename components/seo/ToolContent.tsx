@@ -196,6 +196,38 @@ const toolContents: Record<string, {
       "Résoudre des problèmes de mathématiques"
     ]
   },
+  'palettisation-mixte': {
+    description: "Outil gratuit de palettisation mixte pour ranger sur palette des colis de tailles différentes. Saisissez ou collez vos références depuis Excel : l'outil calcule combien de palettes il faut, monte d'abord des couches pleines et planes avec les colis les plus lourds et les plus nombreux, puis compose le dessus colis par colis en vérifiant l'appui de chacun, les fragiles et la charge que chaque carton supporte. Chaque palette est montrée étape par étape en 3D, avec les plans de couche, le nombre de camions nécessaires et un plan PDF à remettre au préparateur.",
+    howTo: [
+      "Ajoutez vos références de colis ou collez-les depuis Excel",
+      "Renseignez dimensions, quantités, poids et contraintes (sens, fragile, charge supportée, client)",
+      "Choisissez la palette, la hauteur et la charge maximales",
+      "Parcourez les palettes calculées et suivez le montage étape par étape",
+      "Vérifiez le nombre de camions et téléchargez le plan PDF"
+    ],
+    features: [
+      "Commande multi-références répartie sur autant de palettes que nécessaire",
+      "Couches pleines en bas, chapeau stable au-dessus (appui de 75 % minimum)",
+      "Montage étape par étape en 3D : précédent, suivant, lecture automatique",
+      "Colis fragiles toujours au sommet",
+      "Charge maximale supportée par carton",
+      "Palettes par client, fins de commande regroupées",
+      "Option « garder ensemble » par référence",
+      "Collage direct depuis Excel",
+      "Contrôle du centre de gravité",
+      "Nombre de camions et conteneurs nécessaires",
+      "Plan de palettisation PDF, une page par palette",
+      "Lien de partage, calcul 100 % dans le navigateur"
+    ],
+    useCases: [
+      "Préparer une commande e-commerce multi-produits sur palette",
+      "Monter des palettes multi-références en entrepôt",
+      "Préparer des palettes par client pour une tournée de livraison",
+      "Estimer le nombre de palettes et de camions d'une commande",
+      "Donner au préparateur un plan de montage clair",
+      "Vérifier qu'une palette respecte hauteur et poids du transporteur"
+    ]
+  },
   'visualiseur-palette': {
     description: "Calculateur de palettisation gratuit pour savoir combien de cartons tiennent sur une palette, couche par couche. L'outil cherche le meilleur plan de pose, y compris les plans mixtes où une partie des cartons est tournée à 90°, là où un calcul à la main range tout dans le même sens et laisse souvent une rangée vide. Il tient compte de la hauteur maximale, de la charge maximale, du débord autorisé et du sens du colis, affiche le résultat en 3D, donne le plan de couche numéroté et calcule combien de palettes entrent dans une semi-remorque, un porteur ou un conteneur. Pour les préparateurs de commandes, logisticiens, responsables d'expédition et e-commerçants.",
     howTo: [

@@ -106,6 +106,7 @@ const toolComponents: Record<string, any> = {
   'simulateur-lmnp': dynamic(() => import('@/components/tools/SimulateurLMNP')),
   // Logistique
   'visualiseur-palette': dynamic(() => import('@/components/tools/VisualiseurPalette')),
+  'palettisation-mixte': dynamic(() => import('@/components/tools/PalettisationMixte')),
 }
 
 interface ToolPageProps {
