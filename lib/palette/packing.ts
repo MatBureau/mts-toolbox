@@ -258,8 +258,13 @@ const EMPTY_LAYER: LayerPattern = { count: 0, rects: [] }
 // Centre la couche dans la zone : le jeu restant se répartit des deux côtés, comme sur le quai
 export function centerLayer(layer: LayerPattern, L: number, W: number): LayerPattern {
   if (layer.count === 0) return layer
-  const maxX = Math.max(...layer.rects.map(r => r.x + r.l))
-  const maxY = Math.max(...layer.rects.map(r => r.y + r.w))
+  // Boucle plutôt que Math.max(...) : l'étalement d'un très grand tableau dépasse la pile
+  let maxX = -Infinity
+  let maxY = -Infinity
+  for (const r of layer.rects) {
+    if (r.x + r.l > maxX) maxX = r.x + r.l
+    if (r.y + r.w > maxY) maxY = r.y + r.w
+  }
   const dx = Math.floor((L - maxX) / 2)
   const dy = Math.floor((W - maxY) / 2)
   if (dx === 0 && dy === 0) return layer

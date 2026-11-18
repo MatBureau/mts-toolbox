@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { bestLayer, computePalletization, computeVehicleLoad } from '@/lib/palette/packing'
+import { bestLayer, centerLayer, computePalletization, computeVehicleLoad, type LayerPattern } from '@/lib/palette/packing'
 import { PALLET_PRESETS, VEHICLE_PRESETS } from '@/lib/palette/presets'
 
 const vehicle = (id: string) => {
@@ -43,5 +43,20 @@ describe('moteur de couche (références métier)', () => {
   it('palettes de 1,35 m gerbables en semi-remorque : 66', () => {
     const load = computeVehicleLoad(vehicle('semi'), { length: 1200, width: 800 }, 1350, 600, 40, true)
     expect(load.pallets).toBe(66)
+  })
+})
+
+describe('centrage de couche', () => {
+  it('répartit le jeu des deux côtés', () => {
+    const layer: LayerPattern = { count: 2, rects: [{ x: 0, y: 0, l: 400, w: 300 }, { x: 400, y: 0, l: 400, w: 300 }] }
+    expect(centerLayer(layer, 1200, 800).rects).toEqual([{ x: 200, y: 250, l: 400, w: 300 }, { x: 600, y: 250, l: 400, w: 300 }])
+  })
+
+  it('supporte une couche immense sans dépasser la pile (200 000 colis)', () => {
+    const n = 200_000
+    const rects = Array.from({ length: n }, (_, k) => ({ x: (k % 500) * 10, y: Math.floor(k / 500) * 10, l: 10, w: 10 }))
+    const out = centerLayer({ count: n, rects }, 5_100, 4_100)
+    expect(out.rects).toHaveLength(n)
+    expect(out.rects[0]).toEqual({ x: 50, y: 50, l: 10, w: 10 })
   })
 })
